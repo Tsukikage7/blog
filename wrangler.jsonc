@@ -1,7 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "astro-blog",
+  "name": "blog",
+  "account_id": "f08770d5c92bef6310b2e5dbf2ac2286",
   "compatibility_date": "2025-03-25",
+  "routes": [
+    { "pattern": "tsukikage7.com", "custom_domain": true },
+    { "pattern": "www.tsukikage7.com", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page",
