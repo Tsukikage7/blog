@@ -1,0 +1,29 @@
+关于页机构标识来源：
+
+nuist.png
+  南京信息工程大学校园标识：https://www.nuist.edu.cn/xxgk/xybs.htm
+  原始资源：https://www.nuist.edu.cn/images/mark-icon3.png
+
+yanxuan.webp
+  网易严选官方应用：https://apps.apple.com/cn/app/id1065178761
+  原始资源：https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1f/68/01/1f6801fa-504c-fbe0-c14e-8f46b8245de2/AppIcon-1x_U007emarketing-0-8-0-85-220-0.png/512x512bb.jpg
+  等比例缩至 144px，保存为 WebP。
+
+dtstack.svg
+  袋鼠云：https://www.dtstack.com/
+  原始资源：https://www.dtstack.com/favicon.svg
+
+标识保留各所属机构的品牌权利，仅用于标明教育与工作经历。
+
+ucloud.png
+  优刻得官网：https://www.ucloud.cn/
+  原始资源：https://www.ucloud.cn/favicon.ico
+  官网图标转换为 PNG，保留原始尺寸和颜色。
+
+dubbo.png
+  Apache Dubbo 官网仓库：https://github.com/apache/dubbo-website
+  原始资源：https://raw.githubusercontent.com/apache/dubbo-website/master/static/favicons/pwa-192x192.png
+
+powercontext.svg
+  PowerContext 官方仓库：https://github.com/oceanbase/powercontext
+  原始资源：https://raw.githubusercontent.com/oceanbase/powercontext/master/src/powercontext/server/dashboard/static/brand/favicon-color.svg

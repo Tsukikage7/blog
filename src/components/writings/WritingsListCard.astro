@@ -1,126 +1,74 @@
 ---
 import type { WritingsEntry } from "@/types";
 import { plainify } from "@lib/textConverter";
-import { FaRegClock, FaRegCalendarAlt, FaBookOpen } from "react-icons/fa";
-import readingTime from "@lib/readingTime";
+import { chapterHref } from "@lib/seriesModel";
 import { formatDate } from "@lib/formatDate";
-import LiquidGlass from "@components/common/LiquidGlassLess.astro";
-import SmartImage from "@components/common/SmartImage.astro";
-
+import readingTime from "@lib/readingTime";
 interface Props {
   entry: WritingsEntry;
 }
-
-const { entry }: Props = Astro.props;
-const { title, description, created, genre, mood, tags, image, series } = entry.data;
-const descriptionLength = 150;
-
-const hasCustomImage = !!(image && (typeof image === "string" || (typeof image === "object" && "src" in image)));
-
-const entryDate = created ? formatDate(created) : null;
-const entryReadingTime = readingTime(entry.body!, 1);
-const entryDescription = description?.substring(0, descriptionLength) ||
-  (entry.body ? plainify(entry.body.slice(0, descriptionLength)) : "");
-
-// 根据体裁返回不同的颜色 - 使用灰度
-const genreConfig: Record<string, { color: string }> = {
-  "短篇小说": { color: "bg-zinc-200/50 text-zinc-700 dark:bg-zinc-700/50 dark:text-zinc-300" },
-  "散文": { color: "bg-stone-200/50 text-stone-700 dark:bg-stone-700/50 dark:text-stone-300" },
-  "诗歌": { color: "bg-neutral-200/50 text-neutral-700 dark:bg-neutral-700/50 dark:text-neutral-300" },
-  "杂文": { color: "bg-gray-200/50 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300" },
-  "随笔": { color: "bg-slate-200/50 text-slate-700 dark:bg-slate-700/50 dark:text-slate-300" },
-};
-
-const currentGenre = genre ? genreConfig[genre] : null;
+const { entry } = Astro.props;
+const date = entry.data.updated || entry.data.created;
+const description =
+  entry.data.description || plainify(entry.body || "").slice(0, 150);
 ---
 
-<LiquidGlass
-  heavy
-  wrapperClass="dock rounded-lg my-3 hover:scale-[1.005] border border-border/50 dark:border-border/30 hover:border-border dark:hover:border-border/50 hover:shadow-lg transition-all duration-300"
-  textClass="h-full"
-  animation="fadeRight"
->
-  <div class="flex flex-col group p-5">
-    <!-- 顶部信息栏 -->
-    <div class="flex items-center justify-between mb-3">
-      <div class="flex items-center gap-2">
-        {currentGenre && (
-          <span class={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${currentGenre.color}`}>
-            {genre}
-          </span>
-        )}
-        {series && (
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-zinc-500/15 text-zinc-600 dark:text-zinc-400">
-            {series}
-          </span>
-        )}
-      </div>
-      <div class="flex items-center gap-3 text-[11px] text-txt-light dark:text-darkmode-txt-light opacity-60">
-        <div class="flex items-center">
-          <FaRegClock className="mr-1" />
-          <span>{entryReadingTime}</span>
-        </div>
-        {entryDate && (
-          <div class="flex items-center">
-            <FaRegCalendarAlt className="mr-1" />
-            <span>{entryDate}</span>
-          </div>
-        )}
-      </div>
-    </div>
-
-    <!-- 标题 -->
-    <h3 class="mb-2 text-xl md:text-2xl font-semibold text-txt-p dark:text-darkmode-txt-p leading-tight group-hover:text-foreground transition-colors duration-300">
-      <a
-        href={`/writings/${entry.id}`}
-        class="hover:underline hover:decoration-foreground hover:decoration-1 hover:underline-offset-4 block"
-      >
-        {title}
-      </a>
-    </h3>
-
-    <!-- 描述/摘要 -->
-    <p class="text-txt-light dark:text-darkmode-txt-light leading-relaxed mb-4 line-clamp-3 text-sm md:text-base">
-      {entryDescription}...
-    </p>
-
-    <!-- 底部信息 -->
-    <div class="flex items-center justify-between mt-auto pt-3 border-t border-border/30 dark:border-border/20">
-      <div class="flex items-center gap-2">
-        {mood && (
-          <span class="text-xs text-txt-light dark:text-darkmode-txt-light opacity-70">
-            {mood}
-          </span>
-        )}
-        {tags && tags.length > 0 && (
-          <div class="flex items-center gap-1">
-            {tags.slice(0, 3).map((tag) => (
-              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted/60 text-muted-foreground">
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-      <a
-        href={`/writings/${entry.id}`}
-        class="inline-flex items-center text-muted-foreground hover:text-foreground font-medium text-sm transition-all duration-300 group/link"
-      >
-        <span>阅读全文</span>
-        <svg
-          class="ml-1.5 w-4 h-4 transition-transform duration-300 group-hover/link:translate-x-1"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M13 7l5 5m0 0l-5 5m5-5H6"
-          ></path>
-        </svg>
-      </a>
-    </div>
-  </div>
-</LiquidGlass>
+<article class="writing-row">
+  <p class="writing-meta">
+    {entry.data.genre || "文字"} · {readingTime(entry.body || "", 1)}{" "}
+    {date && <time datetime={date.toISOString()}>{formatDate(date)}</time>}
+  </p>
+  <h2>
+    <a href={chapterHref(entry)}>{entry.data.title}</a>
+  </h2>
+  <p class="writing-description">{description}</p>
+  <a class="read-writing" href={chapterHref(entry)}>
+    阅读全文 <span aria-hidden="true">→</span>
+  </a>
+</article>
+<style>
+  .writing-row {
+    padding-block: 32px;
+    border-bottom: 1px solid hsl(var(--border));
+    max-width: 50rem;
+  }
+  .writing-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+    font-variant-numeric: tabular-nums;
+  }
+  h2 {
+    font-family: var(--font-editorial);
+    font-size: clamp(24px, 3vw, 30px);
+    line-height: 1.5;
+    margin-block: 14px;
+  }
+  .writing-description {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.9;
+    color: hsl(var(--muted-foreground));
+  }
+  .read-writing {
+    display: inline-flex;
+    align-items: center;
+    gap: 28px;
+    min-height: 44px;
+    color: hsl(var(--primary));
+    font-size: 13px;
+    margin-top: 14px;
+  }
+  a:hover {
+    color: hsl(var(--primary));
+  }
+  a:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 4px;
+  }
+</style>

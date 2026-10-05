@@ -1,7 +1,6 @@
 ---
 import BaseLayout from "@components/base/BaseLayout.astro";
 import PageHeader from "@components/common/PageHeader.astro";
-import { upperHumanize } from "@lib/textConverter";
 import BlogListCard from "@components/blog/BlogListCard.astro";
 import type { BlogEntry } from "@/types";
 
@@ -13,23 +12,30 @@ interface Props {
 const { taxon, entries }: Props = Astro.props;
 ---
 
-<BaseLayout title={upperHumanize(taxon)}>
-  <div class="container px-3 lg:px-8">
-    <PageHeader title={taxon} articleCount={entries.length} />
-    <section class="">
-      <div class="pb-0">
-        <div class="container px-3 lg:px-8">
-          <div class="row">
-            {
-              entries.map((entry) => (
-                <div class="">
-                  <BlogListCard entry={entry} />
-                </div>
-              ))
-            }
-          </div>
-        </div>
-      </div>
+<BaseLayout
+  title={taxon}
+  description={`${taxon}相关文章，共 ${entries.length} 篇。`}
+>
+  <div class="site-container">
+    <PageHeader
+      contained
+      title={taxon}
+      description={`关于「${taxon}」的实践与思考。`}
+      articleCount={entries.length}
+    />
+    <section
+      class="max-w-4xl border-t border-border"
+      aria-label={`${taxon}文章列表`}
+    >
+      {entries.map((entry) => (
+        <BlogListCard entry={entry} />
+      ))}
+      <a
+        href="/blog/"
+        class="mt-8 inline-flex items-center gap-3 text-sm text-primary"
+      >
+        ← 返回全部文章
+      </a>
     </section>
   </div>
 </BaseLayout>

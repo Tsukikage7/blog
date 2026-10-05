@@ -27,7 +27,7 @@ const { tags, categories }: Props = Astro.props;
 
   <LiquidGlassLess
     heavy
-    wrapperClass=" dock !p-6 my-2 mb-4"
+    wrapperClass=" dock p-6! my-2 mb-4"
     animation="fadeLeft"
   >
     <div class="intersect:animate-fadeLeft">
@@ -38,7 +38,7 @@ const { tags, categories }: Props = Astro.props;
            分类
         </a>
       </h4>
-      <hr class="mb-2 -mt-1 border border-gray-600/50" />
+      <hr class="mb-2 -mt-1 border border-border/50" />
       <ul class="space-y-3">
         {
           categories.map((category) => {
@@ -80,7 +80,7 @@ const { tags, categories }: Props = Astro.props;
   
   <LiquidGlassLess
     heavy
-    wrapperClass=" dock !p-6 mt-2 mb-4"
+    wrapperClass=" dock p-6! mt-2 mb-4"
     animation="fadeLeft"
   >
     <div class="intersect:animate-fadeLeft">
@@ -90,7 +90,7 @@ const { tags, categories }: Props = Astro.props;
            标签
         </a>
       </h4>
-      <hr class="mb-2 -mt-1 border border-gray-600/50" />
+      <hr class="mb-2 -mt-1 border border-border/50" />
       <ul>
         {
           tags.map((tag: any) => {

@@ -1,0 +1,119 @@
+---
+import { getTechnology } from "@lib/technologies";
+interface Props {
+  name: string;
+  inline?: boolean;
+}
+const { name, inline = false } = Astro.props;
+const technology = getTechnology(name);
+const Icon = technology.icon;
+---
+
+<a
+  class:list={[
+    "technology-link",
+    { "is-inline": inline, "is-concept": technology.concept },
+  ]}
+  href={technology.url}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  {(Icon || technology.image) && (
+    <span class="technology-mark" aria-hidden="true">
+      {Icon ? (
+        <Icon color={technology.color} />
+      ) : (
+        <img
+          src={technology.image}
+          alt=""
+          width="20"
+          height="20"
+          loading="lazy"
+          decoding="async"
+        />
+      )}
+    </span>
+  )}
+  <span>{name}</span>
+</a>
+<style>
+  .technology-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 38px;
+    padding: 6px 10px;
+    border: 1px solid hsl(var(--border) / 0.7);
+    border-radius: 6px;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-size: 13px;
+    line-height: 1.5;
+    text-decoration: none;
+    transition:
+      border-color 0.18s,
+      background-color 0.18s;
+  }
+  .technology-link:hover {
+    border-color: hsl(var(--primary) / 0.5);
+    background: hsl(var(--primary) / 0.06);
+  }
+  .technology-link:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+  .technology-mark {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+    border-radius: 4px;
+    background: #fff;
+  }
+  .technology-mark img,
+  .technology-mark :global(svg) {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    max-width: none;
+  }
+  .is-concept {
+    border-color: transparent;
+    background: hsl(var(--muted) / 0.45);
+    color: hsl(var(--muted-foreground));
+  }
+  .is-inline {
+    display: inline;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: 0;
+    font-size: inherit;
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    text-decoration-color: hsl(var(--primary) / 0.22);
+    text-underline-offset: 3px;
+  }
+  .is-inline .technology-mark {
+    display: inline-flex;
+    vertical-align: -2px;
+    width: 16px;
+    height: 16px;
+    padding: 1px;
+    margin-right: 3px;
+  }
+  .is-inline .technology-mark img,
+  .is-inline .technology-mark :global(svg) {
+    width: 14px;
+    height: 14px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .technology-link {
+      transition: none;
+    }
+  }
+</style>

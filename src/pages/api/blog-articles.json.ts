@@ -1,14 +1,9 @@
-import { getCollection } from "astro:content";
+import { getEntries } from "@lib/contentParser";
 import type { APIRoute } from "astro";
-import { logger } from "@lib/env";
 
 export const GET: APIRoute = async () => {
   try {
-    console.log('开始获取博客文章...')
-    
-    const allPosts = await getCollection("blog", ({ filePath }) => {
-      return filePath?.indexOf('-index') == -1;
-    });
+    const allPosts = await getEntries("blog");
 
     
     const articles = allPosts.map((post) => ({

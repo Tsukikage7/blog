@@ -1,0 +1,14 @@
+{
+  "cloudwego.png": "https://www.cloudwego.io/favicons/android-192x192.png",
+  "grpc.png": "https://grpc.io/favicons/android-chrome-192x192.png",
+  "protobuf.png": "https://protobuf.dev/favicons/android-192x192.png",
+  "gorm.png": "https://gorm.io/apple-touch-icon.png",
+  "openresty.webp": "https://openresty.org/images/logo.webp",
+  "apisix.svg": "https://apisix.apache.org/img/logo2.svg",
+  "loki.svg": "https://grafana.com/static/img/logos/logo-loki.svg",
+  "tempo.svg": "https://grafana.com/static/assets/img/logos/grafana-tempo.svg",
+  "cerbos.png": "https://www.cerbos.dev/apple-touch-icon.png",
+  "openai.png": "https://avatars.githubusercontent.com/u/14957082?v=4",
+  "s3.png": "https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/main/dist/Storage/SimpleStorageService.png",
+  "voyracloud.ico": "https://www.voyracloud.com/favicon.ico"
+}

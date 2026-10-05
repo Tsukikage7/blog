@@ -1,0 +1,19 @@
+---
+import { technologies } from "@lib/technologies";
+import TechnologyLink from "./TechnologyLink.astro";
+interface Props {
+  text: string;
+}
+const { text } = Astro.props;
+// 优先匹配长名称，避免把 gRPC-Gateway 等项目拆成多个链接。
+const names = Object.keys(technologies).sort((a, b) => b.length - a.length);
+const pattern = new RegExp(
+  `(?<![A-Za-z0-9_-])(${names.map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?![A-Za-z0-9_-])`,
+  "g",
+);
+const parts = text.split(pattern);
+---
+
+{parts.map((part) =>
+  technologies[part] ? <TechnologyLink name={part} inline /> : part,
+)}

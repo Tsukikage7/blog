@@ -1,28 +1,12 @@
 ---
-import { getCollection } from "astro:content";
-import { slugify } from "@lib/textConverter";
-
+import CollectionLayout from "@components/notes/CollectionLayout.astro";
+import { getNotesTagPages } from "@lib/taxonomyParser";
 export async function getStaticPaths() {
-  const allPosts = await getCollection("notes");
-
-  
-  const allTags = new Set<string>();
-  allPosts.forEach((post) => {
-    const postTags = post.data.tags;
-    if (postTags && Array.isArray(postTags)) {
-      postTags.forEach((tag: string) => {
-        allTags.add(tag);
-      });
-    }
-  });
-
-  
-  return Array.from(allTags).map((tag) => ({
-    params: { slug: slugify(tag) },
-  }));
+  return (await getNotesTagPages())
+    .filter((page) => page.params.page === "1")
+    .map(({ params, props }) => ({ params: { slug: params.slug }, props }));
 }
-
-const { slug } = Astro.params;
-
-return Astro.rewrite(`/notes/tags/${encodeURI(slug)}/1`);
+const props = Astro.props;
 ---
+
+<CollectionLayout {...props} />

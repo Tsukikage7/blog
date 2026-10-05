@@ -11,9 +11,9 @@ import SmartImage from "@components/common/SmartImage.astro";
 
 interface Props {
   entry: BlogEntry;
-  showImage?: boolean; 
-  showReadingTime?: boolean; 
-  compact?: boolean; 
+  showImage?: boolean;
+  showReadingTime?: boolean;
+  compact?: boolean;
 }
 
 const {
@@ -25,7 +25,10 @@ const {
 
 const { title, date, image, imageAlt } = entry.data;
 
-const hasCustomImage = !!(image && (typeof image === "string" || (typeof image === "object" && "src" in image)));
+const hasCustomImage = !!(
+  image &&
+  (typeof image === "string" || (typeof image === "object" && "src" in image))
+);
 const displayImageAlt = imageAlt || `${title} - 推荐阅读`;
 
 const entryDate = date ? formatDate(date) : null;
@@ -33,109 +36,92 @@ const estimatedReadingTime = readingTime(entry.body || "", 1);
 ---
 
 <div
-  class={`group flex p-2 pr-4 items-center gap-3 rounded-lg text-txt-p
+  class={`group flex p-2 pr-4 items-center gap-3 rounded-lg text-foreground
    hover:bg-muted transition-all duration-300
    border border-transparent hover:border-border/50`}
 >
   <a
-    href={`/blog/${entry.id}`}
+    href={`/blog/${entry.id}/`}
     class="flex items-center gap-3 w-full no-underline"
   >
-    
-    {
-      showImage && (
-        <div
-          class={`flex-shrink-0 rounded-md overflow-hidden ${compact ? "w-14 h-14" : "w-16 h-16"}  block lg:hidden 2xl:block`}
-        >
-          {hasCustomImage ? (
-            <SmartImage
-              src={image}
-              alt={displayImageAlt}
-              class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
-              quality={20}
-              style={`width: ${compact ? "64px" : "64px"}; height: ${compact ? "64px" : "64px"};`}
-            />
-          ) : (
-            <PlaceholderImage
-              title={title}
-              className="w-full h-full rounded-lg"
-            />
-          )}
-        </div>
-      )
-    }
+    {showImage && (
+      <div
+        class={`shrink-0 rounded-md overflow-hidden ${compact ? "w-14 h-14" : "w-16 h-16"}  block lg:hidden 2xl:block`}
+      >
+        {hasCustomImage ? (
+          <SmartImage
+            src={image}
+            alt={displayImageAlt}
+            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+            quality={20}
+          />
+        ) : (
+          <PlaceholderImage
+            title={title}
+            className="w-full h-full rounded-lg"
+          />
+        )}
+      </div>
+    )}
 
-    
     <div class="flex-1 min-w-0">
-      
       <h4
-        class={`text-txt-light dark:text-darkmode-txt-light line-clamp-2 leading-tight mb-1 ${compact ? "text-sm" : "text-base"}`}
+        class={`text-muted-foreground line-clamp-2 leading-tight mb-1 ${compact ? "text-sm" : "text-base"}`}
       >
         {title}
       </h4>
 
-      
       <div
-        class={`flex items-center gap-2 text-gray-500 dark:text-gray-300 ${compact ? "text-xs" : "text-sm"}`}
+        class={`flex items-center gap-2 text-muted-foreground ${compact ? "text-xs" : "text-sm"}`}
       >
-        
-        {
-          entryDate && (
-            <span class="flex items-center gap-1">
-              <svg
-                class="w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              {entryDate}
-            </span>
-          )
-        }
+        {entryDate && (
+          <span class="flex items-center gap-1">
+            <svg
+              class="w-3 h-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            {entryDate}
+          </span>
+        )}
 
-        
-        {
-          entryDate && showReadingTime && (
-            <span class="text-gray-300 dark:text-gray-600">•</span>
-          )
-        }
+        {entryDate && showReadingTime && (
+          <span class="text-muted-foreground">•</span>
+        )}
 
-        
-        {
-          showReadingTime && (
-            <span class="flex items-center gap-1">
-              <svg
-                class="w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              {estimatedReadingTime}
-            </span>
-          )
-        }
+        {showReadingTime && (
+          <span class="flex items-center gap-1">
+            <svg
+              class="w-3 h-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {estimatedReadingTime}
+          </span>
+        )}
       </div>
     </div>
   </a>
 </div>
 
 <style>
-  
   a {
     text-decoration: none;
     color: inherit;
@@ -143,13 +129,5 @@ const estimatedReadingTime = readingTime(entry.body || "", 1);
 
   a:hover {
     text-decoration: none;
-  }
-
-  
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
   }
 </style>

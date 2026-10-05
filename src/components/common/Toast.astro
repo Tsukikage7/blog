@@ -1,4 +1,10 @@
 ---
+import "../../styles/components/toast.css";
+import {
+  TOAST_POSITION_CLASSES,
+  TOAST_TYPE_CONFIG,
+  toastContentClasses,
+} from "@lib/toastConfig";
 
 export interface Props {
   title?: string;
@@ -20,66 +26,27 @@ const {
   closable = true
 } = Astro.props;
 
-const typeConfig = {
-  success: {
-    bgColor: 'from-emerald-400/20 to-green-500/20',
-    borderColor: 'border-emerald-400/30',
-    textColor: 'text-emerald-700',
-    icon: '✓'
-  },
-  info: {
-    bgColor: 'from-blue-400/20 to-cyan-500/20',
-    borderColor: 'border-blue-400/30',
-    textColor: 'text-blue-700',
-    icon: 'ℹ'
-  },
-  warning: {
-    bgColor: 'from-amber-400/20 to-orange-500/20',
-    borderColor: 'border-amber-400/30',
-    textColor: 'text-amber-700',
-    icon: '⚠'
-  },
-  error: {
-    bgColor: 'from-red-400/20 to-rose-500/20',
-    borderColor: 'border-red-400/30',
-    textColor: 'text-red-700',
-    icon: '✕'
-  }
-};
+const config = TOAST_TYPE_CONFIG[type];
+const positionClasses = TOAST_POSITION_CLASSES;
 
-const config = typeConfig[type];
-
-const positionClasses = {
-  'top-right': 'top-4 right-4',
-  'top-left': 'top-4 left-4',
-  'bottom-right': 'bottom-4 right-4',
-  'bottom-left': 'bottom-4 left-4',
-  'top-center': 'top-4 left-1/2 transform -translate-x-1/2',
-  'bottom-center': 'bottom-4 left-1/2 transform -translate-x-1/2'
-};
 ---
 
 <div 
-  class={`toast-container fixed z-50 ${positionClasses[position]} pointer-events-none`}
+  class={`toast-container toast-container--mobile-wide fixed z-50 ${positionClasses[position]} pointer-events-none`}
   data-duration={duration}
+  data-position={position}
 >
-  <div class={`
-    toast-content pointer-events-auto
-    bg-gradient-to-br ${config.bgColor}
-    border ${config.borderColor}
-    rounded-2xl shadow-2xl
-    p-4 min-w-[280px] max-w-[400px]
-    transform transition-all duration-500 ease-out
-    hover:scale-105 hover:shadow-3xl
-    animate-slide-in
-  `}>
+  <div class={toastContentClasses(config)}>
     
-    <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
+    <div class="absolute inset-0 rounded-2xl bg-linear-to-r from-foreground/5 to-transparent opacity-50"></div>
     
     
     {closable && (
-      <button 
-        class="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 transition-colors duration-200 flex items-center justify-center text-gray-600 hover:text-gray-800"
+      <button
+        type="button"
+        aria-label="关闭通知"
+        title="关闭通知"
+        class="absolute top-2 right-2 w-6 h-6 rounded-full bg-card/60 hover:bg-muted transition-colors duration-200 flex items-center justify-center text-muted-foreground hover:text-foreground"
         onclick="this.closest('.toast-container').remove()"
       >
         <span class="text-xs">×</span>
@@ -91,8 +58,8 @@ const positionClasses = {
       
       {showIcon && (
         <div class={`
-          flex-shrink-0 w-8 h-8 rounded-full 
-          bg-gradient-to-br ${config.bgColor}
+          shrink-0 w-8 h-8 rounded-full
+          bg-linear-to-br ${config.bgColor}
           border ${config.borderColor}
           flex items-center justify-center
           text-lg font-bold ${config.textColor}
@@ -109,7 +76,7 @@ const positionClasses = {
             {title}
           </h4>
         )}
-        <p class="text-gray-700 text-sm leading-relaxed">
+        <p class="text-foreground text-sm leading-relaxed">
           {content}
         </p>
       </div>
@@ -117,62 +84,13 @@ const positionClasses = {
     
     
     {duration > 0 && (
-      <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-2xl overflow-hidden">
-        <div class={`h-full bg-gradient-to-r ${config.bgColor} animate-progress`} style={`animation-duration: ${duration}ms`}></div>
+      <div class="absolute bottom-0 left-0 right-0 h-1 bg-foreground/10 rounded-b-2xl overflow-hidden">
+        <div class={`h-full bg-linear-to-r ${config.bgColor} toast-progress`} style={`animation-duration: ${duration}ms`}></div>
       </div>
     )}
   </div>
 </div>
 
-<style>
-  
-  @keyframes slide-in {
-    from {
-      opacity: 0;
-      transform: translateY(-20px) scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-  
-  
-  @keyframes progress {
-    from {
-      width: 100%;
-    }
-    to {
-      width: 0%;
-    }
-  }
-  
-  .animate-slide-in {
-    animation: slide-in 0.5s ease-out;
-  }
-  
-  .animate-progress {
-    animation: progress linear;
-  }
-  
-  
-
-  
-  
-  
-  @media (max-width: 640px) {
-    .toast-container {
-      left: 1rem !important;
-      right: 1rem !important;
-      transform: none !important;
-    }
-    
-    .toast-content {
-      min-width: auto;
-      max-width: none;
-    }
-  }
-</style>
 
 <script>
   

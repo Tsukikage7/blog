@@ -1,24 +1,5 @@
 ---
-import type { SearchableEntry } from "@/types";
 import EntryLayout from "@components/search/EntryLayout.astro";
-
-import { getEntriesBatch } from "@lib/contentParser";
-import type { CollectionKey } from "astro:content";
-
-const searchableCollections = [
-  "about",
-  "blog",
-  "notes",
-
-] as CollectionKey[];
-
-const searchList = (await getEntriesBatch(
-  searchableCollections,
-  undefined,
-  false,
-)) as SearchableEntry[];
-
-console.log("准备搜索列表", searchList);
 ---
 
-<EntryLayout searchList={searchList} />
+<EntryLayout />

@@ -1,32 +1,51 @@
 ---
 import BaseLayout from "@components/base/BaseLayout.astro";
 import { plainify } from "@lib/textConverter";
-import { render, type CollectionEntry, getCollection } from "astro:content";
+import { render, type CollectionEntry } from "astro:content";
 import TableOfContents from "@components/common/TableOfContents.astro";
-import "../../styles/markdown.scss";
 import { SITE_INFO } from "@lib/config";
 import LiquidGlassLess from "@components/common/LiquidGlassLess.astro";
 import ShareButton from "@components/blog/ShareButton.astro";
 import { formatDate } from "@lib/formatDate";
 import readingTime from "@lib/readingTime";
-import type { WritingsEntry } from "@/types";
+import { getSeries } from "@lib/series";
+import { chapterDisplayTitle } from "@lib/seriesModel";
+import ArticleSeries from "@components/series/ArticleSeries.astro";
+import ChapterPagination from "@components/series/ChapterPagination.astro";
 
 interface Props {
   entry: CollectionEntry<"writings">;
 }
 
 const { entry } = Astro.props;
-const { title, description, image, updated, created, genre, series, seriesOrder, mood, tags } = entry.data;
+const {
+  title,
+  description,
+  image,
+  updated,
+  created,
+  genre,
+  series,
+  mood,
+  tags,
+} = entry.data;
 
 const { headings } = await render(entry);
 
 const descriptionLength = 200;
 const tocDepth = 3;
 
-const actuallyHideToc = headings.filter((heading) => heading.depth <= tocDepth).length < 3;
+const actuallyHideToc =
+  headings.filter((heading) => heading.depth <= tocDepth).length < 3;
 
-const articleClass = actuallyHideToc ? "w-full lg:w-4/5 mx-auto" : "w-full lg:w-3/4";
-const tocClass = actuallyHideToc ? "hidden" : "hidden lg:flex lg:w-1/4";
+const readingSeries = series
+  ? (await getSeries()).find((item) => item.entry.id === series)
+  : undefined;
+const displayTitle = readingSeries ? chapterDisplayTitle(entry) : title;
+const showAside = Boolean(readingSeries) || !actuallyHideToc;
+const articleClass = !showAside
+  ? "min-w-0 w-full max-w-[760px] mx-auto"
+  : "min-w-0 w-full max-w-[760px] flex-1";
 
 const entryDescription =
   description ||
@@ -34,83 +53,104 @@ const entryDescription =
 
 const entryDate = created ? formatDate(created) : null;
 const entryReadingTime = readingTime(entry.body!, 1);
-
-// 获取同系列的其他文章
-let seriesEntries: WritingsEntry[] = [];
-if (series) {
-  const allWritings = await getCollection("writings", ({ data }) => !data.draft);
-  seriesEntries = allWritings
-    .filter((w) => w.data.series === series && w.id !== entry.id)
-    .sort((a, b) => (a.data.seriesOrder || 0) - (b.data.seriesOrder || 0)) as WritingsEntry[];
-}
-
-// 体裁配置 - 使用灰度
-const genreConfig: Record<string, { color: string }> = {
-  "短篇小说": { color: "text-zinc-600 dark:text-zinc-400" },
-  "散文": { color: "text-stone-600 dark:text-stone-400" },
-  "诗歌": { color: "text-neutral-600 dark:text-neutral-400" },
-  "杂文": { color: "text-gray-600 dark:text-gray-400" },
-  "随笔": { color: "text-slate-600 dark:text-slate-400" },
-};
-
-const currentGenre = genre ? genreConfig[genre] : null;
 ---
 
-<BaseLayout title={title} description={entryDescription} image={image?.src}>
-  <section class="flex container px-3 lg:px-8">
+<BaseLayout
+  title={
+    readingSeries
+      ? `${displayTitle} · ${readingSeries.entry.data.title}`
+      : title
+  }
+  description={entryDescription}
+  image={typeof image === "string" ? image : image?.src}
+  articleType
+  publishedTime={created}
+  modifiedTime={updated}
+  author={SITE_INFO.AUTHOR}
+  tags={tags}
+  section={genre}
+>
+  <section class="flex items-start site-container pt-8">
     <div class:list={[articleClass]}>
+      <nav aria-label="作品路径" class="writing-breadcrumb">
+        <a href="/writings/">文字</a>
+        {readingSeries && (
+          <>
+            <span aria-hidden="true">/</span>
+            <a href={readingSeries.href}>{readingSeries.entry.data.title}</a>
+          </>
+        )}
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{displayTitle}</span>
+      </nav>
       <article>
+        {readingSeries && (
+          <ArticleSeries
+            series={readingSeries}
+            currentId={entry.id}
+            currentCollection="writings"
+          />
+        )}
         <!-- 文章头部 -->
-        <LiquidGlassLess
-          heavy
-          wrapperClass="dock rounded-xl p-6 lg:p-8 mb-6"
-        >
+        <LiquidGlassLess heavy wrapperClass="border-0 bg-transparent py-6 mb-6">
           <!-- 元信息 -->
           <div class="flex flex-wrap items-center gap-3 mb-4 text-sm">
-            {currentGenre && (
-              <span class={`inline-flex items-center font-medium ${currentGenre.color}`}>
+            {genre && (
+              <span class="inline-flex items-center font-medium text-muted-foreground">
                 {genre}
               </span>
             )}
-            {series && (
-              <span class="inline-flex items-center text-zinc-600 dark:text-zinc-400">
-                {series}
-                {seriesOrder && <span class="ml-1 opacity-70">#{seriesOrder}</span>}
-              </span>
-            )}
             {mood && (
-              <span class="text-txt-light dark:text-darkmode-txt-light opacity-70">
-                {mood}
-              </span>
+              <span class="text-muted-foreground opacity-70">{mood}</span>
             )}
           </div>
 
           <!-- 标题 -->
-          <h1 class="text-3xl lg:text-4xl font-bold text-txt-p dark:text-darkmode-txt-p mb-4 leading-tight">
-            {title}
+          <h1 class="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
+            {displayTitle}
           </h1>
 
           <!-- 描述 -->
-          {description && (
-            <p class="text-lg text-txt-light dark:text-darkmode-txt-light mb-4 leading-relaxed italic border-l-4 border-border pl-4">
+          {description && !readingSeries && (
+            <p class="text-lg text-muted-foreground mb-4 leading-relaxed italic border-l-4 border-border pl-4">
               {description}
             </p>
           )}
 
           <!-- 底部信息 -->
           <div class="flex flex-wrap items-center justify-between pt-4 border-t border-border/30">
-            <div class="flex items-center gap-4 text-sm text-txt-light dark:text-darkmode-txt-light">
+            <div class="flex items-center gap-4 text-sm text-muted-foreground">
               {entryDate && (
                 <span class="flex items-center gap-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
                   </svg>
                   {entryDate}
                 </span>
               )}
               <span class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 {entryReadingTime}
               </span>
@@ -130,48 +170,23 @@ const currentGenre = genre ? genreConfig[genre] : null;
         <!-- 文章内容 -->
         <LiquidGlassLess
           heavy
-          wrapperClass="panel flex flex-col justify-between mb-4 rounded-xl intersect-no-queue min-h-96"
+          wrapperClass="border-0 border-t border-border/60 bg-transparent mb-8 min-h-96"
         >
-          <div
-            class="p-4 lg:p-8 prose prose-lg max-w-none markdown-content text-txt-p dark:text-darkmode-txt-p intersect:animate-fadeUp"
-          >
+          <div class="py-6 prose prose-site prose-base max-w-none markdown-content">
             <slot />
           </div>
         </LiquidGlassLess>
 
-        <!-- 系列文章 -->
-        {seriesEntries.length > 0 && (
-          <LiquidGlassLess
-            heavy
-            wrapperClass="dock rounded-xl p-6 mb-4"
-          >
-            <h3 class="text-lg font-bold text-txt-p dark:text-darkmode-txt-p mb-4">
-              {series} 系列
-            </h3>
-            <div class="space-y-2">
-              {seriesEntries.map((seriesEntry) => (
-                <a
-                  href={`/writings/${seriesEntry.id}`}
-                  class="block p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors duration-200"
-                >
-                  <div class="flex items-center justify-between">
-                    <span class="font-medium text-txt-p dark:text-darkmode-txt-p">
-                      {seriesEntry.data.seriesOrder && (
-                        <span class="text-muted-foreground mr-2">
-                          #{seriesEntry.data.seriesOrder}
-                        </span>
-                      )}
-                      {seriesEntry.data.title}
-                    </span>
-                    <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </LiquidGlassLess>
+        {readingSeries && (
+          <ChapterPagination
+            series={readingSeries}
+            currentId={entry.id}
+            currentCollection="writings"
+          />
         )}
+        <a class="back-writing" href={readingSeries?.href || "/writings/"}>
+          ← {readingSeries ? "返回作品目录" : "返回文字"}
+        </a>
 
         <!-- 作者信息和分享 -->
         <div class="relative mt-6">
@@ -189,12 +204,17 @@ const currentGenre = genre ? genreConfig[genre] : null;
               />
             </div>
 
-            <div class="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-4"></div>
+            <div class="w-full h-px bg-linear-to-r from-transparent via-white/20 to-transparent mb-4"></div>
 
             <div class="text-center text-xs text-muted-foreground/70 space-y-2">
               <div class="flex flex-wrap items-center justify-center gap-1">
-                <span>© 2025</span>
-                <a href={SITE_INFO.URL} class="hover:text-foreground transition-colors">{SITE_INFO.SITE_NAME}</a>
+                <span>© {new Date().getFullYear()}</span>
+                <a
+                  href={SITE_INFO.URL}
+                  class="hover:text-foreground transition-colors"
+                >
+                  {SITE_INFO.SITE_NAME}
+                </a>
                 <span>·</span>
                 <a
                   target="_blank"
@@ -210,50 +230,100 @@ const currentGenre = genre ? genreConfig[genre] : null;
                   <span>{new Date(updated).toLocaleDateString("zh-CN")}</span>
                 </div>
               )}
-              </div>
             </div>
           </LiquidGlassLess>
         </div>
       </article>
     </div>
 
-    <!-- 目录 -->
-    {!actuallyHideToc && (
-      <div class="flex-col h-full sticky top-[4rem] ml-4 space-y-4 hidden lg:flex lg:w-1/4">
-        <TableOfContents headings={headings} tocDepth={tocDepth} />
-      </div>
+    {showAside && (
+      <aside class="writing-aside">
+        {readingSeries && (
+          <ArticleSeries
+            series={readingSeries}
+            currentId={entry.id}
+            currentCollection="writings"
+            sidebar
+          />
+        )}
+        {!actuallyHideToc && (
+          <TableOfContents headings={headings} tocDepth={tocDepth} />
+        )}
+      </aside>
     )}
   </section>
 </BaseLayout>
 
+<style>
+  .writing-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+    line-height: 1.8;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 24px;
+  }
+  .writing-breadcrumb a:hover {
+    color: hsl(var(--primary));
+  }
+  .back-writing {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 13px;
+    color: hsl(var(--primary));
+    margin-bottom: 16px;
+  }
+  .writing-aside {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .writing-aside {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      width: 224px;
+      flex-shrink: 0;
+      position: sticky;
+      top: var(--site-header-offset);
+      margin-left: 48px;
+      max-height: calc(100dvh - var(--site-header-offset) - 24px);
+      overflow-y: auto;
+    }
+  }
+</style>
+
 <script>
   // 代码块收起/展开功能（使用 grid 动画，参考内容导航）
   function setupCodeCollapse() {
-    const codeBlocks = document.querySelectorAll('.markdown-content pre.astro-code');
+    const codeBlocks = document.querySelectorAll(
+      ".markdown-content pre.astro-code",
+    );
 
     codeBlocks.forEach((pre) => {
       // 避免重复处理
-      if (pre.closest('.code-collapse-wrapper')) return;
+      if (pre.closest(".code-collapse-wrapper")) return;
 
-      const code = pre.querySelector('code');
-      const lines = code ? code.querySelectorAll('.line').length : 0;
-      const language = pre.getAttribute('data-language') || 'code';
+      const code = pre.querySelector("code");
+      const lines = code ? code.querySelectorAll(".line").length : 0;
+      const language = pre.getAttribute("data-language") || "code";
 
       // 创建包装器
-      const wrapper = document.createElement('div');
-      wrapper.className = 'code-collapse-wrapper';
+      const wrapper = document.createElement("div");
+      wrapper.className = "code-collapse-wrapper";
 
       // 创建头部
-      const header = document.createElement('div');
-      header.className = 'code-collapse-header';
-      header.setAttribute('aria-expanded', 'false');
+      const header = document.createElement("div");
+      header.className = "code-collapse-header";
+      header.setAttribute("aria-expanded", "false");
       header.innerHTML = `
         <div class="code-collapse-title">
           <svg class="code-collapse-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
           <span class="code-collapse-text">${language.toUpperCase()}</span>
-          ${lines > 0 ? `<span class="code-collapse-count">${lines} 行</span>` : ''}
+          ${lines > 0 ? `<span class="code-collapse-count">${lines} 行</span>` : ""}
         </div>
         <div class="code-collapse-actions">
           <button class="code-collapse-copy-btn" type="button" title="复制代码">
@@ -270,12 +340,12 @@ const currentGenre = genre ? genreConfig[genre] : null;
       `;
 
       // 创建内容容器（用于 grid 动画）
-      const content = document.createElement('div');
-      content.className = 'code-collapse-content'; // 默认收起
+      const content = document.createElement("div");
+      content.className = "code-collapse-content"; // 默认收起
 
       // 创建内部包装器
-      const inner = document.createElement('div');
-      inner.className = 'code-collapse-inner';
+      const inner = document.createElement("div");
+      inner.className = "code-collapse-inner";
 
       // 组装 DOM 结构
       pre.parentNode?.insertBefore(wrapper, pre);
@@ -285,58 +355,64 @@ const currentGenre = genre ? genreConfig[genre] : null;
       wrapper.appendChild(content);
 
       // 收起/展开点击事件
-      const toggleBtn = header.querySelector('.code-collapse-btn');
+      const toggleBtn = header.querySelector(".code-collapse-btn");
       const toggleAction = () => {
-        const isExpanded = header.getAttribute('aria-expanded') === 'true';
-        header.setAttribute('aria-expanded', String(!isExpanded));
-        content.classList.toggle('code-collapse-content--expanded', !isExpanded);
+        const isExpanded = header.getAttribute("aria-expanded") === "true";
+        header.setAttribute("aria-expanded", String(!isExpanded));
+        content.classList.toggle(
+          "code-collapse-content--expanded",
+          !isExpanded,
+        );
 
-        const icon = header.querySelector('.code-collapse-icon') as HTMLElement;
-        const btnText = toggleBtn?.querySelector('.code-collapse-action-text');
+        const icon = header.querySelector(".code-collapse-icon") as HTMLElement;
+        const btnText = toggleBtn?.querySelector(".code-collapse-action-text");
 
         if (icon) {
-          icon.style.transform = !isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+          icon.style.transform = !isExpanded
+            ? "rotate(180deg)"
+            : "rotate(0deg)";
         }
         if (btnText) {
-          btnText.textContent = !isExpanded ? '收起' : '展开';
+          btnText.textContent = !isExpanded ? "收起" : "展开";
         }
       };
 
-      toggleBtn?.addEventListener('click', (e) => {
+      toggleBtn?.addEventListener("click", (e) => {
         e.stopPropagation();
         toggleAction();
       });
 
       // 点击头部也可以展开/收起
-      header.addEventListener('click', (e) => {
-        if ((e.target as HTMLElement).closest('.code-collapse-copy-btn')) return;
-        if ((e.target as HTMLElement).closest('.code-collapse-btn')) return;
+      header.addEventListener("click", (e) => {
+        if ((e.target as HTMLElement).closest(".code-collapse-copy-btn"))
+          return;
+        if ((e.target as HTMLElement).closest(".code-collapse-btn")) return;
         toggleAction();
       });
 
       // 复制功能
-      const copyBtn = header.querySelector('.code-collapse-copy-btn');
-      copyBtn?.addEventListener('click', async (e) => {
+      const copyBtn = header.querySelector(".code-collapse-copy-btn");
+      copyBtn?.addEventListener("click", async (e) => {
         e.stopPropagation();
-        const codeText = code?.textContent || '';
+        const codeText = code?.textContent || "";
 
         try {
           await navigator.clipboard.writeText(codeText);
-          const copyText = copyBtn.querySelector('.code-collapse-action-text');
+          const copyText = copyBtn.querySelector(".code-collapse-action-text");
           if (copyText) {
-            copyText.textContent = '已复制';
+            copyText.textContent = "已复制";
             setTimeout(() => {
-              copyText.textContent = '复制';
+              copyText.textContent = "复制";
             }, 2000);
           }
         } catch (err) {
-          console.error('复制失败:', err);
+          console.error("复制失败:", err);
         }
       });
     });
   }
 
   // 初始化
-  document.addEventListener('DOMContentLoaded', setupCodeCollapse);
-  document.addEventListener('astro:page-load', setupCodeCollapse);
+  document.addEventListener("DOMContentLoaded", setupCodeCollapse);
+  document.addEventListener("astro:page-load", setupCodeCollapse);
 </script>

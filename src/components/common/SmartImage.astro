@@ -1,5 +1,4 @@
 ---
-
 import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
 
@@ -36,32 +35,31 @@ const {
 const isStringUrl = typeof src === "string";
 ---
 
-{
-  isStringUrl ? (
-    <img
-      class={className}
-      src={src}
-      alt={alt}
-      width={width}
-      height={height}
-      loading={loading}
-      decoding={decoding}
-      style={style}
-    />
-  ) : (
-    <Image
-      class={className}
-      src={src}
-      alt={alt}
-      width={width}
-      height={height}
-      loading={loading}
-      decoding={decoding}
-      quality={quality}
-      format={format}
-      inferSize={inferSize}
-      fetchpriority={fetchpriority}
-      style={style}
-    />
-  )
-}
+{isStringUrl ? (
+  <img
+    class={className}
+    src={src}
+    alt={alt}
+    width={width}
+    height={height}
+    loading={loading}
+    decoding={decoding}
+    fetchpriority={fetchpriority}
+    style={style}
+  />
+) : (
+  <Image
+    class={className}
+    src={src}
+    alt={alt}
+    width={width}
+    height={height}
+    loading={loading}
+    decoding={decoding}
+    quality={quality}
+    format={format}
+    inferSize={inferSize}
+    fetchpriority={fetchpriority}
+    style={style}
+  />
+)}

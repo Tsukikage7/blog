@@ -1,206 +1,583 @@
 ---
+import { Image } from "astro:assets";
+import { SITE_INFO, AVATAR_IMAGE } from "@lib/config";
 import BaseLayout from "@components/base/BaseLayout.astro";
-import type { BlogEntry } from "@/types";
-import { type CollectionEntry } from "astro:content";
 import { sortByDate } from "@lib/sortFunctions";
 import { getEntries } from "@lib/contentParser";
-import { formatDate } from "@lib/formatDate";
 import { plainify } from "@lib/textConverter";
 import ArticleCalendar from "@components/home/ArticleCalendar.astro";
+import { getSeries } from "@lib/series";
+import { groupReadingEntries } from "@lib/seriesModel";
+import WorkCard from "@components/writings/WorkCard.astro";
+import WritingsListCard from "@components/writings/WritingsListCard.astro";
+import HomeArticle from "@components/home/HomeArticle.astro";
 import HomeNotesPreview from "@components/notes/HomeNotesPreview.astro";
-import SmartImage from "@components/common/SmartImage.astro";
-import PlaceholderImage from "@components/blog/PlaceholderImage.astro";
 
-const allPosts = (await getEntries("blog", sortByDate)) as BlogEntry[];
-const recentPosts = allPosts.slice(0, 5);
-
-const latestNotes = (await getEntries("notes", sortByDate)) as CollectionEntry<"notes">[];
-
-// 获取文字内容
-const allWritings = (await getEntries("writings", sortByDate)) as CollectionEntry<"writings">[];
-
-// 合并博客和文字，按日期排序
-type GalleryItem = { type: "blog"; data: BlogEntry } | { type: "writing"; data: CollectionEntry<"writings"> };
-const galleryItems: GalleryItem[] = [
-  ...allPosts.map((post) => ({ type: "blog" as const, data: post })),
-  ...allWritings.map((writing) => ({ type: "writing" as const, data: writing })),
-].sort((a, b) => {
-  const dateA = a.type === "blog" ? a.data.data.date : a.data.data.date;
-  const dateB = b.type === "blog" ? b.data.data.date : b.data.data.date;
-  return new Date(dateB || 0).getTime() - new Date(dateA || 0).getTime();
-}).slice(0, 12);
-
-// 分类统计
-const allCategories = allPosts.flatMap((post) => post.data.categories || []).filter(Boolean);
-const uniqueCategories = [...new Set(allCategories)].sort();
-const categories = uniqueCategories.slice(0, 6).map((category) => ({
-  name: category,
-  count: allPosts.filter((post) => post.data.categories?.includes(category)).length,
-  slug: category?.toLowerCase().replace(/\s+/g, "-"),
+const [allPosts, allWritings, latestNotes] = await Promise.all([
+  getEntries("blog", sortByDate),
+  getEntries("writings", sortByDate),
+  getEntries("notes", sortByDate),
+]);
+const readingSeries = await getSeries();
+const articleSeries = readingSeries.filter(
+  (item) => item.entry.data.kind === "technical",
+);
+const writingItems = groupReadingEntries(allWritings, readingSeries);
+// 最近更新以合集/作品为单位，正文地址留给归档、搜索和订阅。
+const latestEntries = groupReadingEntries(
+  [...allPosts, ...allWritings],
+  readingSeries,
+).map((item) => {
+  if (item.kind === "series") {
+    const literary = item.series.entry.data.kind === "literary";
+    return {
+      title: item.series.entry.data.title,
+      href: item.href,
+      description: item.series.entry.data.description,
+      created: item.updated,
+      label: literary
+        ? `${item.series.entry.data.genre || "文学作品"} · ${item.series.chapters.length} 章`
+        : `技术合集 · ${item.series.chapters.length} 篇`,
+      image: item.series.chapters[0].data.image,
+      imageAlt: item.series.entry.data.title,
+      cta: literary ? "查看作品" : "查看合集",
+    };
+  }
+  const entry = item.entry;
+  return {
+    title: entry.data.title,
+    href: item.href,
+    description:
+      entry.data.description || plainify(entry.body || "").slice(0, 100),
+    created: item.updated,
+    label:
+      entry.collection === "blog"
+        ? entry.data.categories?.[0] || "技术"
+        : entry.data.genre || "文字",
+    image: entry.data.image,
+    imageAlt: entry.data.title,
+  };
+});
+const [featured, ...recent] = latestEntries.slice(0, 5);
+const topics = articleSeries.slice(0, 3).map((item, index) => ({
+  title: item.entry.data.title,
+  description: item.entry.data.description,
+  count: item.chapters.length,
+  href: item.href,
+  caption: "查看章节目录",
+  mark: String(index + 1).padStart(2, "0"),
 }));
-
-// 获取文章图片
-const hasImage = (post: BlogEntry) => {
-  return post.data.image && (typeof post.data.image === "string" || (typeof post.data.image === "object" && "src" in post.data.image));
-};
 ---
 
 <BaseLayout>
-  <div class="py-8">
-
-    <!-- 最新内容（博客+文字混合） -->
-    <section class="mb-16">
-      <div class="px-6 mb-6 flex items-center justify-between">
-        <h2 class="text-2xl font-medium text-foreground">最新内容</h2>
+  <div class="home-page">
+    <section class="home-intro" aria-labelledby="home-title">
+      <div class="intro-copy">
+        <p class="eyebrow">
+          <span aria-hidden="true"></span> {SITE_INFO.SITE_NAME} 的个人博客
+        </p>
+        <h1 id="home-title">
+          在代码里探索，
+          <br />
+          在生活里<span class="title-accent">记录。</span>
+        </h1>
+        <p class="intro-description">
+          我是 {SITE_INFO.AUTHOR}，一名全栈开发工程师。
+          <br class="desktop-break" />
+          这里记录技术实践、问题复盘，以及偶尔的生活片段。
+        </p>
+        <div class="intro-links">
+          <a class="read-link" href="#latest">
+            开始阅读 <span aria-hidden="true">↗</span>
+          </a>
+          <a class="text-link" href="/about/">
+            关于我 <span aria-hidden="true">→</span>
+          </a>
+        </div>
       </div>
-
-      <div class="gallery-scroll flex gap-5 overflow-x-auto pl-6 pb-6 snap-x snap-mandatory">
-        {galleryItems.map((item, index) => {
-          if (item.type === "blog") {
-            const post = item.data;
-            const dateStr = post.data.date ? formatDate(post.data.date) : "";
-            return (
-              <a
-                href={`/blog/${post.id}`}
-                class="group flex-shrink-0 snap-start w-[85vw] md:w-[420px]"
-              >
-                <article class="h-full">
-                  <div class="relative overflow-hidden rounded-xl bg-muted/30 aspect-[16/10]">
-                    {hasImage(post) ? (
-                      <SmartImage
-                        src={post.data.image}
-                        alt={post.data.imageAlt || post.data.title}
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading={index < 3 ? "eager" : "lazy"}
-                        quality={75}
-                      />
-                    ) : (
-                      <PlaceholderImage title={post.data.title} className="w-full h-full" />
-                    )}
-                  </div>
-                  <div class="mt-4 pr-4">
-                    <div class="flex items-center gap-2 text-sm text-muted-foreground/60">
-                      <span>博客</span>
-                      {dateStr && <span>·</span>}
-                      {dateStr && <time>{dateStr}</time>}
-                    </div>
-                    <h3 class="mt-1.5 text-lg font-medium text-foreground group-hover:text-foreground/70 transition-colors line-clamp-2">
-                      {post.data.title}
-                    </h3>
-                    {post.data.description && (
-                      <p class="mt-2 text-base text-muted-foreground line-clamp-2">
-                        {post.data.description}
-                      </p>
-                    )}
-                  </div>
-                </article>
-              </a>
-            );
-          } else {
-            const writing = item.data;
-            const dateStr = writing.data.date ? formatDate(writing.data.date) : "";
-            const preview = writing.body ? plainify(writing.body).slice(0, 100) + "..." : "";
-            return (
-              <a
-                href={`/writings/${writing.id}`}
-                class="group flex-shrink-0 snap-start w-[85vw] md:w-[420px]"
-              >
-                <article class="h-full">
-                  <div class="relative overflow-hidden rounded-xl bg-muted/30 aspect-[16/10]">
-                    <PlaceholderImage title={writing.data.title} className="w-full h-full" />
-                  </div>
-                  <div class="mt-4 pr-4">
-                    <div class="flex items-center gap-2 text-sm text-muted-foreground/60">
-                      <span>{writing.data.genre || "文字"}</span>
-                      {dateStr && <span>·</span>}
-                      {dateStr && <time>{dateStr}</time>}
-                    </div>
-                    <h3 class="mt-1.5 text-lg font-medium text-foreground group-hover:text-foreground/70 transition-colors line-clamp-2">
-                      {writing.data.title}
-                    </h3>
-                    <p class="mt-2 text-base text-muted-foreground line-clamp-2">
-                      {writing.data.description || preview}
-                    </p>
-                  </div>
-                </article>
-              </a>
-            );
-          }
-        })}
-        <div class="flex-shrink-0 w-6"></div>
-      </div>
+      <aside class="author-note" aria-label="作者名片">
+        <div class="portrait-frame">
+          <Image
+            src={AVATAR_IMAGE}
+            alt={`${SITE_INFO.AUTHOR}的头像`}
+            width={240}
+            height={240}
+            format="webp"
+            loading="eager"
+            class="portrait"
+          />
+        </div>
+        <p class="author-name">{SITE_INFO.AUTHOR}</p>
+        <p class="author-motto">保持好奇，{SITE_INFO.SUBNAME}。</p>
+        <div class="author-note-bottom">
+          <span>代码 · 文字 · 生活</span>
+          <span aria-hidden="true">✳</span>
+        </div>
+      </aside>
     </section>
-
-    <!-- 三栏区域 -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16 py-12 px-6 border-t border-border/20">
-
-      <!-- 分类 -->
-      <div>
-        <h3 class="text-lg font-medium text-foreground mb-6 flex items-center gap-2">
-          <svg class="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
-          </svg>
-          分类
-        </h3>
-        <div class="space-y-1">
-          {categories.map((cat) => (
-            <a
-              href={`/blog/categories/${cat.slug}`}
-              class="flex items-center justify-between py-3 text-base text-muted-foreground hover:text-foreground transition-colors group"
-            >
-              <span class="flex items-center gap-2">
-                <span class="w-1 h-1 rounded-full bg-border group-hover:bg-foreground/50 transition-colors"></span>
-                {cat.name}
+    <section id="latest" class="latest-section" aria-labelledby="latest-title">
+      <div class="section-heading">
+        <div class="section-title">
+          <span class="section-index" aria-hidden="true">
+            01 /
+          </span>
+          <h2 id="latest-title">最近更新</h2>
+        </div>
+        <nav class="content-links" aria-label="按内容类型阅读">
+          <a class="text-link" href="/blog/">
+            技术
+          </a>
+          {allWritings.length > 0 && (
+            <a class="text-link" href="/writings/">
+              文字
+            </a>
+          )}
+          {latestNotes.length > 0 && (
+            <a class="text-link" href="/notes/">
+              笔记
+            </a>
+          )}
+        </nav>
+      </div>
+      {featured ? (
+        <div class="latest-grid">
+          <HomeArticle entry={featured} featured />
+          {recent.length > 0 && (
+            <div class="recent-list">
+              {recent.map((entry) => (
+                <HomeArticle entry={entry} />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <p class="empty-note">故事从这里开始，新的文章正在路上。</p>
+      )}
+    </section>
+    {topics.length > 0 && (
+      <section class="topics-section" aria-labelledby="topics-title">
+        <div class="topics-intro">
+          <span class="section-index" aria-hidden="true">
+            02 /
+          </span>
+          <h2 id="topics-title">
+            沿着一个问题，
+            <br />
+            再读深一点。
+          </h2>
+          <p>
+            把零散的笔记连起来，
+            <br />
+            慢慢建立自己的理解。
+          </p>
+          <a class="text-link" href="/series/">
+            浏览系列合集 <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <div class="topic-list">
+          {topics.map((topic) => (
+            <a class="topic" href={topic.href}>
+              <span class="topic-number" aria-hidden="true">
+                {topic.mark}
               </span>
-              <span class="text-sm text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors tabular-nums">
-                {cat.count}
+              <div>
+                <h3>{topic.title}</h3>
+                <p>{topic.description}</p>
+                <span class="topic-caption">
+                  {topic.count} 篇文章 · {topic.caption}
+                </span>
+              </div>
+              <span class="topic-arrow" aria-hidden="true">
+                ↗
               </span>
             </a>
           ))}
         </div>
-      </div>
-
-      <!-- 推荐阅读 -->
-      <div>
-        <h3 class="text-lg font-medium text-foreground mb-6 flex items-center gap-2">
-          <svg class="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-          </svg>
-          推荐
-        </h3>
-        <div class="space-y-4">
-          {recentPosts.map((post) => (
-            <a
-              href={`/blog/${post.id}`}
-              class="block text-base text-muted-foreground hover:text-foreground transition-colors line-clamp-2"
-            >
-              {post.data.title}
-            </a>
-          ))}
+      </section>
+    )}
+    {writingItems.length > 0 && (
+      <section class="writings-section" aria-labelledby="writings-title">
+        <div class="section-heading">
+          <div class="section-title">
+            <span class="section-index" aria-hidden="true">
+              03 /
+            </span>
+            <h2 id="writings-title">文字与故事</h2>
+          </div>
+          <a class="text-link" href="/writings/">
+            全部文字 <span aria-hidden="true">↗</span>
+          </a>
         </div>
-      </div>
-
-      <!-- 站点动态 -->
-      <div class="notes-preview-compact">
+        {writingItems
+          .slice(0, 3)
+          .map((item) =>
+            item.kind === "series" ? (
+              <WorkCard series={item.series} />
+            ) : (
+              <WritingsListCard entry={item.entry} />
+            ),
+          )}
+      </section>
+    )}
+    {latestNotes.length > 0 && (
+      <section class="notes-section" aria-label="技术笔记">
         <HomeNotesPreview entries={latestNotes} limit={4} />
-      </div>
-
-    </section>
-
-    <!-- 日历热力图 -->
-    <section class="py-12 px-6 border-t border-border/20">
+      </section>
+    )}
+    <section class="activity-record" aria-label="年度活动记录">
       <ArticleCalendar />
     </section>
-
   </div>
 </BaseLayout>
 
 <style>
-  .gallery-scroll {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  .content-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
   }
-  .gallery-scroll::-webkit-scrollbar {
-    display: none;
+  .writings-section {
+    margin-top: 44px;
+  }
+  .home-page {
+    max-width: var(--site-width);
+    margin-inline: auto;
+    padding: 0 32px;
+  }
+  .home-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 248px;
+    align-items: center;
+    gap: 80px;
+    padding: 72px 0 68px;
+  }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: hsl(var(--primary));
+  }
+  .eyebrow span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .home-intro h1 {
+    font-family: var(--font-editorial);
+    font-size: clamp(36px, 4.4vw, 60px);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.045em;
+  }
+  .title-accent {
+    color: hsl(var(--primary));
+  }
+  .intro-description {
+    margin-top: 22px;
+    color: hsl(var(--muted-foreground));
+    font-size: 15px;
+    line-height: 1.9;
+  }
+  .intro-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-top: 28px;
+  }
+  .read-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    border-radius: 6px;
+    padding: 10px 18px;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-size: 13px;
+    transition:
+      background 0.2s,
+      transform 0.2s;
+  }
+  .read-link:hover {
+    background: hsl(var(--primary) / 0.88);
+    transform: translateY(-2px);
+  }
+  .text-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: hsl(var(--muted-foreground));
+    transition: color 0.2s;
+  }
+  .text-link:hover {
+    color: hsl(var(--primary));
+  }
+  .author-note {
+    padding: 24px 24px 0;
+    background: hsl(var(--secondary) / 0.45);
+    border: 1px solid hsl(var(--border) / 0.5);
+    border-radius: 3px 3px 32px 3px;
+    transform: rotate(3deg);
+  }
+  .portrait-frame {
+    width: 116px;
+    height: 116px;
+    padding: 6px;
+    border: 1px solid hsl(var(--primary) / 0.25);
+    border-radius: 50%;
+    margin: 4px auto 18px;
+  }
+  .portrait {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  .author-name {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+  .author-motto {
+    text-align: center;
+    color: hsl(var(--muted-foreground));
+    font-size: 12px;
+    margin-top: 5px;
+  }
+  .author-note-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+    padding: 12px 0;
+    border-top: 1px solid hsl(var(--border));
+    color: hsl(var(--primary));
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+  .author-note-bottom > span:last-child {
+    font-size: 24px;
+  }
+  .section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-top: 26px;
+    border-top: 1px solid hsl(var(--border));
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-index {
+    color: hsl(var(--primary));
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.08em;
+  }
+  .section-heading h2 {
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .latest-section {
+    scroll-margin-top: 100px;
+  }
+  .latest-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    gap: 44px;
+  }
+  .recent-list {
+    display: grid;
+    align-content: start;
+  }
+  .empty-note {
+    padding: 32px 0;
+    color: hsl(var(--muted-foreground));
+  }
+  .topics-section {
+    display: grid;
+    grid-template-columns: 0.8fr 1.6fr;
+    gap: 56px;
+    margin-top: 64px;
+    padding: 36px 0;
+    border-top: 1px solid hsl(var(--border));
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .topics-intro h2 {
+    margin-top: 18px;
+    font-family: var(--font-editorial);
+    font-size: 28px;
+    line-height: 1.55;
+    font-weight: 600;
+  }
+  .topics-intro p {
+    margin: 14px 0 20px;
+    font-size: 13px;
+    line-height: 1.9;
+    color: hsl(var(--muted-foreground));
+  }
+  .topic {
+    display: grid;
+    grid-template-columns: 28px 1fr 24px;
+    align-items: start;
+    gap: 18px;
+    padding: 21px 0;
+    border-bottom: 1px solid hsl(var(--border) / 0.65);
+  }
+  .topic:first-child {
+    padding-top: 4px;
+  }
+  .topic:last-child {
+    border-bottom: 0;
+    padding-bottom: 4px;
+  }
+  .topic-number {
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+    font-variant-numeric: tabular-nums;
+  }
+  .topic h3 {
+    font-size: 18px;
+    line-height: 1.5;
+    transition: color 0.2s;
+  }
+  .topic p {
+    margin-top: 5px;
+    font-size: 13px;
+    color: hsl(var(--muted-foreground));
+    line-height: 1.8;
+  }
+  .topic-caption {
+    display: block;
+    margin-top: 9px;
+    font-size: 11px;
+    color: hsl(var(--primary));
+  }
+  .topic-arrow {
+    color: hsl(var(--primary));
+    transition: transform 0.2s;
+  }
+  .topic:hover h3 {
+    color: hsl(var(--primary));
+  }
+  .topic:hover .topic-arrow {
+    transform: translate(3px, -3px);
+  }
+  .notes-section {
+    border-top: 1px solid hsl(var(--border));
+    padding: 24px 0;
+  }
+  .activity-record {
+    margin-top: 22px;
+    padding: 24px;
+    background: hsl(var(--secondary) / 0.3);
+    border-radius: 10px;
+  }
+  .home-page a:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 5px;
+    border-radius: 4px;
+  }
+  .home-page a:active {
+    transform: translateY(1px);
+  }
+  @media (max-width: 1023px) {
+    .home-intro {
+      gap: 36px;
+      grid-template-columns: minmax(0, 1fr) 210px;
+      padding-block: 48px;
+    }
+    .latest-grid {
+      gap: 28px;
+    }
+    .topics-section {
+      gap: 32px;
+    }
+  }
+  @media (max-width: 767px) {
+    .home-page {
+      padding-inline: 22px;
+    }
+    .home-intro {
+      grid-template-columns: 1fr;
+      padding: 40px 0;
+      gap: 30px;
+    }
+    .home-intro h1 {
+      font-size: clamp(34px, 7.8vw, 48px);
+    }
+    .eyebrow {
+      margin-bottom: 16px;
+      font-size: 11px;
+    }
+    .intro-description {
+      font-size: 14px;
+      margin-top: 16px;
+    }
+    .desktop-break {
+      display: none;
+    }
+    .intro-links {
+      margin-top: 22px;
+    }
+    .author-note {
+      display: none;
+    }
+    .latest-grid {
+      grid-template-columns: 1fr;
+      gap: 26px;
+    }
+    .section-heading h2 {
+      font-size: 18px;
+    }
+    .section-heading {
+      padding-top: 22px;
+    }
+    .topics-section {
+      grid-template-columns: 1fr;
+      gap: 28px;
+      margin-top: 36px;
+      padding-block: 28px;
+    }
+    .topics-intro h2 {
+      font-size: 26px;
+      margin-top: 10px;
+    }
+    .topics-intro p {
+      margin-block: 10px;
+    }
+    .topic {
+      gap: 10px;
+      grid-template-columns: 22px 1fr 20px;
+    }
+    .topic h3 {
+      font-size: 17px;
+    }
+    .activity-record {
+      padding: 18px 16px;
+      margin-top: 8px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .home-page a,
+    .topic-arrow,
+    .topic h3 {
+      transition: none;
+    }
+    .home-page a:hover,
+    .home-page a:active,
+    .topic:hover .topic-arrow {
+      transform: none;
+    }
   }
 </style>

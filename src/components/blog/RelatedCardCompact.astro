@@ -18,7 +18,7 @@ const {
   entry,
   width = "w-full",
   height = "h-48",
-  imageAspect = "aspect-[16/9]",
+  imageAspect = "aspect-video",
   showDescription = false,
 }: Props = Astro.props;
 
@@ -59,7 +59,7 @@ const entryDescription = description;
 
     
     <div
-      class="absolute inset-0 bg-gradient-to-t from-black/60  to-white/10 group-hover:from-black/70 group-hover:to-white/0 transition-all ease-out duration-400"
+      class="absolute inset-0 bg-linear-to-t from-black/60  to-white/10 group-hover:from-black/70 group-hover:to-white/0 transition-all ease-out duration-400"
     >
     </div>
 

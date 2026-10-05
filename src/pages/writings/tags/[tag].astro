@@ -1,47 +1,23 @@
 ---
 import CollectionLayout from "@components/writings/CollectionLayout.astro";
-import { getEntries, getIndex } from "@lib/contentParser";
-import { sortByDate } from "@lib/sortFunctions";
-import type { WritingsEntry } from "@/types";
-
+import { getWritingsCatalog } from "@lib/writings";
 export async function getStaticPaths() {
-  const allEntries = (await getEntries("writings", sortByDate)) as WritingsEntry[];
-  const entries = allEntries.filter((entry) => !entry.data.draft);
-
-  // 获取所有唯一标签
-  const allTags = [...new Set(entries.flatMap((entry) => entry.data.tags || []))];
-
-  return allTags.map((tag) => ({
-    params: { tag },
-    props: { tag },
-  }));
+  const { tags } = await getWritingsCatalog();
+  return tags.map((tag) => ({ params: { tag }, props: { tag } }));
 }
-
 interface Props {
   tag: string;
 }
-
 const { tag } = Astro.props;
-
-const entryIndex = (await getIndex("writings")) as WritingsEntry;
-const allEntries = (await getEntries("writings", sortByDate)) as WritingsEntry[];
-const allNonDraftEntries = allEntries.filter((entry) => !entry.data.draft);
-
-// 筛选包含当前标签的文章
-const entries = allNonDraftEntries.filter((entry) =>
-  entry.data.tags?.includes(tag)
-);
-
-// 获取所有标签用于侧边栏
-const tags = [...new Set(allNonDraftEntries.flatMap((entry) => entry.data.tags || []))].sort();
+const { items, tags, index, countText } = await getWritingsCatalog(tag);
 ---
 
 <CollectionLayout
-  entryIndex={entryIndex}
-  entries={entries}
+  entryIndex={index}
+  items={items}
   tags={tags}
   currentTag={tag}
   pageIndex={1}
   pageCount={1}
-  allCount={entries.length}
+  countText={countText}
 />

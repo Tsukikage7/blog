@@ -1,19 +1,19 @@
 import type { GenericEntry } from "@/types";
 
-export const sortByDate = (entries: GenericEntry[]): GenericEntry[] => {
+export const sortByDate = <T extends GenericEntry>(entries: T[]): T[] => {
   const sortedEntries = entries.sort(
     (a: any, b: any) =>
-      new Date(b.data.created && b.data.created).valueOf() -
-      new Date(a.data.created && a.data.created).valueOf(),
+      new Date(b.data.created || 0).valueOf() -
+      new Date(a.data.created || 0).valueOf(),
   );
   return sortedEntries;
 };
 
-export const sortByUpdate = (entries: GenericEntry[]): GenericEntry[] => {
+export const sortByUpdate = <T extends GenericEntry>(entries: T[]): T[] => {
   const sortedEntries = entries.sort(
     (a: any, b: any) =>
-      new Date(b.data.updated && b.data.updated).valueOf() -
-      new Date(a.data.updated && a.data.updated).valueOf(),
+      new Date(b.data.updated || b.data.created || 0).valueOf() -
+      new Date(a.data.updated || a.data.created || 0).valueOf(),
   );
   return sortedEntries;
 };

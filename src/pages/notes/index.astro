@@ -3,21 +3,17 @@ import CollectionLayout from "@components/notes/CollectionLayout.astro";
 import { getEntries, getIndex } from "@lib/contentParser";
 import { sortByDate } from "@lib/sortFunctions";
 import { getPageSize } from "@lib/config";
-import { getTaxa } from "@lib/taxonomyParser";
+import { getTaxaWithCount } from "@lib/taxonomyParser";
 import type { NotesEntry } from "@/types";
 
-const entriesPerPage = getPageSize('notes'); 
-
-console.log("index entriesPerPage----->",entriesPerPage)
+const entriesPerPage = getPageSize("notes");
 
 const currentPageIndex = 1;
 const entryIndex = (await getIndex("notes")) as NotesEntry;
 const entries = (await getEntries("notes", sortByDate)) as NotesEntry[];
 const allNotesCount = entries.length;
 
-console.log("站点动态页面获取数据：", entryIndex)
-
-const tags = await getTaxa("notes", "tags");
+const tags = (await getTaxaWithCount("notes", "tags")).map((tag) => tag.name);
 
 const indexOfLastEntry = currentPageIndex * entriesPerPage;
 const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;

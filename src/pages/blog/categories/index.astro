@@ -1,0 +1,15 @@
+---
+import TaxaLayout from "@components/blog/TaxaLayout.astro";
+import { getEntries } from "@lib/contentParser";
+
+const entries = await getEntries("blog");
+const allTaxa = entries.flatMap((entry) => entry.data.categories || []);
+const taxa = [...new Set(allTaxa)].sort((a, b) => a.localeCompare(b));
+---
+
+<TaxaLayout
+  taxonomy="categories"
+  taxonomyTitle="分类"
+  taxa={taxa}
+  allTaxa={allTaxa}
+/>

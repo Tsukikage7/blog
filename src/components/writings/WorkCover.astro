@@ -1,0 +1,55 @@
+---
+import type { ReadingSeries } from "@lib/seriesModel";
+import { SITE_INFO } from "@lib/config";
+interface Props {
+  series: ReadingSeries;
+}
+const { series } = Astro.props;
+---
+
+<div class="work-cover" aria-hidden="true">
+  <span class="cover-genre">{series.entry.data.genre || "文学作品"}</span>
+  <span class="cover-title">{series.entry.data.title}</span>
+  <div class="cover-bottom">
+    <span>{SITE_INFO.AUTHOR}</span>
+    <span>{series.chapters.length} 章</span>
+  </div>
+</div>
+<style>
+  .work-cover {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    aspect-ratio: 3 / 4;
+    width: 100%;
+    padding: 12% 13% 11% 16%;
+    border: 1px solid hsl(var(--primary) / 0.18);
+    border-left: 5px solid hsl(var(--primary) / 0.4);
+    border-radius: 2px 5px 5px 2px;
+    background: hsl(var(--primary) / 0.045);
+    color: hsl(var(--foreground));
+    box-shadow: 5px 5px 0 hsl(var(--primary) / 0.035);
+  }
+  .cover-genre {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: hsl(var(--primary));
+  }
+  .cover-title {
+    max-width: 4.4em;
+    font-family: var(--font-editorial);
+    font-size: clamp(20px, 2.8vw, 30px);
+    font-weight: 600;
+    line-height: 1.65;
+    letter-spacing: 0.025em;
+    margin-block: 18px;
+  }
+  .cover-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    font-size: 10px;
+    color: hsl(var(--muted-foreground));
+  }
+</style>

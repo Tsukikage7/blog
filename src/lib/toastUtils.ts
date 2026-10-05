@@ -1,3 +1,10 @@
+import "../styles/components/toast.css";
+import {
+  TOAST_POSITION_CLASSES,
+  TOAST_TYPE_CONFIG,
+  toastContentClasses,
+} from "./toastConfig";
+
 
 export interface ToastOptions {
   title?: string;
@@ -8,42 +15,6 @@ export interface ToastOptions {
   showIcon?: boolean;
   closable?: boolean;
 }
-
-const typeConfig = {
-  success: {
-    bgColor: 'from-emerald-400/20 to-green-500/20',
-    borderColor: 'border-emerald-400/30',
-    textColor: 'text-emerald-700',
-    icon: '✓'
-  },
-  info: {
-    bgColor: 'from-blue-900/20 to-cyan-500/20',
-    borderColor: 'border-blue-200',
-    textColor: 'text-blue-100',
-    icon: 'ℹ'
-  },
-  warning: {
-    bgColor: 'from-amber-400/20 to-orange-500/20',
-    borderColor: 'border-amber-400/30',
-    textColor: 'text-amber-700',
-    icon: '⚠'
-  },
-  error: {
-    bgColor: 'from-red-400/20 to-rose-500/20',
-    borderColor: 'border-red-400/30',
-    textColor: 'text-red-700',
-    icon: '✕'
-  }
-};
-
-const positionClasses = {
-  'top-right': 'top-4 right-4',
-  'top-left': 'top-4 left-4',
-  'bottom-right': 'bottom-4 right-4',
-  'bottom-left': 'bottom-4 left-4',
-  'top-center': 'top-4 left-1/2 transform -translate-x-1/2',
-  'bottom-center': 'bottom-4 left-1/2 transform -translate-x-1/2'
-};
 
 export function showToast(options: ToastOptions): HTMLElement {
   const {
@@ -56,30 +27,22 @@ export function showToast(options: ToastOptions): HTMLElement {
     closable = true
   } = options;
 
-  const config = typeConfig[type];
-  const positionClass = positionClasses[position];
+  const config = TOAST_TYPE_CONFIG[type];
+  const positionClass = TOAST_POSITION_CLASSES[position];
 
   
   const toastContainer = document.createElement('div');
-  toastContainer.className = `toast-container fixed z-50 ${positionClass} pointer-events-none`;
+  toastContainer.className = `toast-container toast-container--mobile-wide fixed z-50 ${positionClass} pointer-events-none`;
   toastContainer.dataset.duration = duration.toString();
+  toastContainer.dataset.position = position;
 
   
   const toastContent = document.createElement('div');
-  toastContent.className = `
-    toast-content pointer-events-auto
-    backdrop-blur-xl bg-gradient-to-br ${config.bgColor}
-    border ${config.borderColor}
-    rounded-2xl shadow-xl shadow-black/20
-    p-6 min-w-[280px] max-w-[400px]
-    transform transition-all duration-500 ease-out
-    hover:scale-105 hover:shadow-3xl
-    animate-slide-in
-  `;
+  toastContent.className = toastContentClasses(config);
 
   
   const lightEffect = document.createElement('div');
-  lightEffect.className = 'absolute inset-0 rounded-2xl bg-gradient-to-r from-white/10 to-transparent opacity-50';
+  lightEffect.className = 'absolute inset-0 rounded-2xl bg-linear-to-r from-foreground/5 to-transparent opacity-50';
   toastContent.appendChild(lightEffect);
 
   
@@ -91,8 +54,8 @@ export function showToast(options: ToastOptions): HTMLElement {
   if (showIcon) {
     const iconDiv = document.createElement('div');
     iconDiv.className = `
-      flex-shrink-0 w-8 h-8 rounded-full 
-      bg-gradient-to-br ${config.bgColor}
+      shrink-0 w-8 h-8 rounded-full
+      bg-linear-to-br ${config.bgColor}
       border ${config.borderColor}
       flex items-center justify-center
       text-lg font-bold ${config.textColor}
@@ -114,7 +77,7 @@ export function showToast(options: ToastOptions): HTMLElement {
   }
 
   const contentElement = document.createElement('p');
-  contentElement.className = 'text-gray-700 text-sm leading-relaxed';
+  contentElement.className = 'text-foreground text-sm leading-relaxed';
   contentElement.setHTMLUnsafe(content);
   textDiv.appendChild(contentElement);
 
@@ -123,7 +86,7 @@ export function showToast(options: ToastOptions): HTMLElement {
   
   if (closable) {
     const closeBtn = document.createElement('button');
-    closeBtn.className = 'w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 transition-colors duration-200 flex items-center justify-center text-gray-600 hover:text-gray-800';
+    closeBtn.className = 'w-8 h-8 rounded-full bg-card/60 hover:bg-muted transition-colors duration-200 flex items-center justify-center text-muted-foreground hover:text-foreground';
     closeBtn.innerHTML = '<span class="text-xs">×</span>';
     closeBtn.onclick = () => removeToast(toastContainer);
     contentArea.appendChild(closeBtn);
@@ -134,10 +97,10 @@ export function showToast(options: ToastOptions): HTMLElement {
   
   if (duration > 0) {
     const progressContainer = document.createElement('div');
-    progressContainer.className = 'absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-2xl overflow-hidden';
+    progressContainer.className = 'absolute bottom-0 left-0 right-0 h-1 bg-foreground/10 rounded-b-2xl overflow-hidden';
     
     const progressBar = document.createElement('div');
-    progressBar.className = `h-full bg-gradient-to-r ${config.bgColor} animate-progress`;
+    progressBar.className = `h-full bg-linear-to-r ${config.bgColor} toast-progress`;
     progressBar.style.animationDuration = `${duration}ms`;
     
     progressContainer.appendChild(progressBar);
@@ -194,67 +157,8 @@ export function clearAllToasts() {
 }
 
 export function clearToastsByPosition(position: ToastOptions['position'] = 'top-right') {
-  const positionClass = positionClasses[position];
-  const toasts = document.querySelectorAll(`.toast-container.${positionClass.split(' ').join('.')}`);
+  const toasts = document.querySelectorAll(`.toast-container[data-position="${position}"]`);
   toasts.forEach(toast => {
     removeToast(toast as HTMLElement);
   });
-}
-
-if (typeof document !== 'undefined') {
-  const style = document.createElement('style');
-  style.textContent = `
-    
-    @keyframes slide-in {
-      from {
-        opacity: 0;
-        transform: translateY(-20px) scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-    
-    @keyframes progress {
-      from {
-        width: 100%;
-      }
-      to {
-        width: 0%;
-      }
-    }
-    
-    .animate-slide-in {
-      animation: slide-in 0.5s ease-out;
-    }
-    
-    .animate-progress {
-      animation: progress linear;
-    }
-    
-    .toast-content {
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-    }
-    
-    .toast-content:hover {
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-    }
-    
-    @media (max-width: 640px) {
-      .toast-container {
-        left: 1rem !important;
-        right: 1rem !important;
-        transform: none !important;
-      }
-      
-      .toast-content {
-        min-width: auto;
-        max-width: none;
-      }
-    }
-  `;
-  document.head.appendChild(style);
 }

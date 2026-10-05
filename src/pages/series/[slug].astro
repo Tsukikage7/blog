@@ -1,0 +1,158 @@
+---
+import { render } from "astro:content";
+import BaseLayout from "@components/base/BaseLayout.astro";
+import PageHeader from "@components/common/PageHeader.astro";
+import ChapterList from "@components/series/ChapterList.astro";
+import { getSeries } from "@lib/series";
+import type { ReadingSeries } from "@lib/seriesModel";
+import { chapterHref } from "@lib/seriesModel";
+import { formatDate } from "@lib/formatDate";
+export async function getStaticPaths() {
+  return (await getSeries())
+    .filter((series) => series.entry.data.kind === "technical")
+    .map((series) => ({
+      params: { slug: series.entry.id },
+      props: { series },
+    }));
+}
+interface Props {
+  series: ReadingSeries;
+}
+const { series } = Astro.props;
+const { Content } = await render(series.entry);
+---
+
+<BaseLayout
+  title={series.entry.data.title}
+  description={series.entry.data.description}
+>
+  <div class="site-container">
+    <PageHeader
+      contained
+      title={series.entry.data.title}
+      description={series.entry.data.description}
+      articleCount={series.chapters.length}
+    />
+    <div class="series-layout">
+      <aside class="series-intro">
+        <p class="intro-label">阅读指南</p>
+        <dl>
+          {series.entry.data.audience && (
+            <>
+              <dt>适合谁读</dt>
+              <dd>{series.entry.data.audience}</dd>
+            </>
+          )}
+          {series.entry.data.prerequisites && (
+            <>
+              <dt>开始之前</dt>
+              <dd>{series.entry.data.prerequisites}</dd>
+            </>
+          )}
+          {series.updated && (
+            <>
+              <dt>最近更新</dt>
+              <dd>
+                <time datetime={series.updated.toISOString()}>
+                  {formatDate(series.updated)}
+                </time>
+              </dd>
+            </>
+          )}
+        </dl>
+        <a class="start-reading" href={chapterHref(series.chapters[0])}>
+          从第一篇开始 <span aria-hidden="true">→</span>
+        </a>
+        <div class="prose prose-site prose-sm mt-8">
+          <Content />
+        </div>
+      </aside>
+      <section aria-labelledby="chapters-heading" class="chapter-section">
+        <div class="chapters-heading">
+          <h2 id="chapters-heading">章节目录</h2>
+          <span>按阅读顺序排列</span>
+        </div>
+        <ChapterList series={series} />
+        <a class="back-link" href="/series/">
+          ← 返回全部合集
+        </a>
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+<style>
+  .series-layout {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 64px;
+    border-top: 1px solid hsl(var(--border));
+    padding-top: 32px;
+  }
+  .series-intro {
+    align-self: start;
+  }
+  .intro-label {
+    color: hsl(var(--primary));
+    font-size: 12px;
+    margin-bottom: 24px;
+  }
+  dt {
+    font-size: 12px;
+    font-weight: 500;
+    margin: 20px 0 6px;
+  }
+  dd {
+    font-size: 13px;
+    line-height: 1.9;
+    color: hsl(var(--muted-foreground));
+  }
+  .start-reading {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 18px;
+    margin-top: 28px;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-radius: 4px;
+    font-size: 13px;
+    transition: opacity 0.2s;
+  }
+  .start-reading:hover {
+    opacity: 0.85;
+  }
+  .chapter-section {
+    min-width: 0;
+  }
+  .chapters-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding-bottom: 12px;
+  }
+  h2 {
+    font-family: var(--font-editorial);
+    font-size: 25px;
+  }
+  .chapters-heading span {
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+  }
+  .back-link {
+    display: inline-block;
+    font-size: 13px;
+    color: hsl(var(--primary));
+    margin: 32px 0;
+  }
+  @media (max-width: 767px) {
+    .series-layout {
+      grid-template-columns: 1fr;
+      gap: 36px;
+      padding-top: 24px;
+    }
+    .series-intro {
+      padding-bottom: 28px;
+      border-bottom: 1px solid hsl(var(--border));
+    }
+  }
+</style>

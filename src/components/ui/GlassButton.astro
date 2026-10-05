@@ -1,35 +1,34 @@
 ---
 interface Props {
-  
   variant?:
-    | "primary"     
-    | "secondary"   
-    | "success"     
-    | "warning"     
-    | "danger"      
-    | "info"        
-    | "menu";       
-  
+    | "primary"
+    | "secondary"
+    | "success"
+    | "warning"
+    | "danger"
+    | "info"
+    | "menu";
+
   size?: "sm" | "md" | "lg" | "menu";
-  
+
   disabled?: boolean;
-  
+
   loading?: boolean;
-  
+
   icon?: string;
-  
+
   iconPosition?: "left" | "right";
-  
+
   className?: string;
-  
+
   id?: string;
-  
+
   title?: string;
-  
+
   type?: "button" | "submit" | "reset";
-  
+
   onClick?: string;
-  
+
   open?: boolean;
 }
 
@@ -50,74 +49,74 @@ const {
 
 const variantStyles = {
   primary: {
-    base: "rgba(63, 63, 70, 0.25)",
-    hover: "rgba(63, 63, 70, 0.4)",
-    border: "rgba(113, 113, 122, 0.4)",
-    hoverBorder: "rgba(113, 113, 122, 0.6)",
-    color: "#3f3f46",
-    hoverColor: "#27272a",
-    shadow: "rgba(63, 63, 70, 0.25)",
-    gradient: "rgba(255, 255, 255, 0.3)",
+    base: "hsl(var(--primary) / 0.16)",
+    hover: "hsl(var(--primary) / 0.26)",
+    border: "hsl(var(--primary) / 0.4)",
+    hoverBorder: "hsl(var(--primary) / 0.65)",
+    color: "hsl(var(--primary))",
+    hoverColor: "hsl(var(--primary))",
+    shadow: "hsl(var(--primary) / 0.25)",
+    gradient: "hsl(var(--foreground) / 0.12)",
   },
   secondary: {
-    base: "rgba(82, 82, 91, 0.2)",
-    hover: "rgba(82, 82, 91, 0.35)",
-    border: "rgba(161, 161, 170, 0.4)",
-    hoverBorder: "rgba(161, 161, 170, 0.6)",
-    color: "#52525b",
-    hoverColor: "#3f3f46",
-    shadow: "rgba(82, 82, 91, 0.25)",
-    gradient: "rgba(255, 255, 255, 0.3)",
+    base: "hsl(var(--secondary) / 0.55)",
+    hover: "hsl(var(--secondary) / 0.8)",
+    border: "hsl(var(--border))",
+    hoverBorder: "hsl(var(--muted-foreground) / 0.55)",
+    color: "hsl(var(--secondary-foreground))",
+    hoverColor: "hsl(var(--secondary-foreground))",
+    shadow: "hsl(var(--foreground) / 0.16)",
+    gradient: "hsl(var(--foreground) / 0.1)",
   },
   success: {
-    base: "rgba(113, 113, 122, 0.2)",
-    hover: "rgba(113, 113, 122, 0.35)",
-    border: "rgba(161, 161, 170, 0.4)",
-    hoverBorder: "rgba(161, 161, 170, 0.6)",
-    color: "#52525b",
-    hoverColor: "#3f3f46",
-    shadow: "rgba(113, 113, 122, 0.25)",
-    gradient: "rgba(255, 255, 255, 0.3)",
+    base: "hsl(var(--success) / 0.16)",
+    hover: "hsl(var(--success) / 0.26)",
+    border: "hsl(var(--success) / 0.4)",
+    hoverBorder: "hsl(var(--success) / 0.65)",
+    color: "hsl(var(--success))",
+    hoverColor: "hsl(var(--success))",
+    shadow: "hsl(var(--success) / 0.25)",
+    gradient: "hsl(var(--foreground) / 0.12)",
   },
   warning: {
-    base: "rgba(82, 82, 91, 0.8)",
-    hover: "rgba(63, 63, 70, 0.9)",
-    border: "rgba(113, 113, 122, 0.6)",
-    hoverBorder: "rgba(82, 82, 91, 0.8)",
-    color: "#ffffff",
-    hoverColor: "#ffffff",
-    shadow: "rgba(63, 63, 70, 0.25)",
-    gradient: "rgba(255, 255, 255, 0.3)",
+    base: "hsl(var(--warning) / 0.16)",
+    hover: "hsl(var(--warning) / 0.26)",
+    border: "hsl(var(--warning) / 0.4)",
+    hoverBorder: "hsl(var(--warning) / 0.65)",
+    color: "hsl(var(--warning))",
+    hoverColor: "hsl(var(--warning))",
+    shadow: "hsl(var(--warning) / 0.22)",
+    gradient: "hsl(var(--foreground) / 0.12)",
   },
   danger: {
-    base: "rgba(39, 39, 42, 0.25)",
-    hover: "rgba(39, 39, 42, 0.4)",
-    border: "rgba(82, 82, 91, 0.4)",
-    hoverBorder: "rgba(82, 82, 91, 0.6)",
-    color: "#27272a",
-    hoverColor: "#18181b",
-    shadow: "rgba(39, 39, 42, 0.25)",
-    gradient: "rgba(255, 255, 255, 0.3)",
+    base: "hsl(var(--destructive) / 0.14)",
+    hover: "hsl(var(--destructive) / 0.24)",
+    border: "hsl(var(--destructive) / 0.4)",
+    hoverBorder: "hsl(var(--destructive) / 0.65)",
+    color: "hsl(var(--destructive))",
+    hoverColor: "hsl(var(--destructive))",
+    shadow: "hsl(var(--destructive) / 0.24)",
+    gradient: "hsl(var(--foreground) / 0.12)",
   },
   info: {
-    base: "rgb(244, 244, 244, 0.4)",
-    hover: "rgb(244, 244, 244, 0.6)",
-    border: "rgba(255, 255, 255, 0.8)",
-    hoverBorder: "rgba(255, 255, 255, 0.9)",
-    color: "#383838",
-    hoverColor: "#272727",
-    shadow: "rgba(113, 113, 122, 0.25)",
-    gradient: "rgba(255, 255, 255, 0.3)",
+    base: "hsl(var(--info) / 0.16)",
+    hover: "hsl(var(--info) / 0.26)",
+    border: "hsl(var(--info) / 0.4)",
+    hoverBorder: "hsl(var(--info) / 0.65)",
+    color: "hsl(var(--info))",
+    hoverColor: "hsl(var(--info))",
+    shadow: "hsl(var(--info) / 0.22)",
+    gradient: "hsl(var(--foreground) / 0.12)",
   },
   menu: {
-    base: "rgb(244, 244, 244, 0.4)",
-    hover: "rgb(244, 244, 244, 0.6)",
-    border: "rgba(255, 255, 255, 0.8)",
-    hoverBorder: "rgba(255, 255, 255, 0.9)",
-    color: "rgb(82, 82, 91)",
-    hoverColor: "rgb(39, 39, 42)",
-    shadow: "rgba(150, 150, 150, 0.6)",
-    gradient: "rgba(255, 255, 255, 0.3)",
+    base: "hsl(var(--secondary) / 0.55)",
+    hover: "hsl(var(--secondary) / 0.8)",
+    border: "hsl(var(--border))",
+    hoverBorder: "hsl(var(--muted-foreground) / 0.55)",
+    color: "hsl(var(--secondary-foreground))",
+    hoverColor: "hsl(var(--secondary-foreground))",
+    shadow: "hsl(var(--foreground) / 0.16)",
+    gradient: "hsl(var(--foreground) / 0.1)",
   },
 };
 
@@ -128,7 +127,7 @@ const sizeStyles = {
     iconSize: "0.875rem",
     gap: "0.375rem",
 
-    borderRadius: "12px",
+    borderRadius: "var(--radius-lg)",
   },
   md: {
     padding: "0.75rem 1rem",
@@ -136,7 +135,7 @@ const sizeStyles = {
     iconSize: "1rem",
     gap: "0.5rem",
 
-    borderRadius: "12px",
+    borderRadius: "var(--radius-lg)",
   },
   lg: {
     padding: "1rem 1.25rem",
@@ -144,7 +143,7 @@ const sizeStyles = {
     iconSize: "1.125rem",
     gap: "0.625rem",
 
-    borderRadius: "12px",
+    borderRadius: "var(--radius-lg)",
   },
   menu: {
     padding: "0.5rem 1rem",
@@ -152,79 +151,82 @@ const sizeStyles = {
     fontSize: "inherit",
     gap: "inherit",
 
-    borderRadius: "12px",
+    borderRadius: "var(--radius-lg)",
   },
 };
 
 const currentVariant = variantStyles[variant];
 const currentSize = sizeStyles[size];
+const buttonStyle = {
+  glassButtonDefaultBase: currentVariant.base,
+  glassButtonDefaultHover: currentVariant.hover,
+  glassButtonDefaultBorder: currentVariant.border,
+  glassButtonDefaultHoverBorder: currentVariant.hoverBorder,
+  glassButtonDefaultColor: currentVariant.color,
+  glassButtonDefaultHoverColor: currentVariant.hoverColor,
+  glassButtonDefaultShadow: currentVariant.shadow,
+  glassButtonDefaultGradient: currentVariant.gradient,
+  sizePadding: currentSize.padding,
+  sizeFontSize: currentSize.fontSize,
+  sizeIconSize: currentSize.iconSize,
+  sizeGap: currentSize.gap,
+  sizeBorderRadius: currentSize.borderRadius,
+};
 ---
 
 <button
+  style={Object.fromEntries(
+    Object.entries(buttonStyle).map(([key, value]) => [`--${key}`, value]),
+  )}
   id={id}
   type={type}
-  class={open
-    ? `glass-button glass-button--${variant} glass-button--${size} select-none ${className} `
-    : `gap-[${currentSize.gap}] p-[${currentSize.padding}] select-none ${className} `}
+  class={
+    open
+      ? `glass-button glass-button--${variant} glass-button--${size} select-none ${className} `
+      : `glass-button--plain select-none ${className}`
+  }
   disabled={disabled || loading}
   title={title}
   onclick={onClick}
 >
-  {
-    loading && (
-      <svg class="glass-button__spinner" viewBox="0 0 24 24">
-        <circle
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          stroke-width="4"
-          fill="none"
-          opacity="0.25"
-        />
-        <path
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          opacity="0.75"
-        />
-      </svg>
-    )
-  }
+  {loading && (
+    <svg class="glass-button__spinner" viewBox="0 0 24 24">
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        stroke-width="4"
+        fill="none"
+        opacity="0.25"
+      />
+      <path
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        opacity="0.75"
+      />
+    </svg>
+  )}
 
-  {
-    icon && iconPosition === "left" && !loading && (
-      <span class="glass-button__icon" set:html={icon} />
-    )
-  }
+  {icon && iconPosition === "left" && !loading && (
+    <span class="glass-button__icon" set:html={icon} />
+  )}
 
   <span class="glass-button__content">
     <slot />
   </span>
 
-  {
-    icon && iconPosition === "right" && !loading && (
-      <span class="glass-button__icon" set:html={icon} />
-    )
-  }
+  {icon && iconPosition === "right" && !loading && (
+    <span class="glass-button__icon" set:html={icon} />
+  )}
 </button>
 
-<style
-  define:vars={{
-    variantBase: currentVariant.base,
-    variantHover: currentVariant.hover,
-    variantBorder: currentVariant.border,
-    variantHoverBorder: currentVariant.hoverBorder,
-    variantColor: currentVariant.color,
-    variantHoverColor: currentVariant.hoverColor,
-    variantShadow: currentVariant.shadow,
-    variantGradient: currentVariant.gradient,
-    sizePadding: currentSize.padding,
-    sizeFontSize: currentSize.fontSize,
-    sizeIconSize: currentSize.iconSize,
-    sizeGap: currentSize.gap,
-    sizeBorderRadius: currentSize.borderRadius,
-  }}
->
+<style>
+  .glass-button--plain {
+    gap: var(--sizeGap);
+    padding: var(--sizePadding);
+  }
+
   .glass-button {
     position: relative;
     display: inline-flex;
@@ -232,17 +234,18 @@ const currentSize = sizeStyles[size];
     justify-content: center;
     gap: var(--sizeGap);
     padding: var(--sizePadding);
-    background: var(--variantBase);
-    border: 1px solid var(--variantBorder);
+    background: var(--glass-button-base, var(--glassButtonDefaultBase));
+    border: 1px solid
+      var(--glass-button-border, var(--glassButtonDefaultBorder));
     border-radius: var(--sizeBorderRadius);
     font-size: var(--sizeFontSize);
     font-weight: 500;
-    color: var(--variantColor);
+    color: var(--glass-button-color, var(--glassButtonDefaultColor));
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 2.2);
     box-shadow:
-      0 4px 6px rgba(0, 0, 0, 0.1),
-      inset 1px 1px 2px rgba(255, 255, 255, 0.3);
+      0 4px 6px hsl(var(--foreground) / 0.12),
+      inset 1px 1px 2px hsl(var(--foreground) / 0.08);
     user-select: none;
     overflow: hidden;
     text-decoration: none;
@@ -259,7 +262,7 @@ const currentSize = sizeStyles[size];
     background: linear-gradient(
       90deg,
       transparent,
-      var(--variantGradient),
+      var(--glass-button-gradient, var(--glassButtonDefaultGradient)),
       transparent
     );
     transition: left 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -268,13 +271,16 @@ const currentSize = sizeStyles[size];
   }
 
   .glass-button:hover {
-    background: var(--variantHover);
-    border-color: var(--variantHoverBorder);
-    color: var(--variantHoverColor);
+    background: var(--glass-button-hover, var(--glassButtonDefaultHover));
+    border-color: var(
+      --glass-button-hover-border,
+      var(--glassButtonDefaultHoverBorder)
+    );
+    color: var(--glass-button-hover-color, var(--glassButtonDefaultHoverColor));
     transform: translateY(-2px) scale(1.01);
     box-shadow:
-      0 8px 20px var(--variantShadow),
-      inset 1px 1px 4px rgba(255, 255, 255, 0.5);
+      0 8px 20px var(--glass-button-shadow, var(--glassButtonDefaultShadow)),
+      inset 1px 1px 4px hsl(var(--foreground) / 0.14);
     filter: brightness(1.1) saturate(1.2);
   }
 
@@ -285,7 +291,8 @@ const currentSize = sizeStyles[size];
 
   .glass-button:active {
     transform: translateY(-1px) scale(0.98);
-    box-shadow: 0 2px 6px var(--variantShadow);
+    box-shadow: 0 2px 6px
+      var(--glass-button-shadow, var(--glassButtonDefaultShadow));
   }
 
   .glass-button:disabled {
@@ -298,8 +305,8 @@ const currentSize = sizeStyles[size];
   .glass-button:disabled:hover {
     transform: none;
     box-shadow:
-      0 4px 6px rgba(0, 0, 0, 0.1),
-      inset 1px 1px 2px rgba(255, 255, 255, 0.3);
+      0 4px 6px hsl(var(--foreground) / 0.12),
+      inset 1px 1px 2px hsl(var(--foreground) / 0.08);
   }
 
   .glass-button__icon {
@@ -318,7 +325,9 @@ const currentSize = sizeStyles[size];
 
   .glass-button:hover .glass-button__icon {
     transform: scale(1.2) rotate(-5deg);
-    filter: drop-shadow(0 0 4px var(--variantShadow));
+    filter: drop-shadow(
+      0 4px var(--glass-button-shadow, var(--glassButtonDefaultShadow))
+    );
   }
 
   .glass-button__content {
@@ -333,37 +342,6 @@ const currentSize = sizeStyles[size];
     animation: spin 1s linear infinite;
   }
 
-  
-  .dark {
-    .glass-button {
-      background: rgba(55, 55, 55, 0.6);
-      border-color: rgba(255, 255, 255, 0.15);
-      color: #e5e7eb;
-      box-shadow:
-        0 4px 8px rgba(0, 0, 0, 0.4),
-        inset 1px 1px 3px rgba(255, 255, 255, 0.15);
-    }
-
-    .glass-button::before {
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-      );
-    }
-
-    .glass-button:hover {
-      background: var(--variantHover);
-      border-color: var(--variantHoverBorder);
-      color: var(--variantHoverColor);
-      box-shadow:
-        0 6px 14px var(--variantShadow),
-        inset 1px 1px 4px rgba(255, 255, 255, 0.2);
-      filter: brightness(1.2) saturate(1.3);
-    }
-  }
-
   @keyframes spin {
     from {
       transform: rotate(0deg);
@@ -371,30 +349,5 @@ const currentSize = sizeStyles[size];
     to {
       transform: rotate(360deg);
     }
-  }
-
-
-  .glass-button--primary:hover .glass-button__icon {
-    filter: drop-shadow(0 0 4px rgba(63, 63, 70, 0.5));
-  }
-
-  .glass-button--secondary:hover .glass-button__icon {
-    filter: drop-shadow(0 0 4px rgba(82, 82, 91, 0.5));
-  }
-
-  .glass-button--success:hover .glass-button__icon {
-    filter: drop-shadow(0 0 4px rgba(113, 113, 122, 0.5));
-  }
-
-  .glass-button--warning:hover .glass-button__icon {
-    filter: drop-shadow(0 0 4px rgba(63, 63, 70, 0.5));
-  }
-
-  .glass-button--danger:hover .glass-button__icon {
-    filter: drop-shadow(0 0 4px rgba(39, 39, 42, 0.5));
-  }
-
-  .glass-button--info:hover .glass-button__icon {
-    filter: drop-shadow(0 0 4px rgba(113, 113, 122, 0.5));
   }
 </style>

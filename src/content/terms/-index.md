@@ -50,7 +50,7 @@ description: 本站版权声明、使用条款及隐私保护政策
 
 ### 开源代码
 
-本网站源代码托管于 [GitHub](https://github.com/Tsukikage7/astro-blog)，基于 Astro 框架开发。网站源代码的使用请遵循相应的开源协议条款。
+本网站源代码托管于 [GitHub](https://github.com/Tsukikage7/blog)，基于 Astro 框架开发。网站源代码的使用请遵循相应的开源协议条款。
 
 ---
 

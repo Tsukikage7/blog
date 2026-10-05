@@ -1,35 +1,14 @@
 ---
 import CollectionLayout from "@components/writings/CollectionLayout.astro";
-import { getEntries, getIndex } from "@lib/contentParser";
-import { sortByDate } from "@lib/sortFunctions";
-import { getPageSize } from "@lib/config";
-import type { WritingsEntry } from "@/types";
-
-const currentPageIndex = 1;
-
-const entryIndex = (await getIndex("writings")) as WritingsEntry;
-const allEntries = (await getEntries("writings", sortByDate)) as WritingsEntry[];
-
-// 过滤掉草稿
-const entries = allEntries.filter((entry) => !entry.data.draft);
-const allCount = entries.length;
-
-// 获取所有标签
-const tags = [...new Set(entries.flatMap((entry) => entry.data.tags || []))].sort();
-
-const entriesPerPage = getPageSize("writings") || 10;
-const indexOfLastEntry = currentPageIndex * entriesPerPage;
-const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
-const currentEntries = entries.slice(indexOfFirstEntry, indexOfLastEntry);
-
-const pageCount = Math.ceil(entries.length / entriesPerPage);
+import { getWritingsCatalog } from "@lib/writings";
+const { items, tags, index, countText, pageSize } = await getWritingsCatalog();
 ---
 
 <CollectionLayout
-  entryIndex={entryIndex}
-  entries={currentEntries}
+  entryIndex={index}
+  items={items.slice(0, pageSize)}
   tags={tags}
-  pageIndex={currentPageIndex}
-  pageCount={pageCount}
-  allCount={allCount}
+  pageIndex={1}
+  pageCount={Math.ceil(items.length / pageSize)}
+  countText={countText}
 />

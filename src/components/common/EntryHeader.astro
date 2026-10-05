@@ -1,35 +1,24 @@
 ---
-import { formatDate } from "@lib/formatDate";
-import readingTime from "@lib/readingTime";
-import {
-  lowerHumanize,
-  upperHumanize,
-  markdownify,
-  slugify,
-} from "@lib/textConverter";
-
 import { Image } from "astro:assets";
 import {
-  FaRegCalendarAlt,
-  FaRegFolder,
-  FaRegUserCircle,
-  FaHashtag,
-  FaRegClock,
-  FaRegEye,
-} from "react-icons/fa";
+  HiOutlineCalendarDays,
+  HiOutlineClock,
+  HiOutlineFolder,
+  HiOutlineUserCircle,
+} from "react-icons/hi2";
 import type { GenericEntry, EntryReference, ImageData } from "@/types";
-import LiquidGlassLess from "./LiquidGlassLess.astro";
-import Notice from "./shortcodes/Notice";
+import { formatDate } from "@lib/formatDate";
+import readingTime from "@lib/readingTime";
+import { slugify } from "@lib/textConverter";
 import ServerViewCount from "@components/blog/ServerViewCount.astro";
 
 interface EntryData {
   title: string;
-  image?: string;
+  image?: string | ImageData;
   imageAlt?: string;
   author?: EntryReference;
-  date?: string;
-  pubDate?: string;
-  modDate?: string;
+  created?: Date | string;
+  updated?: Date | string;
   categories?: string[];
   tags?: string[];
   complexity?: number;
@@ -39,7 +28,6 @@ interface Props {
   entry: GenericEntry;
   showInfo?: boolean;
   showImage?: boolean;
-  showTitle?: boolean;
   showAuthor?: boolean;
   showDate?: boolean;
   showPubDate?: boolean;
@@ -71,154 +59,138 @@ const {
   tags,
   image,
   imageAlt,
-  date,
-  pubDate,
-  modDate,
+  created,
+  updated,
   complexity,
 } = entry.data as EntryData;
-
-categories?.sort((a: string, b: string) => a.localeCompare(b));
-tags?.sort((a: string, b: string) => a.localeCompare(b));
+const publishedTime = created ? new Date(created).toISOString() : undefined;
 ---
 
-<div class="">
-  {
-    showInfo && (
-      <LiquidGlassLess
-        heavy
-        wrapperClass={`${image && showImage ? "dock mb-4 !p-0 overflow-hidden" : "dock mb-4 overflow-hidden"}`}
-        textClass={`${image && showImage ? "" : "border border-white/10 dark:border-white/5"}`}
-      >
-        {}
-        {image && showImage && (
-          <div class="absolute inset-0">
-            {typeof image === "string" ? (
-              <img
-                class="w-full h-full object-cover rounded-lg"
-                src={image}
-                alt={imageAlt || ""}
-                height={280}
-                width={1200}
-                loading="eager"
-              />
-            ) : (
-              <Image
-                class="w-full h-full object-cover rounded-lg"
-                src={image}
-                alt={imageAlt || ""}
-                height={280}
-                width={1200}
-                loading="eager"
-              />
-            )}
-            {}
-            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-black/0" />
-          </div>
-        )}
+{showInfo && (
+  <header class="entry-header mb-7 sm:mb-9">
+    <div class="mb-5 sm:mb-7">
+      <h1 class="entry-title text-balance text-3xl font-semibold leading-snug tracking-tight text-foreground sm:text-4xl">
+        {title}
+      </h1>
 
-        {}
-        <div
-          class={`relative z-10 ${
-            image && showImage
-              ? "p-6 min-h-[280px] flex flex-col justify-end"
-              : "p-4"
-          }`}
-        >
-          <div class={`${image && showImage ? "text-white" : ""}`}>
-            <h1
-              set:html={markdownify(title)}
-              class={`${
-                image && showImage
-                  ? "mb-4 text-white drop-shadow-lg text-shadow-lg text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold"
-                  : "mb-3 text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white"
-              }`}
-            />
-            <ul
-              class={`flex flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm ${
-                image && showImage
-                  ? "text-white/90"
-                  : "text-gray-600 dark:text-gray-300"
-              }`}
+      <ul class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
+        {author && showAuthor && (
+          <li>
+            <a
+              href={`/authors/${slugify(author.id)}`}
+              class="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
             >
-              {author && showAuthor && (
-                <li class="flex items-center gap-1">
-                  <a
-                    href={`/authors/${slugify(author.id)}`}
-                    class="flex items-center gap-1 hover:text-primary transition-colors"
-                  >
-                    <FaRegUserCircle className="text-base" />
-                    <span>{upperHumanize(author.id)}</span>
-                  </a>
-                </li>
-              )}
-              {date && showDate && (
-                <li class="flex items-center gap-1" title="创建日期">
-                  <FaRegCalendarAlt className="text-base" />
-                  <span>{formatDate(date)}</span>
-                </li>
-              )}
-              {pubDate && showPubDate && (
-                <li class="flex items-center gap-1" title="发布日期">
-                  <FaRegCalendarAlt className="text-base" />
-                  <span>Published {formatDate(pubDate)}</span>
-                </li>
-              )}
-              {modDate && showModDate && (
-                <li class="flex items-center gap-1">
-                  <FaRegCalendarAlt className="text-base" />
-                  <span>Updated {formatDate(modDate)}</span>
-                </li>
-              )}
-              {complexity && complexity > 0 && showReadingTime && (
-                <li class="flex items-center gap-1" title="阅读所需时间">
-                  <FaRegClock className="text-base" />
-                  <span>{readingTime(entry.body!, complexity)}</span>
-                </li>
-              )}
-              {categories && showCategories && (
-                <li class="flex flex-wrap items-center gap-1.5" title="分类">
-                  {categories.map((category: string, index: number) => (
-                    <a
-                      href={`/blog/categories/${slugify(category)}`}
-                      class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-medium min-h-[28px]
-                             bg-zinc-200/80 dark:bg-zinc-700/60
-                             text-zinc-700 dark:text-zinc-300
-                             hover:bg-zinc-300 dark:hover:bg-zinc-600
-                             active:scale-95
-                             transition-all duration-200"
-                    >
-                      {upperHumanize(category)}
-                    </a>
-                  ))}
-                </li>
-              )}
-              {tags && showTags && (
-                <li class="flex flex-wrap items-center gap-1.5" title="标签">
-                  {tags.map((tag: string, index: number) => (
-                    <a
-                      href={`/blog/tags/${slugify(tag)}`}
-                      class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-medium min-h-[28px]
-                             bg-zinc-100 dark:bg-zinc-800/60
-                             text-zinc-600 dark:text-zinc-400
-                             hover:bg-zinc-200 dark:hover:bg-zinc-700
-                             active:scale-95
-                             transition-all duration-200"
-                    >
-                      <span class="mr-0.5 opacity-60">#</span>
-                      {lowerHumanize(tag)}
-                    </a>
-                  ))}
-                </li>
-              )}
-              {showViewCount && (
-                <li class="flex items-center gap-1" title="浏览次数">
-                  <ServerViewCount slug={entry.id} />
-                </li>
-              )}
-            </ul>
-          </div>
-        </div>
-      </LiquidGlassLess>
-    )
+              <HiOutlineUserCircle
+                className="size-4 shrink-0"
+                aria-hidden="true"
+              />
+              <span>{author.id}</span>
+            </a>
+          </li>
+        )}
+        {created && showDate && (
+          <li class="inline-flex items-center gap-1.5" title="创建日期">
+            <HiOutlineCalendarDays
+              className="size-4 shrink-0"
+              aria-hidden="true"
+            />
+            <time datetime={publishedTime}>{formatDate(created)}</time>
+          </li>
+        )}
+        {created && showPubDate && (
+          <li class="inline-flex items-center gap-1.5" title="发布日期">
+            <HiOutlineCalendarDays
+              className="size-4 shrink-0"
+              aria-hidden="true"
+            />
+            <time datetime={publishedTime}>发布于 {formatDate(created)}</time>
+          </li>
+        )}
+        {updated && showModDate && (
+          <li class="inline-flex items-center gap-1.5" title="更新日期">
+            <HiOutlineCalendarDays
+              className="size-4 shrink-0"
+              aria-hidden="true"
+            />
+            <time datetime={new Date(updated).toISOString()}>
+              更新于 {formatDate(updated)}
+            </time>
+          </li>
+        )}
+        {showReadingTime && (
+          <li class="inline-flex items-center gap-1.5" title="预计阅读时间">
+            <HiOutlineClock className="size-4 shrink-0" aria-hidden="true" />
+            <span>{readingTime(entry.body || "", complexity || 1)}</span>
+          </li>
+        )}
+        {showViewCount && (
+          <li class="inline-flex items-center gap-1.5" title="浏览次数">
+            <ServerViewCount slug={entry.id} />
+          </li>
+        )}
+      </ul>
+
+      {(showCategories && (categories?.length ?? 0) > 0) ||
+      (showTags && (tags?.length ?? 0) > 0) ? (
+        <ul class="mt-4 flex flex-wrap gap-2 text-xs">
+          {showCategories &&
+            categories?.map((category) => (
+              <li>
+                <a
+                  href={`/blog/categories/${slugify(category)}/`}
+                  class="inline-flex items-center gap-1 py-1 pr-3 text-primary transition-colors hover:underline"
+                >
+                  <HiOutlineFolder
+                    className="size-4 shrink-0"
+                    aria-hidden="true"
+                  />
+                  {category}
+                </a>
+              </li>
+            ))}
+          {showTags &&
+            tags?.map((tag) => (
+              <li>
+                <a
+                  href={`/blog/tags/${slugify(tag)}/`}
+                  class="inline-flex items-center gap-1 py-1 pr-3 text-primary transition-colors hover:underline"
+                >
+                  <span aria-hidden="true">#</span>
+                  {tag}
+                </a>
+              </li>
+            ))}
+        </ul>
+      ) : null}
+    </div>
+
+    {image && showImage && (
+      <figure class="overflow-hidden rounded-lg bg-muted/40">
+        {typeof image === "string" ? (
+          <img
+            class="mx-auto h-auto max-h-[min(65vh,42rem)] w-full object-contain"
+            src={image}
+            alt={imageAlt || title}
+            loading="eager"
+            fetchpriority="high"
+          />
+        ) : (
+          <Image
+            class="mx-auto h-auto max-h-[min(65vh,42rem)] w-full object-contain"
+            src={image}
+            alt={imageAlt || title}
+            loading="eager"
+            fetchpriority="high"
+          />
+        )}
+      </figure>
+    )}
+  </header>
+)}
+
+<style>
+  .entry-title {
+    font-family: var(--font-editorial);
+    line-height: 1.45;
   }
-</div>
+</style>

@@ -1,19 +1,17 @@
 import { marked } from "marked";
 import React, { useEffect, useRef, useState } from "react";
 
-marked.use({
-  mangle: false,
-  headerIds: false,
-});
-
-const Tabs = ({ children }: { children: React.ReactElement }) => {
+const Tabs = ({
+  children,
+}: {
+  children: React.ReactElement<{ value: string }>;
+}) => {
   const [active, setActive] = useState<number>(0);
   const [defaultFocus, setDefaultFocus] = useState<boolean>(false);
 
-  const tabRefs: React.RefObject<HTMLElement[]> = useRef([]);
+  const tabRefs = useRef<(HTMLLIElement | null)[]>([]);
   useEffect(() => {
     if (defaultFocus) {
-      
       tabRefs.current[active]?.focus();
     } else {
       setDefaultFocus(true);
@@ -41,21 +39,23 @@ const Tabs = ({ children }: { children: React.ReactElement }) => {
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border dark:border-darkmode-border">
-      <ul className="glass-t-borderless m-0 list-none flex border-b border-border dark:border-darkmode-border">
+    <div className="overflow-hidden rounded-lg border border-border">
+      <ul className="bg-card text-card-foreground m-0 list-none flex border-b border-border">
         {tabLinks.map(
           (item: { name: string; children: string }, index: number) => (
             <li
               key={index}
-              className={`my-0 px-8 cursor-pointer border-b-[3px] pt-2 pb-1 text-lg text-txt-s dark:text-darkmode-txt-s border-border dark:border-darkmode-border 
-                ${index === active && "border-b-[3px] text-txt-p dark:text-darkmode-txt-p border-txt-p dark:border-darkmode-txt-p"}
+              className={`my-0 px-8 cursor-pointer border-b-[3px] pt-2 pb-1 text-lg text-muted-foreground border-border
+                ${index === active && "border-b-[3px] text-foreground border-foreground"}
               `}
               role="tab"
               tabIndex={index === active ? 0 : -1}
               onKeyDown={(event) => handleKeyDown(event, index)}
               onClick={() => setActive(index)}
-              
-              ref={(ref) => (tabRefs.current[index] = ref)}
+
+              ref={(ref) => {
+                tabRefs.current[index] = ref;
+              }}
             >
               {item.name}
             </li>
@@ -67,7 +67,7 @@ const Tabs = ({ children }: { children: React.ReactElement }) => {
           className={active === i ? "tab-content block px-5" : "hidden"}
           key={i}
           dangerouslySetInnerHTML={{
-            __html: marked.parse(item.children),
+            __html: marked.parse(item.children, { async: false }),
           }}
         />
       ))}

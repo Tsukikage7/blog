@@ -1,125 +1,198 @@
-import type { SearchableEntry } from "@/types";
-import React, { useEffect, useRef, useState } from "react";
-import { plainify } from "@lib/textConverter";
+import type { SearchDocument } from "@/types/search";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 
-const descriptionLength = 100;
-
-interface Props {
-  searchList: SearchableEntry[];
+function Highlight({ text, query }: { text: string; query: string }) {
+  const term = query.trim();
+  const index = term
+    ? text.toLocaleLowerCase().indexOf(term.toLocaleLowerCase())
+    : -1;
+  if (index < 0) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, index)}
+      <mark className="rounded-sm bg-primary/15 px-0.5 text-foreground">
+        {text.slice(index, index + term.length)}
+      </mark>
+      {text.slice(index + term.length)}
+    </>
+  );
 }
 
-interface SearchResult {
-  item: SearchableEntry;
-  refIndex: number;
+function excerpt(text: string, query: string) {
+  const index = text
+    .toLocaleLowerCase()
+    .indexOf(query.trim().toLocaleLowerCase());
+  if (index < 0 || index < 90) return text.slice(0, 180);
+  return `…${text.slice(index - 70, index + 110)}…`;
 }
 
-const getPath = (entry: SearchableEntry) => {
-  return `${entry.collection}/${entry.id.replace("-index", "")}`;
-};
-
-const SearchPage = ({ searchList }: Props) => {
+const SearchPage = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputVal, setInputVal] = useState("");
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [documents, setDocuments] = useState<SearchDocument[]>([]);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [attempt, setAttempt] = useState(0);
+  const [initialized, setInitialized] = useState(false);
 
-  const handleChange = (e: React.FormEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.FormEvent<HTMLInputElement>) =>
     setInputVal(e.currentTarget.value);
-  };
-
-  const fuse = new Fuse(searchList, {
-    keys: ["data.title", "data.description", "id", "collection", "body"],
-    includeMatches: true,
-    minMatchCharLength: 2,
-    threshold: 0.5,
-  });
+  const fuse = useMemo(
+    () =>
+      new Fuse(documents, {
+        keys: [
+          { name: "title", weight: 3 },
+          { name: "description", weight: 2 },
+          "url",
+          "text",
+        ],
+        ignoreLocation: true,
+        minMatchCharLength: 2,
+        threshold: 0.5,
+      }),
+    [documents],
+  );
+  const query = inputVal.trim();
+  const searchResults = useMemo(
+    () => (query.length >= 2 ? fuse.search(query) : []),
+    [query, fuse],
+  );
 
   useEffect(() => {
-    const searchUrl = new URLSearchParams(window.location.search);
-    const searchStr = searchUrl.get("q");
-    if (searchStr) setInputVal(searchStr);
-
-    
-    requestAnimationFrame(() => {
-      if (inputRef.current) {
-        inputRef.current.selectionStart = inputRef.current.selectionEnd =
-          searchStr?.length || 0;
-      }
-    });
+    const query = new URLSearchParams(window.location.search).get("q") || "";
+    setInputVal(query);
+    setInitialized(true);
+    inputRef.current?.focus();
   }, []);
 
   useEffect(() => {
-    let inputResult = inputVal.length >= 2 ? fuse.search(inputVal) : [];
-    setSearchResults(inputResult);
+    const controller = new AbortController();
+    setStatus("loading");
+    fetch("/api/search-index.json", { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("索引加载失败");
+        const data: SearchDocument[] = await response.json();
+        if (!Array.isArray(data)) throw new Error("索引格式错误");
+        setDocuments(data);
+        setStatus("ready");
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setStatus("error");
+      });
+    return () => controller.abort();
+  }, [attempt]);
 
-    if (inputVal.length >= 2) {
-      const searchParams = new URLSearchParams(window.location.search);
-      searchParams.set("q", inputVal);
-      const newRelativePathQuery =
-        window.location.pathname + "?" + searchParams.toString();
-      history.pushState(null, "", newRelativePathQuery);
-    } else {
-      history.pushState(null, "", window.location.pathname);
-      setSearchResults([]);
-    }
-  }, [inputVal]);
+  useEffect(() => {
+    if (!initialized) return;
+    const url = new URL(window.location.href);
+    if (inputVal.trim()) url.searchParams.set("q", inputVal);
+    else url.searchParams.delete("q");
+    history.replaceState(history.state, "", url.pathname + url.search);
+  }, [inputVal, initialized]);
 
   return (
-    <section className="">
-      <div className="container px-3 lg:px-8">
-        <div className="row mb-10 justify-center">
-          <div className="col-10 lg:col-8 px-0">
-            <div className="flex flex-nowrap">
-              <input
-                className="w-full glass rounded-lg p-6 text-txt-p placeholder:text-txt-light dark:placeholder:text-darkmode-txt-light focus:border-darkmode-border focus:ring-transparent dark:text-darkmode-txt-light intersect:animate-fadeDown opacity-0 intersect-no-queue"
-                placeholder="搜点什么"
-                type="search"
-                name="search"
-                value={inputVal}
-                onChange={handleChange}
-                autoComplete="off"
-                autoFocus
-                ref={inputRef}
-              />
-            </div>
+    <section className="border-t border-border pt-8 pb-10">
+      <div className="max-w-3xl">
+        <div className="mb-5">
+          <input
+            className="w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+            placeholder="搜索标题或正文，例如：epoll、Go、Spark"
+            type="search"
+            name="search"
+            aria-label="搜点什么"
+            value={inputVal}
+            onChange={handleChange}
+            autoComplete="off"
+            ref={inputRef}
+          />
+        </div>
+        <div
+          className="mb-3 flex min-h-6 items-center text-sm text-muted-foreground"
+          aria-live="polite"
+          aria-busy={status === "loading"}
+        >
+          <span>
+            {status === "loading"
+              ? "正在加载索引…"
+              : status === "ready" && query.length >= 2
+                ? `找到 ${searchResults.length} 条结果`
+                : query.length < 2
+                  ? "输入至少 2 个字符开始搜索"
+                  : ""}
+          </span>
+        </div>
+        {status === "error" ? (
+          <div className="rounded-lg border border-border bg-card p-6 text-center">
+            <p className="text-sm text-foreground">搜索索引暂时无法加载</p>
+            <button
+              type="button"
+              className="mt-3 rounded-md px-3 py-2 text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onClick={() => setAttempt((value) => value + 1)}
+            >
+              重试
+            </button>
           </div>
-        </div>
-        <div className="row">
-          {searchResults?.length < 1 ? (
-            <div className="col-10 lg:col-8 mx-auto p-2 text-center glass rounded-lg intersect:animate-fadeUp opacity-0">
-              <p id="no-result">
-                {inputVal.length < 1
-                  ? "“嗖”的一下，就搜出来了！"
-                  : inputVal.length < 2
-                    ? "请输入2个以上字符"
-                    : "我没找到呢，试试其他关键词"}
-              </p>
-            </div>
-          ) : (
-            searchResults?.map(({ item }, index) => (
-              <div className="py-2 px-0" key={`search-${index}`}>
-                <div className="h-full glass col-10 lg:col-8 mx-auto rounded-lg p-6 intersect:animate-fade opacity-0">
-                  <h4 className="mb-2">
-                    <a href={"/" + getPath(item)}>{item.data.title}</a>
-                  </h4>
-                  {item.data.description && (
-                    <p className="">{item.data.description}</p>
-                  )}
-                  {!item.data.description && item.body && (
-                    <p className="">
-                      {plainify(item.body.slice(0, descriptionLength))}
+        ) : status === "loading" ? (
+          <div className="space-y-3" aria-label="搜索结果加载中">
+            {[0, 1, 2].map((item) => (
+              <div
+                key={item}
+                className="h-24 animate-pulse rounded-lg border border-border/60 bg-muted/40"
+              />
+            ))}
+          </div>
+        ) : query.length < 2 ? (
+          <div className="border-b border-border/60 py-12 text-center text-sm text-muted-foreground">
+            从文章标题或主题开始搜索。
+          </div>
+        ) : searchResults.length === 0 ? (
+          <div className="border-b border-border/60 py-12 text-center">
+            <p className="font-medium text-foreground">没有找到匹配内容</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              试试更短或不同的关键词。
+            </p>
+          </div>
+        ) : (
+          <ol className="divide-y divide-border/70 border-y border-border/70">
+            {searchResults.map(({ item }) => (
+              <li className="py-6" key={item.url}>
+                <article>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    <a
+                      className="rounded-sm decoration-primary decoration-2 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      href={item.url}
+                    >
+                      <Highlight text={item.title} query={query} />
+                    </a>
+                  </h2>
+                  {item.description && (
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      <Highlight text={item.description} query={query} />
                     </p>
                   )}
-                  {item.data.created && (
-                    <p className="text-txt-light dark:text-darkmode-txt-light">
-                      {new Date(item.data.created).toLocaleDateString()}
+                  {item.text && (
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">
+                      <Highlight
+                        text={excerpt(item.text, query)}
+                        query={query}
+                      />
                     </p>
                   )}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+                  {item.created && (
+                    <time
+                      className="mt-2 block text-xs tabular-nums text-muted-foreground/80"
+                      dateTime={item.created}
+                    >
+                      {new Date(item.created).toLocaleDateString("zh-CN")}
+                    </time>
+                  )}
+                </article>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
     </section>
   );

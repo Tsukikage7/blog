@@ -1,55 +1,35 @@
 ---
 import BaseLayout from "@components/base/BaseLayout.astro";
-import { markdownify } from "@lib/textConverter";
 import type { AboutEntry } from "@/types";
 import { render } from "astro:content";
-import LiquidGlassLess from "@components/common/LiquidGlassLess.astro";
+import Breadcrumbs from "@components/common/Breadcrumbs.astro";
 import { Image } from "astro:assets";
-import { FaGithub, FaEnvelope, FaMapMarkerAlt, FaBriefcase, FaGraduationCap, FaCode, FaLightbulb, FaServer, FaDesktop, FaTools, FaDatabase, FaCogs, FaCloud, FaMobile, FaLaptopCode, FaPalette, FaShieldAlt, FaRocket, FaWrench, FaChartBar, FaBolt, FaHdd, FaTag } from "react-icons/fa";
+import { FaGithub } from "react-icons/fa";
+import type { IconType } from "react-icons";
+import {
+  HiOutlineAcademicCap,
+  HiOutlineBolt,
+  HiOutlineBriefcase,
+  HiOutlineChartBar,
+  HiOutlineCircleStack,
+  HiOutlineCodeBracket,
+  HiOutlineEnvelope,
+  HiOutlineLightBulb,
+  HiOutlineMapPin,
+  HiOutlineShare,
+  HiOutlineWrenchScrewdriver,
+} from "react-icons/hi2";
+import TechnologyLink from "./TechnologyLink.astro";
+import TechnologyText from "./TechnologyText.astro";
 
-// Map emoji or icon names to react-icon components
-const iconMap: Record<string, any> = {
-  // Emoji mappings
-  '🔧': FaWrench,
-  '💾': FaDatabase,
-  '⚡': FaBolt,
-  '📊': FaChartBar,
-  '📌': FaTag,
-  '💡': FaLightbulb,
-  '🚀': FaRocket,
-  '💻': FaLaptopCode,
-  '🛠️': FaTools,
-  '☁️': FaCloud,
-  '📱': FaMobile,
-  '🎨': FaPalette,
-  '🔒': FaShieldAlt,
-  '⚙️': FaCogs,
-  '🖥️': FaDesktop,
-  '🗄️': FaServer,
-  // Name mappings
-  'wrench': FaWrench,
-  'database': FaDatabase,
-  'bolt': FaBolt,
-  'chart': FaChartBar,
-  'code': FaCode,
-  'lightbulb': FaLightbulb,
-  'rocket': FaRocket,
-  'laptop': FaLaptopCode,
-  'tools': FaTools,
-  'cloud': FaCloud,
-  'mobile': FaMobile,
-  'palette': FaPalette,
-  'shield': FaShieldAlt,
-  'cogs': FaCogs,
-  'desktop': FaDesktop,
-  'server': FaServer,
+const iconMap: Record<string, IconType> = {
+  wrench: HiOutlineWrenchScrewdriver,
+  database: HiOutlineCircleStack,
+  bolt: HiOutlineBolt,
+  chart: HiOutlineChartBar,
+  network: HiOutlineShare,
+  code: HiOutlineCodeBracket,
 };
-
-// Get icon component from emoji or name, with fallback
-function getIconComponent(icon: string | undefined) {
-  if (!icon) return FaTag;
-  return iconMap[icon] || FaTag;
-}
 
 interface Props {
   entry: AboutEntry;
@@ -63,31 +43,37 @@ const {
   imageAlt,
   info,
   skillCategories,
-  skills,
   experience,
   education,
   openSource,
-  social
+  social,
 } = entry.data;
 const { Content } = await render(entry);
 
-const imageSrc = image ? (typeof image === 'string' ? image : image.src) : undefined;
+const imageSrc = image
+  ? typeof image === "string"
+    ? image
+    : image.src
+  : undefined;
+const aboutDescription = description
+  ?.replace(info?.title || "", "")
+  .replace(/^[\s|｜,，]+/, "")
+  .trim();
 ---
 
 <BaseLayout title={title} description={description} image={imageSrc}>
-  <section class="container px-3 lg:px-8 py-8">
-
-    <!-- 头部区域：头像 + 个人信息（居中） -->
-    <LiquidGlassLess heavy textClass="p-6 md:p-8 mb-6">
-      <div class="flex flex-col items-center text-center">
+  <section class="site-container about-page">
+    <Breadcrumbs title={title} className="text-xs text-muted-foreground" />
+    <!-- 头部区域：桌面并排，窄屏纵向排列。 -->
+    <section class="about-intro">
+      <div class="intro-layout">
         <!-- 头像 -->
         {image && (
-          <div class="mb-5">
+          <div class="shrink-0">
             <div class="relative group">
-              <div class="absolute -inset-3 bg-gradient-to-r from-zinc-400 via-zinc-500 to-zinc-600 rounded-full blur-xl opacity-40 group-hover:opacity-60 transition duration-500"></div>
-              {typeof image === 'string' ? (
+              {typeof image === "string" ? (
                 <img
-                  class="relative w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white/20 shadow-2xl object-cover"
+                  class="relative h-24 w-24 rounded-full border border-border/50 object-cover md:h-32 md:w-32"
                   src={image}
                   alt={imageAlt || "Avatar"}
                   width="144"
@@ -96,7 +82,7 @@ const imageSrc = image ? (typeof image === 'string' ? image : image.src) : undef
                 />
               ) : (
                 <Image
-                  class="relative w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white/20 shadow-2xl object-cover"
+                  class="relative h-24 w-24 rounded-full border border-border/50 object-cover md:h-32 md:w-32"
                   src={image}
                   alt={imageAlt || "Avatar"}
                   width={144}
@@ -109,83 +95,103 @@ const imageSrc = image ? (typeof image === 'string' ? image : image.src) : undef
         )}
 
         <!-- 个人信息 -->
-        <h1 class="text-4xl md:text-5xl font-bold text-txt-p dark:text-darkmode-txt-p mb-3">
-          {info?.name || title}
-        </h1>
-        {info?.title && (
-          <p class="text-xl md:text-2xl text-primary font-medium mb-4">{info.title}</p>
-        )}
-        {description && (
-          <p class="text-base md:text-lg text-txt-s dark:text-darkmode-txt-s mb-5 max-w-2xl">{description}</p>
-        )}
-
-        <!-- 标签信息 -->
-        <div class="flex flex-wrap justify-center gap-4 mb-5 text-base text-muted-foreground">
-          {info?.location && (
-            <span class="inline-flex items-center gap-2">
-              <FaMapMarkerAlt className="text-sm" />
-              {info.location}
-            </span>
+        <div class="min-w-0 flex-1">
+          <h1 class="about-title mb-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+            {info?.name || title}
+          </h1>
+          {info?.title && (
+            <p class="mb-2 text-lg font-medium text-primary">
+              <TechnologyText text={info.title} />
+            </p>
           )}
-          {info?.age && (
-            <span>{info.age} 岁</span>
+          {aboutDescription && (
+            <p class="mb-4 max-w-2xl text-sm leading-7 text-muted-foreground md:text-base">
+              <TechnologyText text={aboutDescription} />
+            </p>
+          )}
+          {info?.summary && (
+            <p class="mb-4 max-w-2xl text-sm leading-7 text-muted-foreground md:text-base">
+              <TechnologyText text={info.summary} />
+            </p>
+          )}
+
+          <!-- 标签信息 -->
+          <div class="mb-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
+            {info?.location && (
+              <span class="inline-flex items-center gap-2">
+                <HiOutlineMapPin className="text-sm" />
+                {info.location}
+              </span>
+            )}
+            {info?.age && <span>{info.age} 岁</span>}
+          </div>
+
+          <!-- 社交链接 -->
+          {social && (
+            <div class="flex flex-wrap gap-2">
+              {social.github && (
+                <a
+                  href={
+                    social.github.startsWith("http")
+                      ? social.github
+                      : `https://github.com/${social.github}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <FaGithub className="text-lg" />
+                  GitHub
+                </a>
+              )}
+              {social.email && (
+                <a
+                  href={`mailto:${social.email}`}
+                  class="inline-flex items-center gap-2 rounded-md border border-border px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <HiOutlineEnvelope className="text-lg" />
+                  邮箱
+                </a>
+              )}
+            </div>
           )}
         </div>
-
-        <!-- 社交链接 -->
-        {social && (
-          <div class="flex flex-wrap justify-center gap-3">
-            {social.github && (
-              <a
-                href={social.github.startsWith('http') ? social.github : `https://github.com/${social.github}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-foreground text-background text-base font-medium hover:bg-foreground/90 transition-colors"
-              >
-                <FaGithub className="text-lg" />
-                GitHub
-              </a>
-            )}
-            {social.email && (
-              <a
-                href={`mailto:${social.email}`}
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-border text-foreground text-base font-medium hover:bg-muted transition-colors"
-              >
-                <FaEnvelope className="text-lg" />
-                邮箱
-              </a>
-            )}
-          </div>
-        )}
       </div>
-    </LiquidGlassLess>
+    </section>
 
-    <div class="max-w-6xl mx-auto space-y-6">
-
+    <nav class="about-navigation" aria-label="关于页章节">
+      <a href="#skills">专业技能</a>
+      <a href="#education">教育背景</a>
+      <a href="#experience">工作经历</a>
+      <a href="#open-source">开源贡献</a>
+    </nav>
+    <div class="about-sections">
       <!-- 技能分类 -->
       {skillCategories && skillCategories.length > 0 && (
-        <div>
-          <h2 class="text-2xl font-bold text-txt-p dark:text-darkmode-txt-p mb-5 flex items-center gap-2">
-            <FaLightbulb className="text-3xl text-primary" /> 专业技能
+        <div id="skills">
+          <h2 class="section-title text-2xl font-medium text-foreground mb-6 flex items-center gap-3">
+            <HiOutlineLightBulb className="text-2xl text-primary" /> 专业技能
           </h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="skills-grid">
             {skillCategories.map((category) => {
-              const CategoryIcon = getIconComponent(category.icon);
+              const CategoryIcon =
+                iconMap[category.icon || ""] || HiOutlineCodeBracket;
               return (
-              <LiquidGlassLess heavy textClass="p-5 h-full">
-                <h3 class="text-lg font-bold mb-3 text-txt-p dark:text-darkmode-txt-p flex items-center gap-2">
-                  <CategoryIcon className="text-xl text-primary" />
-                  {category.name}
-                </h3>
-                <ul class="space-y-2">
-                  {category.skills.map((skill) => (
-                    <li class="flex items-start gap-2 text-base text-txt-s dark:text-darkmode-txt-s">
-                      <span class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></span>
-                      <span>{skill}</span>
-                    </li>
-                  ))}
-                </ul>
-              </LiquidGlassLess>
+                <section class="about-panel">
+                  <h3 class="skill-category-title mb-3 flex items-center gap-2 border-b border-border/50 pb-3 text-base font-semibold text-foreground">
+                    <CategoryIcon className="text-lg text-primary" />
+                    {category.name}
+                  </h3>
+                  <ul class="technology-list">
+                    {category.skills
+                      .flatMap((row) => row.split(" / "))
+                      .map((skill) => (
+                        <li>
+                          <TechnologyLink name={skill} />
+                        </li>
+                      ))}
+                  </ul>
+                </section>
               );
             })}
           </div>
@@ -194,72 +200,125 @@ const imageSrc = image ? (typeof image === 'string' ? image : image.src) : undef
 
       <!-- 教育背景 -->
       {education && education.length > 0 && (
-        <div>
-          <h2 class="text-2xl font-bold text-txt-p dark:text-darkmode-txt-p mb-5 flex items-center gap-2">
-            <FaGraduationCap className="text-3xl text-primary" /> 教育背景
+        <div id="education">
+          <h2 class="section-title text-2xl font-medium text-foreground mb-6 flex items-center gap-3">
+            <HiOutlineAcademicCap className="text-2xl text-primary" /> 教育背景
           </h2>
-          <LiquidGlassLess heavy textClass="p-6">
+          <section class="about-panel">
             {education.map((edu, index) => (
-              <div class={`flex flex-col md:flex-row md:items-center justify-between ${index > 0 ? 'mt-4 pt-4 border-t border-border/30' : ''}`}>
+              <div
+                class={`flex flex-col md:flex-row md:items-center justify-between ${index > 0 ? "mt-4 pt-4 border-t border-border/30" : ""}`}
+              >
                 <div class="flex items-start gap-4">
-                  <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <FaGraduationCap className="text-primary text-xl" />
-                  </div>
+                  <a
+                    class="organization-logo school-logo"
+                    href="https://www.nuist.edu.cn/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="南京信息工程大学官网"
+                  >
+                    {edu.logo ? (
+                      <img
+                        src={edu.logo}
+                        alt={`${edu.school}校标`}
+                        width="48"
+                        height="48"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <HiOutlineAcademicCap className="text-primary text-xl" />
+                    )}
+                  </a>
                   <div>
                     <div class="flex items-center gap-2 flex-wrap">
-                      <span class="font-bold text-lg text-txt-p dark:text-darkmode-txt-p">{edu.school}</span>
+                      <span class="font-bold text-lg text-foreground">
+                        {edu.school}
+                      </span>
                       {edu.badge && (
-                        <span class="px-2.5 py-1 rounded text-sm font-medium bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border border-zinc-500/20">
+                        <span class="px-2.5 py-1 rounded text-sm font-medium bg-muted/10 text-muted-foreground border border-border/20">
                           {edu.badge}
                         </span>
                       )}
                     </div>
-                    <div class="text-base text-txt-s dark:text-darkmode-txt-s mt-1">{edu.degree}</div>
+                    <div class="text-base text-muted-foreground mt-1">
+                      {edu.degree}
+                    </div>
                   </div>
                 </div>
-                <div class="text-base text-txt-s dark:text-darkmode-txt-s mt-2 md:mt-0 md:text-right">
-                  <div>{edu.period}</div>
-                  {edu.location && <div class="text-sm opacity-70">{edu.location}</div>}
+                <div class="text-base text-muted-foreground mt-2 md:mt-0 md:text-right">
+                  {edu.period && <div>{edu.period}</div>}
+                  {edu.location && (
+                    <div class="text-sm opacity-70">{edu.location}</div>
+                  )}
                 </div>
               </div>
             ))}
-          </LiquidGlassLess>
+          </section>
         </div>
       )}
 
       <!-- 工作经历 -->
       {experience && experience.length > 0 && (
-        <div>
-          <h2 class="text-2xl font-bold text-txt-p dark:text-darkmode-txt-p mb-5 flex items-center gap-2">
-            <FaBriefcase className="text-3xl text-primary" /> 工作经历
+        <div id="experience">
+          <h2 class="section-title text-2xl font-medium text-foreground mb-6 flex items-center gap-3">
+            <HiOutlineBriefcase className="text-2xl text-primary" /> 工作经历
           </h2>
-          <div class="space-y-4">
+          <div class="space-y-3">
             {experience.map((exp) => (
-              <LiquidGlassLess heavy textClass="p-6">
+              <section class="about-panel">
                 <div class="flex flex-col md:flex-row md:items-start justify-between mb-3">
-                  <div>
-                    <h3 class="font-bold text-xl text-txt-p dark:text-darkmode-txt-p">{exp.title}</h3>
-                    <div class="text-primary font-medium text-lg">{exp.company}</div>
+                  <div class="flex items-start gap-4">
+                    {exp.logo && (
+                      <a
+                        class="organization-logo"
+                        href="https://www.ucloud.cn/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="优刻得官网"
+                      >
+                        <img
+                          src={exp.logo}
+                          alt={`${exp.company}标志`}
+                          width="48"
+                          height="48"
+                          loading="lazy"
+                        />
+                      </a>
+                    )}
+                    <div class="min-w-0">
+                      <h3 class="font-bold text-xl text-foreground">
+                        {exp.title}
+                      </h3>
+                      <div class="text-primary font-medium text-lg">
+                        {exp.company}
+                      </div>
+                    </div>
                   </div>
-                  <div class="text-base text-txt-s dark:text-darkmode-txt-s mt-1 md:mt-0 md:text-right">
+                  <div class="text-base text-muted-foreground mt-1 md:mt-0 md:text-right">
                     <div>{exp.period}</div>
-                    {exp.location && <div class="text-sm opacity-70">{exp.location}</div>}
+                    {exp.location && (
+                      <div class="text-sm opacity-70">{exp.location}</div>
+                    )}
                   </div>
                 </div>
                 {exp.description && (
-                  <p class="text-base text-txt-s dark:text-darkmode-txt-s mb-3">{exp.description}</p>
+                  <p class="text-base text-muted-foreground mb-3">
+                    <TechnologyText text={exp.description} />
+                  </p>
                 )}
                 {exp.highlights && exp.highlights.length > 0 && (
                   <ul class="space-y-2">
                     {exp.highlights.map((highlight) => (
-                      <li class="flex items-start gap-2 text-base text-txt-s dark:text-darkmode-txt-s">
-                        <span class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></span>
-                        <span>{highlight}</span>
+                      <li class="flex items-start gap-2 text-base text-muted-foreground">
+                        <span class="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></span>
+                        <span>
+                          <TechnologyText text={highlight} />
+                        </span>
                       </li>
                     ))}
                   </ul>
                 )}
-              </LiquidGlassLess>
+              </section>
             ))}
           </div>
         </div>
@@ -267,87 +326,341 @@ const imageSrc = image ? (typeof image === 'string' ? image : image.src) : undef
 
       <!-- 开源项目 -->
       {openSource && openSource.length > 0 && (
-        <div>
-          <h2 class="text-2xl font-bold text-txt-p dark:text-darkmode-txt-p mb-5 flex items-center gap-2">
-            <FaCode className="text-3xl text-primary" /> 开源贡献
+        <div id="open-source">
+          <h2 class="section-title text-2xl font-medium text-foreground mb-6 flex items-center gap-3">
+            <HiOutlineCodeBracket className="text-2xl text-primary" /> 开源贡献
           </h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-3">
             {openSource.map((project) => (
-              <LiquidGlassLess heavy textClass="p-6 h-full">
-                <div class="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 class="font-bold text-lg text-txt-p dark:text-darkmode-txt-p flex items-center gap-2">
-                      {project.url ? (
-                        <a href={project.url} target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">
-                          {project.name}
-                        </a>
-                      ) : project.name}
-                    </h3>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded text-sm font-medium bg-green-500/10 text-green-600 dark:text-green-400 mt-1">
-                      {project.role}
-                    </span>
+              <section class="about-panel">
+                <div class="contribution-heading">
+                  <div class="flex min-w-0 items-start gap-4">
+                    <a
+                      class="organization-logo"
+                      href={project.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${project.name}项目主页`}
+                    >
+                      {project.logo ? (
+                        <img
+                          src={project.logo}
+                          alt={`${project.name}标志`}
+                          width="32"
+                          height="32"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <FaGithub aria-hidden="true" />
+                      )}
+                    </a>
+                    <div class="min-w-0">
+                      <h3 class="font-bold text-lg text-foreground flex items-center gap-2">
+                        {project.url ? (
+                          <a
+                            href={project.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="hover:text-primary transition-colors"
+                          >
+                            {project.name}
+                          </a>
+                        ) : (
+                          project.name
+                        )}
+                      </h3>
+                      <span class="mt-1 inline-flex items-center rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                        {project.role}
+                      </span>
+                    </div>
                   </div>
-                  <span class="text-sm text-txt-s dark:text-darkmode-txt-s">{project.period}</span>
+                  <span class="shrink-0 text-sm text-muted-foreground">
+                    {project.period}
+                  </span>
                 </div>
                 {project.description && (
-                  <p class="text-base text-txt-s dark:text-darkmode-txt-s mb-3">{project.description}</p>
+                  <p class="text-base text-muted-foreground mb-3">
+                    <TechnologyText text={project.description} />
+                  </p>
                 )}
                 {project.contributions && project.contributions.length > 0 && (
                   <ul class="space-y-1.5">
                     {project.contributions.map((contribution) => (
-                      <li class="flex items-start gap-2 text-sm text-txt-s dark:text-darkmode-txt-s">
-                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></span>
-                        <span>{contribution}</span>
+                      <li class="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
+                        <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span>
+                        <span>
+                          <TechnologyText text={contribution} />
+                        </span>
                       </li>
                     ))}
                   </ul>
                 )}
-              </LiquidGlassLess>
+                {project.links && project.links.length > 0 && (
+                  <ul
+                    class="contribution-links"
+                    aria-label={`${project.name}贡献记录`}
+                  >
+                    {project.links.map((link) => (
+                      <li>
+                        <a
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {link.label}
+                        </a>
+                        <span
+                          class="contribution-status"
+                          data-status={link.status}
+                        >
+                          {link.status}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
             ))}
           </div>
         </div>
       )}
 
       <!-- Markdown 内容 -->
-      <LiquidGlassLess heavy textClass="p-6 md:p-8" wrapperClass="markdown-content">
-        <div class="prose prose-lg dark:prose-invert max-w-none">
+      <section class="about-panel markdown-content">
+        <div class="prose prose-site prose-base max-w-[760px]">
           <Content />
+          <ul class="technology-list site-technologies" aria-label="本站技术栈">
+            {["Astro", "TypeScript", "Tailwind CSS"].map((name) => (
+              <li>
+                <TechnologyLink name={name} />
+              </li>
+            ))}
+          </ul>
         </div>
-      </LiquidGlassLess>
+      </section>
     </div>
   </section>
 </BaseLayout>
 
 <style>
-  :global(.markdown-content h2) {
-    @apply text-2xl font-bold mb-4 mt-2 text-txt-p dark:text-darkmode-txt-p;
+  .intro-layout {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+  }
+  .intro-layout > :first-child {
+    order: 2;
+  }
+  .about-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+    padding-block: 18px;
+    border-bottom: 1px solid hsl(var(--border));
+    font-size: 13px;
+    color: hsl(var(--muted-foreground));
+  }
+  .about-navigation a:hover {
+    color: hsl(var(--primary));
+  }
+  .about-page :global(a:focus-visible) {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+  .about-sections > [id] {
+    scroll-margin-top: var(--site-header-offset, 100px);
+  }
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 40px;
+  }
+  .technology-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  .technology-list li {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  .site-technologies {
+    margin-top: 20px;
+  }
+  #experience .about-panel,
+  #open-source .about-panel {
+    padding: 24px;
+    border: 1px solid hsl(var(--border) / 0.65);
+    border-radius: 12px;
+    background: hsl(var(--background) / 0.55);
+  }
+  #open-source .space-y-3 {
+    display: grid;
+    gap: 20px;
+  }
+  #open-source .space-y-3 > * {
+    margin: 0;
+  }
+  #experience li {
+    line-height: 1.9;
+  }
+  .contribution-status {
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: hsl(var(--muted) / 0.45);
+  }
+  .contribution-status[data-status="已合入"] {
+    background: hsl(var(--primary) / 0.08);
+  }
+  @media (max-width: 767px) {
+    .skills-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+    }
+    .intro-layout {
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .intro-layout > :first-child {
+      order: 0;
+    }
+    .intro-layout :global(img) {
+      width: 64px;
+      height: 64px;
+    }
+    #experience .about-panel,
+    #open-source .about-panel {
+      padding: 18px;
+    }
+  }
+  @media (max-width: 480px) {
+    .intro-layout {
+      display: block;
+    }
+    .intro-layout > :first-child {
+      float: right;
+      margin: 0 0 16px 16px;
+    }
+    .about-navigation {
+      gap: 12px 20px;
+    }
+    #experience .about-panel,
+    #open-source .about-panel {
+      padding: 16px;
+    }
   }
 
-  :global(.markdown-content ul) {
-    @apply space-y-2;
+  .organization-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    padding: 7px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid hsl(var(--border) / 0.6);
+  }
+  .organization-logo img,
+  .organization-logo :global(svg) {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    object-fit: contain;
+  }
+  .school-logo img {
+    padding: 2px;
+    border-radius: 50%;
+    background: #005bac;
+  }
+  .contribution-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-bottom: 16px;
+  }
+  .contribution-links {
+    margin-top: 16px;
+    border-top: 1px solid hsl(var(--border) / 0.5);
+    padding-top: 12px;
+  }
+  .contribution-links li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 6px;
+    font-size: 13px;
+  }
+  .contribution-links a {
+    color: hsl(var(--primary));
+    text-underline-offset: 4px;
+  }
+  .contribution-links a:hover {
+    text-decoration: underline;
+  }
+  .contribution-status {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+  }
+  .contribution-status[data-status="已合入"] {
+    color: hsl(var(--primary));
   }
 
-  :global(.markdown-content li) {
-    @apply text-txt-s dark:text-darkmode-txt-s;
+  .about-page {
+    padding-block: 36px 16px;
   }
-
-  :global(.markdown-content hr) {
-    @apply my-6 border-white/10;
+  .about-intro {
+    padding-block: 40px 44px;
+    border-bottom: 1px solid hsl(var(--border));
   }
-
-  :global(.markdown-content blockquote) {
-    @apply border-l-4 border-primary pl-4 italic text-txt-s dark:text-darkmode-txt-s my-4 bg-primary/5 py-2 rounded-r;
+  .about-title {
+    font-family: var(--font-editorial);
   }
-
-  :global(.markdown-content a) {
-    @apply text-primary hover:text-primary/80 transition-colors;
+  .about-sections > div,
+  .about-sections > section {
+    padding-block: 36px;
+    border-bottom: 1px solid hsl(var(--border));
   }
-
-  :global(.markdown-content strong) {
-    @apply text-txt-p dark:text-darkmode-txt-p font-semibold;
+  .about-sections > :last-child {
+    border-bottom: 0;
   }
-
-  :global(.markdown-content p) {
-    @apply mb-4 leading-relaxed text-txt-p dark:text-darkmode-txt-p;
+  .about-panel {
+    padding: 12px 0;
+  }
+  .about-panel h3 {
+    font-weight: 600;
+  }
+  .section-title {
+    font-family: var(--font-editorial);
+  }
+  .section-title :global(svg),
+  .skill-category-title :global(svg) {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+  @media (max-width: 767px) {
+    .about-page {
+      padding-top: 24px;
+    }
+    .about-intro {
+      padding-block: 28px;
+    }
+    .about-sections > div,
+    .about-sections > section {
+      padding-block: 28px;
+    }
   }
 </style>

@@ -1,40 +1,99 @@
 <script is:inline data-astro-rerun>
-  const defaultTheme = "system";
-
-  function getTheme(defaultTheme) {
-    var darkMode = defaultTheme === "dark" ? true : false;
-    if (localStorage.getItem("theme") === "system") {
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        darkMode = true;
-      }
-    } else if (localStorage.getItem("theme") === "dark") {
-      darkMode = true;
-    } else if (localStorage.getItem("theme") === "light") {
-      darkMode = false;
+  // 放在 head 中恢复外观；导航重复执行时复用控制器，不重复注册监听。
+  (() => {
+    if (window.__siteAppearance) {
+      window.__siteAppearance.apply();
+      return;
     }
-    return darkMode;
-  }
-
-  function setTheme(darkMode) {
-    
-    darkMode
-      ? document.documentElement.classList.add("dark")
-      : document.documentElement.classList.remove("dark");
-    
-    localStorage.setItem("theme", darkMode ? "dark" : "light");
-  }
-
-  
-  setTheme(getTheme(defaultTheme));
-
-  document.addEventListener("astro:page-load", () => {
-    setTheme(getTheme(defaultTheme));
-    
-    var themeSwitch = document.querySelectorAll("[data-theme-switcher]");
-    themeSwitch.forEach((el) => {
-      el.addEventListener("change", (e) => {
-        setTheme(e.target.checked);
+    const modes = ["system", "light", "dark"];
+    const palettes = ["sage", "indigo", "violet", "umber"];
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const read = (key, choices, fallback) => {
+      try {
+        const value = localStorage.getItem(key);
+        return choices.includes(value) ? value : fallback;
+      } catch {
+        return fallback;
+      }
+    };
+    let mode = read("theme", modes, "system");
+    let palette = read("site-palette", palettes, "sage");
+    const save = (key, value) => {
+      try {
+        localStorage.setItem(key, value);
+      } catch {}
+    };
+    const apply = () => {
+      const root = document.documentElement;
+      const dark = mode === "dark" || (mode === "system" && media.matches);
+      root.classList.toggle("dark", dark);
+      root.dataset.palette = palette;
+      root.style.colorScheme = dark ? "dark" : "light";
+      document.querySelectorAll("[data-appearance-mode]").forEach((input) => {
+        input.checked = input.value === mode;
       });
+      document
+        .querySelectorAll("[data-appearance-palette]")
+        .forEach((input) => {
+          input.checked = input.value === palette;
+        });
+      const colors = getComputedStyle(root);
+      const background = colors.getPropertyValue("--background").trim();
+      const primary = colors.getPropertyValue("--primary").trim();
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute("content", background ? `hsl(${background})` : "");
+      document
+        .querySelector('meta[name="msapplication-TileColor"]')
+        ?.setAttribute("content", primary ? `hsl(${primary})` : "");
+    };
+    document.addEventListener("change", (event) => {
+      const input = event.target;
+      if (!(input instanceof HTMLInputElement)) return;
+      if (
+        input.hasAttribute("data-appearance-mode") &&
+        modes.includes(input.value)
+      ) {
+        mode = input.value;
+        save("theme", mode);
+      } else if (
+        input.hasAttribute("data-appearance-palette") &&
+        palettes.includes(input.value)
+      ) {
+        palette = input.value;
+        save("site-palette", palette);
+      } else return;
+      apply();
     });
-  });
+    document.addEventListener("click", (event) => {
+      if (
+        !(event.target instanceof Element) ||
+        !event.target.closest("[data-appearance-reset]")
+      )
+        return;
+      mode = "system";
+      palette = "sage";
+      save("theme", mode);
+      save("site-palette", palette);
+      apply();
+    });
+    // 其他标签页修改偏好后同步；存储不可用时本页仍然可以切换。
+    window.addEventListener("storage", (event) => {
+      if (
+        event.key !== null &&
+        event.key !== "theme" &&
+        event.key !== "site-palette"
+      )
+        return;
+      mode = read("theme", modes, "system");
+      palette = read("site-palette", palettes, "sage");
+      apply();
+    });
+    document.addEventListener("astro:after-swap", apply);
+    document.addEventListener("astro:page-load", apply);
+    document.addEventListener("DOMContentLoaded", apply, { once: true });
+    media.addEventListener("change", apply);
+    window.__siteAppearance = { apply };
+    apply();
+  })();
 </script>

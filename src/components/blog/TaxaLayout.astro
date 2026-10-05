@@ -1,58 +1,68 @@
 ---
 import BaseLayout from "@components/base/BaseLayout.astro";
-import { upperHumanize } from "@lib/textConverter";
+import { slugify } from "@lib/textConverter";
 import PageHeader from "@components/common/PageHeader.astro";
-import { FaRegFolder, FaHashtag } from "react-icons/fa";
 
 interface Props {
+  collection?: "blog" | "writings" | "notes";
   taxonomy: string;
   taxonomyTitle: string;
   taxa: string[];
   allTaxa: string[];
 }
 
-const { taxonomy, taxonomyTitle, taxa, allTaxa }: Props = Astro.props;
+const {
+  collection = "blog",
+  taxonomy,
+  taxonomyTitle,
+  taxa,
+  allTaxa,
+}: Props = Astro.props;
 ---
 
-<BaseLayout title={taxonomy}>
-  <div class="container px-3 lg:px-8">
-    <PageHeader title={taxonomyTitle} articleCount={taxa.length} />
-    <section class="section py-12">
-      <div class="container px-3 lg:px-8">
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {
-            taxa.map((taxon: string) => {
-              const count = allTaxa.filter((c) => c === taxon).length;
-              return (
-                <a
-                  href={`/blog/${taxonomy}/${taxon}`}
-                  class="group flex items-center justify-between py-3 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <div class="flex items-center gap-2">
-                    <span class="w-1 h-1 rounded-full bg-border group-hover:bg-foreground/50 transition-colors"></span>
-                    <span class="text-sm md:text-base">
-                      {upperHumanize(taxon)}
-                    </span>
-                  </div>
-                  <span class="text-xs text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors tabular-nums">
-                    {count}
-                  </span>
-                </a>
-              );
-            })
-          }
+<BaseLayout
+  title={taxonomyTitle}
+  description={`${taxonomyTitle}索引，共 ${taxa.length} 项，按主题浏览文章。`}
+  noindex={taxa.length === 0}
+>
+  <div>
+    <PageHeader
+      title={taxonomyTitle}
+      description={
+        taxonomy === "categories"
+          ? "按方向整理的笔记，找到你想深入的话题。"
+          : "从一个关键词出发，发现相关的文章与思考。"
+      }
+      articleCount={taxa.length}
+      countLabel={taxonomy === "categories" ? "个分类" : "个标签"}
+    />
+    <section class="site-container pb-12">
+      {taxa.length > 0 && (
+        <div class="grid grid-cols-1 gap-x-12 sm:grid-cols-2 xl:grid-cols-3 border-t border-border">
+          {taxa.map((taxon: string) => {
+            const count = allTaxa.filter((c) => c === taxon).length;
+            return (
+              <a
+                href={`/${collection}/${taxonomy}/${slugify(taxon)}/`}
+                class="group flex min-w-0 items-center justify-between gap-4 border-b border-border/60 py-5 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <span class="flex min-w-0 items-center gap-2">
+                  <span class="h-1 w-1 shrink-0 rounded-full bg-border transition-colors group-hover:bg-primary"></span>
+                  <span class="truncate text-sm md:text-base">{taxon}</span>
+                </span>
+                <span class="shrink-0 px-2 py-0.5 text-xs text-muted-foreground tabular-nums transition-colors group-hover:bg-accent">
+                  {count}
+                </span>
+              </a>
+            );
+          })}
         </div>
-
-        {}
-        {
-          taxa.length === 0 && (
-            <div class="text-center py-12">
-              <p class="text-muted-foreground text-lg">暂无{taxonomyTitle}</p>
-            </div>
-          )
-        }
-      </div>
+      )}
+      {taxa.length === 0 && (
+        <div class="py-12 text-center">
+          <p class="text-lg text-muted-foreground">暂无{taxonomyTitle}</p>
+        </div>
+      )}
     </section>
   </div>
 </BaseLayout>

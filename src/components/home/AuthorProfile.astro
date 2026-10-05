@@ -1,33 +1,23 @@
 ---
-import { Image } from "astro:assets";
-import { FaWeixin, FaGithub, FaEnvelope } from "react-icons/fa";
-import { SiXiaohongshu } from "react-icons/si";
 import { SITE_INFO } from "@lib/config";
-import { getEntry } from "astro:content";
-import { getEntries } from "@lib/contentParser";
-import { sortByDate } from "@lib/sortFunctions";
 
-const socialEntry = await getEntry("social", "-index");
-const socialLinks = socialEntry?.data.platforms;
-
-const allPosts = await getEntries("blog", sortByDate);
 ---
 
 <div class="author-profile">
   <div class="relative">
 
-    <div class="absolute inset-0 bg-gradient-to-br from-zinc-500/5 via-zinc-400/5 to-zinc-500/5 rounded-lg blur-xl"></div>
+    <div class="absolute inset-0 bg-linear-to-br from-primary/5 via-primary/10 to-primary/5 rounded-lg blur-xl"></div>
 
     <div class="relative ">
       <div class="flex flex-col items-center space-y-4">
 
         <div class="relative group">
 
-          <div class="absolute -inset-2 bg-gradient-to-r from-zinc-400 via-zinc-500 to-zinc-600 rounded-full blur-lg opacity-20 group-hover:opacity-40 transition-all duration-500 animate-pulse"></div>
+          <div class="absolute -inset-2 bg-linear-to-r from-primary/60 via-primary to-primary/70 rounded-full blur-lg opacity-20 group-hover:opacity-40 transition-all duration-500 animate-pulse"></div>
 
-          <div class="absolute -inset-1 bg-gradient-to-r from-zinc-400 via-zinc-500 to-zinc-600 rounded-full opacity-60 group-hover:opacity-80 transition-all duration-300"></div>
+          <div class="absolute -inset-1 bg-linear-to-r from-primary/60 via-primary to-primary/70 rounded-full opacity-60 group-hover:opacity-80 transition-all duration-300"></div>
           <img
-            class="relative w-24 h-24 lg:w-28 lg:h-28 rounded-full border-2 border-white/50 dark:border-gray-300/30 shadow-2xl transform group-hover:scale-105 transition-all duration-300 bg-white dark:bg-gray-800"
+            class="relative w-24 h-24 lg:w-28 lg:h-28 rounded-full border-2 border-border shadow-2xl transform group-hover:scale-105 transition-all duration-300 bg-card"
             src={SITE_INFO.AUTHOR_AVATAR}
             alt="Tsukikage的头像"
             width="112"
@@ -42,14 +32,14 @@ const allPosts = await getEntries("blog", sortByDate);
         <div class="text-center space-y-3">
 
           <div class="flex flex-col items-center gap-3">
-            <h1 class="text-2xl lg:text-3xl font-bold text-zinc-800 dark:text-zinc-200">
+            <h1 class="text-2xl lg:text-3xl font-bold text-foreground">
               Tsukikage
             </h1>
             <div class="flex justify-center gap-2">
-              <span class="px-2 py-1 text-xs font-medium bg-zinc-200/50 text-zinc-600 dark:bg-zinc-700/50 dark:text-zinc-300 rounded-full border border-zinc-300/30 dark:border-zinc-600/30">
+              <span class="px-2 py-1 text-xs font-medium bg-secondary text-secondary-foreground rounded-full border border-border">
                 开发者
               </span>
-              <span class="px-2 py-1 text-xs font-medium bg-zinc-200/50 text-zinc-600 dark:bg-zinc-700/50 dark:text-zinc-300 rounded-full border border-zinc-300/30 dark:border-zinc-600/30">
+              <span class="px-2 py-1 text-xs font-medium bg-secondary text-secondary-foreground rounded-full border border-border">
                 博主
               </span>
             </div>
@@ -60,46 +50,9 @@ const allPosts = await getEntries("blog", sortByDate);
   </div>
 </div>
 
-<script>
-  document.addEventListener("DOMContentLoaded", async function () {
-    
-    const { showInfo } = await import("@lib/toastUtils");
-    
-    const showWechatBtn = document.getElementById("showWechatBtn");
-    if (showWechatBtn) {
-      showWechatBtn.addEventListener("click", () => {
-        showInfo(
-          `<img src="${showWechatBtn.getAttribute("data-link")}" alt="wechat" />`,
-          "扫码关注我吧",
-          { position: "top-center", duration: 0 },
-        );
-      });
-    }
-
-    const showEmailBtn = document.getElementById("showEmailBtn");
-    if (showEmailBtn) {
-      showEmailBtn.addEventListener("click", () => {
-        window.open(`mailto:${showEmailBtn.getAttribute("data-link")}`);
-      });
-    }
-    
-    const showGithubBtn = document.getElementById("showGithubBtn");
-    if (showGithubBtn) {
-      showGithubBtn.addEventListener("click", () => {
-        window.open(showGithubBtn.getAttribute("data-link")?.toString());
-      });
-    }
-    
-    const showXhsBtn = document.getElementById("showXhsBtn");
-    if (showXhsBtn) {
-      showXhsBtn.addEventListener("click", () => {
-        window.open(showXhsBtn.getAttribute("data-link")?.toString());
-      });
-    }
-  });
-</script>
 
 <style>
+  @reference "../../styles/main.css";
   .author-profile {
     min-height: 200px; 
     @apply flex items-center justify-center;

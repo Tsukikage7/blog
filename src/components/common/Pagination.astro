@@ -1,13 +1,12 @@
 ---
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-import LiquidGlass from "./LiquidGlassLess.astro";
 
 type Props = {
   collection?: string;
   pageIndex?: number;
   pageCount?: number;
   pageIDs?: string[];
-  basePath?: string; 
+  basePath?: string;
 };
 
 const {
@@ -24,20 +23,14 @@ for (let i = 1; i <= pageCount; i++) {
 }
 
 const getPageLink = (page: number): string => {
+  const path = (basePath ?? `/${collection}`).replace(/\/$/, "");
   if (basePath) {
-    
-    return `${basePath}/${page}`;
+    return page === 1 ? `${path}/` : `${path}/${page}/`;
   } else if (pageIDs && pageIDs.length > 0) {
-    
     const pageID = pageIDs[page - 1];
-    return pageID ? `/${collection}/${pageID}` : `/${collection}`;
+    return pageID ? `${path}/${pageID}/` : `${path}/`;
   } else {
-    
-    if (page === 1) {
-      return `/${collection}`;
-    } else {
-      return `/${collection}/${page}`;
-    }
+    return page === 1 ? `${path}/` : `${path}/${page}/`;
   }
 };
 
@@ -57,74 +50,74 @@ if (pageIndex < pageCount) {
 }
 ---
 
-{
-  pageCount >= 1 && (
-    <nav class="flex items-center justify-center pb-2">
-      <LiquidGlass containerClass="rounded-md p-1.5 sm:p-2 mx-2 space-x-1 sm:space-x-2" >
-        {}
-        {prevPage ? (
-          <a
-            href={prevPage}
-            class="col rounded px-3 py-2.5 sm:px-3 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-txt-p dark:text-darkmode-txt-p"
-            aria-label="Previous"
-          >
-            <FaArrowLeft className="inline-block" />
-          </a>
-        ) : (
-          <span
-            class="col rounded px-3 py-2.5 sm:px-3 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-txt-light dark:text-darkmode-txt-light"
-            aria-label="Previous"
-          >
-            <FaArrowLeft className="inline-block" />
-          </span>
-        )}
-        {}
-        {pageIDs ? (
-          <div
-            aria-current="page"
-            class="col rounded px-3 py-2.5 sm:px-4 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-txt-p dark:text-darkmode-txt-p"
-          >
-            {pageIndex + 1}
-          </div>
-        ) : (
-          pageList.map((pagination) =>
-            pagination === pageIndex ? (
-              <span
-                aria-current="page"
-                class="col rounded px-3 py-2.5 sm:px-4 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center font-semibold text-txt-p dark:text-darkmode-txt-p border border-txt-light dark:border-darkmode-txt-light"
-              >
-                {pagination}
-              </span>
-            ) : (
-              <a
-                href={getPageLink(pagination)}
-                aria-current="page"
-                class="col rounded px-3 py-2.5 sm:px-4 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center font-semibold text-txt-p dark:text-darkmode-txt-p"
-              >
-                {pagination}
-              </a>
-            ),
-          )
-        )}
+{pageCount > 1 && (
+  <nav
+    aria-label="文章分页"
+    class="flex items-center justify-center border-t border-border/60 pt-6 pb-2"
+  >
+    <div class="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
+      {}
+      {prevPage ? (
+        <a
+          href={prevPage}
+          class="rounded px-3 py-2.5 sm:px-3 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground"
+          aria-label="上一页"
+        >
+          <FaArrowLeft className="inline-block" />
+        </a>
+      ) : (
+        <span
+          class="rounded px-3 py-2.5 sm:px-3 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground"
+          aria-label="上一页"
+        >
+          <FaArrowLeft className="inline-block" />
+        </span>
+      )}
+      {}
+      {pageIDs ? (
+        <div
+          aria-current="page"
+          class="rounded px-3 py-2.5 sm:px-4 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground"
+        >
+          {pageIndex + 1}
+        </div>
+      ) : (
+        pageList.map((pagination) =>
+          pagination === pageIndex ? (
+            <span
+              aria-current="page"
+              class="rounded px-3 py-2.5 sm:px-4 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center font-semibold bg-primary text-primary-foreground"
+            >
+              {pagination}
+            </span>
+          ) : (
+            <a
+              href={getPageLink(pagination)}
+              class="rounded px-3 py-2.5 sm:px-4 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center font-semibold text-foreground"
+            >
+              {pagination}
+            </a>
+          ),
+        )
+      )}
 
-        {}
-        {nextPage ? (
-          <a
-            href={nextPage}
-            class="col rounded px-3 py-2.5 sm:px-3 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-txt-p dark:text-darkmode-txt-p"
-            aria-label="Next"
-          >
-            <FaArrowRight className="inline-block" />
-          </a>
-        ) : (
-          <span
-            class="col rounded px-3 py-2.5 sm:px-3 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-txt-light dark:text-darkmode-txt-light"
-            aria-label="Next"
-          >
-            <FaArrowRight className="inline-block" />
-          </span>
-        )}
-      </LiquidGlass>
-    </nav>
-  )
-}
+      {}
+      {nextPage ? (
+        <a
+          href={nextPage}
+          class="rounded px-3 py-2.5 sm:px-3 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground"
+          aria-label="下一页"
+        >
+          <FaArrowRight className="inline-block" />
+        </a>
+      ) : (
+        <span
+          class="rounded px-3 py-2.5 sm:px-3 sm:py-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground"
+          aria-label="下一页"
+        >
+          <FaArrowRight className="inline-block" />
+        </span>
+      )}
+    </div>
+  </nav>
+)}

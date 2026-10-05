@@ -6,18 +6,17 @@ import { formatDate } from "@lib/formatDate";
 import { Image } from "astro:assets";
 import { SITE_INFO } from "@lib/config";
 import LiquidGlass from "@components/common/LiquidGlassLess.astro";
-import { slugify } from "@lib/textConverter";
 
 interface Props {
   entry: CollectionEntry<"notes">;
 }
 
 const { entry }: Props = Astro.props;
-const { title, description, date, tags, images, mood, location } =
+const { title, description, created, tags, images, mood, location } =
   entry.data;
 
-const slug = slugify(entry.data.title);
-const entryDate = date ? formatDate(date) : null;
+const slug = entry.id;
+const entryDate = created ? formatDate(created) : null;
 
 const contentPreview = entry.body
   ? plainify(entry.body).slice(0, 150) +
@@ -28,7 +27,7 @@ const contentPreview = entry.body
 
 <LiquidGlass
   heavy
-  wrapperClass="dock rounded-lg my-4 pl-0 bg-gradient-to-br gradient shadow-lg hover:shadow-xl hover:scale-[1.01]"
+  wrapperClass="dock rounded-lg my-4 pl-0 bg-linear-to-br gradient shadow-lg hover:shadow-xl hover:scale-[1.01]"
   textClass="h-full"
   animation="fadeRight"
 >
@@ -36,7 +35,7 @@ const contentPreview = entry.body
     
     <div class="flex items-center mb-4">
       <div
-        class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700"
+        class="w-10 h-10 rounded-full overflow-hidden bg-muted "
       >
         <img
           src={SITE_INFO.AUTHOR_AVATAR}
@@ -46,7 +45,7 @@ const contentPreview = entry.body
       </div>
       <div class="ml-3">
         <h4 class="font-bold">Tsukikage</h4>
-        <div class="flex items-center text-xs text-gray-700 dark:text-gray-400">
+        <div class="flex items-center text-xs text-muted-foreground ">
           {
             entryDate && (
               <span class="flex items-center">
@@ -79,7 +78,7 @@ const contentPreview = entry.body
     <div class="mb-4">
       
       <h3
-        class="mb-2 text-xl font-bold text-txt-p dark:text-darkmode-txt-p leading-tight"
+        class="mb-2 text-xl font-bold text-foreground leading-tight"
       >
         <a
           href={`/notes/${slug}`}
@@ -91,7 +90,7 @@ const contentPreview = entry.body
 
       
       <a href={`/notes/${slug}`} class="block">
-        <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
+        <p class="text-muted-foreground leading-relaxed mb-3">
           {description || contentPreview}
         </p>
       </a>

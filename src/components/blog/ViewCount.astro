@@ -5,14 +5,14 @@ const { slug, hidden = false } = Astro.props as {
 };
 ---
 
-<span id="view-count" class="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400" style={hidden ? 'display:none' : ''}>
+<span id="view-count" class="inline-flex items-center gap-1 text-sm text-muted-foreground " style={hidden ? 'display:none' : ''}>
   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
     <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
     <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7zM10 5c-3.478 0-6.542 2.24-7.708 5 1.166 2.76 4.23 5 7.708 5 3.478 0 6.542-2.24 7.708-5C16.542 7.24 13.478 5 10 5z" clip-rule="evenodd" />
   </svg>
   <span id="view-count-number" class="tabular-nums">--</span>
   <span class="ml-1">次浏览</span>
-  <span class="ml-2 text-xs text-gray-400">(仅当前设备)</span>
+  <span class="ml-2 text-xs text-muted-foreground">(仅当前设备)</span>
 </span>
 
 <script type="module" define:vars={{ slug }}>

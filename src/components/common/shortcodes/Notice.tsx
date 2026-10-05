@@ -11,10 +11,10 @@ function Notice({
   return (
     <div
       className={`mb-6 rounded-lg border border-current py-2 px-4
-      ${type === "note" && "text-[#24a9ab]"}
-      ${type === "tip" && "text-[#65ab24]"}
-      ${type === "info" && "text-[#d7af2d]"}
-      ${type === "warning" && "text-[#f43633]"}
+      ${type === "note" && "text-info"}
+      ${type === "tip" && "text-success"}
+      ${type === "info" && "text-warning"}
+      ${type === "warning" && "text-destructive"}
     `}
     >
       <div className="flex items-center">
@@ -86,7 +86,7 @@ function Notice({
             />
           </svg>
         )}
-        <p className="font-secondary text-xl font-semibold text-txt-p dark:text-darkmode-txt-light my-0">
+        <p className="font-sans text-xl font-semibold text-foreground text-muted-foreground my-0">
           {upperHumanize(type)}
         </p>
       </div>

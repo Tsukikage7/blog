@@ -1,12 +1,11 @@
 ---
+import ReadingTabs from "@components/series/ReadingTabs.astro";
 import BaseLayout from "@components/base/BaseLayout.astro";
 import Pagination from "@components/common/Pagination.astro";
 import PageHeader from "@components/common/PageHeader.astro";
-import SmartImage from "@components/common/SmartImage.astro";
-import PlaceholderImage from "@components/blog/PlaceholderImage.astro";
+import BlogListCard from "@components/blog/BlogListCard.astro";
+import { slugify } from "@lib/textConverter";
 import type { BlogEntry } from "@/types";
-import { formatDate } from "@lib/formatDate";
-import { plainify } from "@lib/textConverter";
 
 interface CategoryWithCount {
   name: string;
@@ -45,149 +44,187 @@ const { title, description } = entryIndex
       description: "所有文章",
     };
 
-// 获取日期（优先 date，其次 created）
+// 使用内容模型的发布日期。
 const getEntryDate = (entry: BlogEntry) => {
-  return entry.data.date || entry.data.created;
+  return entry.data.created;
 };
 
 // 按年份分组
-const entriesByYear = entries.reduce((acc, entry) => {
-  const entryDate = getEntryDate(entry);
-  const year = entryDate ? new Date(entryDate).getFullYear() : new Date().getFullYear();
-  if (!acc[year]) acc[year] = [];
-  acc[year].push(entry);
-  return acc;
-}, {} as Record<number, BlogEntry[]>);
+const entriesByYear = entries.reduce(
+  (acc, entry) => {
+    const entryDate = getEntryDate(entry);
+    const year = entryDate
+      ? new Date(entryDate).getFullYear()
+      : new Date().getFullYear();
+    if (!acc[year]) acc[year] = [];
+    acc[year].push(entry);
+    return acc;
+  },
+  {} as Record<number, BlogEntry[]>,
+);
 
-const years = Object.keys(entriesByYear).map(Number).sort((a, b) => b - a);
-
-// 检查是否有图片
-const hasImage = (entry: BlogEntry) => {
-  return entry.data.image && (typeof entry.data.image === "string" || (typeof entry.data.image === "object" && "src" in entry.data.image));
-};
+const years = Object.keys(entriesByYear)
+  .map(Number)
+  .sort((a, b) => b - a);
 ---
 
-<BaseLayout title={title} description={description}>
-  <div class="container px-4 sm:px-6 lg:px-8">
+<BaseLayout
+  title={pageIndex > 1 ? `${title} · 第 ${pageIndex} 页` : title}
+  description={description}
+>
+  <div class="site-container">
     <PageHeader
+      contained
       title={title}
-      description={description}
+      description={description || "技术实践、问题复盘，以及一路积累的笔记。"}
       articleCount={allBlogCount}
     />
-
-    <section>
-      <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
-
-        <!-- 左侧：时间线文章列表 -->
-        <main class="flex-1 min-w-0">
-          {years.map((year) => (
-            <div class="mb-12 lg:mb-16">
-              <!-- 年份标题 -->
-              <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
-                <h2 class="text-xl lg:text-2xl font-light text-foreground">{year}</h2>
-                <div class="flex-1 h-px bg-border/30"></div>
-                <span class="text-xs sm:text-sm text-muted-foreground/50 tabular-nums">
-                  {entriesByYear[year].length} 篇
-                </span>
-              </div>
-
-              <!-- 时间线 -->
-              <div class="relative pl-6 sm:pl-8 border-l-2 border-border/30">
-                {entriesByYear[year].map((entry) => {
-                  const entryDate = getEntryDate(entry);
-                  const dateStr = entryDate ? formatDate(entryDate) : "";
-                  const desc = entry.data.description || (entry.body ? plainify(entry.body.slice(0, 150)) + "..." : "");
-                  return (
-                    <a
-                      href={`/blog/${entry.id}`}
-                      class="group block relative pb-8 sm:pb-10 last:pb-0"
-                    >
-                      <!-- 时间线节点 -->
-                      <div class="absolute -left-[21px] sm:-left-[25px] top-2 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-background border-2 border-border/50 group-hover:border-foreground/60 transition-all"></div>
-
-                      <!-- 卡片内容 -->
-                      <div class="flex flex-col md:flex-row gap-4 sm:gap-5">
-                        <!-- 图片 -->
-                        <div class="flex-shrink-0 w-full sm:w-48 md:w-48 aspect-[16/10] rounded-lg overflow-hidden bg-muted/30">
-                          {hasImage(entry) ? (
-                            <SmartImage
-                              src={entry.data.image}
-                              alt={entry.data.imageAlt || entry.data.title}
-                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              loading="lazy"
-                              quality={60}
-                            />
-                          ) : (
-                            <PlaceholderImage title={entry.data.title} className="w-full h-full" />
-                          )}
-                        </div>
-
-                        <!-- 文字内容 -->
-                        <div class="flex-1 min-w-0">
-                          <!-- 日期 -->
-                          <time class="text-xs sm:text-sm text-muted-foreground/60 tabular-nums">{dateStr}</time>
-
-                          <!-- 标题 -->
-                          <h3 class="mt-1 sm:mt-1.5 text-base sm:text-lg font-medium text-foreground group-hover:text-foreground/70 transition-colors line-clamp-2">
-                            {entry.data.title}
-                          </h3>
-
-                          <!-- 描述 -->
-                          <p class="mt-2 text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                            {desc}
-                          </p>
-
-                          <!-- 分类 -->
-                          {entry.data.categories && entry.data.categories.length > 0 && (
-                            <div class="mt-3 flex flex-wrap gap-2">
-                              {entry.data.categories.slice(0, 3).map((cat: string) => (
-                                <span class="text-[11px] sm:text-xs text-muted-foreground/50">
-                                  #{cat}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </a>
-                  );
-                })}
-              </div>
+    <ReadingTabs active="blog" />
+    <div class="archive-layout">
+      <section aria-label="文章归档" class="archive-main">
+        {years.map((year) => (
+          <section class="year-group" aria-labelledby={`year-${year}`}>
+            <div class="year-heading">
+              <h2 id={`year-${year}`}>{year}</h2>
+              <span>{entriesByYear[year].length} 篇 · 本页</span>
             </div>
-          ))}
-
-          <Pagination
-            collection="blog"
-            pageIndex={pageIndex}
-            pageCount={pageCount}
-            basePath={basePath}
-          />
-        </main>
-
-        <!-- 右侧：分类侧边栏 -->
-        <aside class="lg:w-72 lg:sticky lg:top-[4.5rem] lg:self-start space-y-4">
-          <div class="rounded-lg border border-border/30 bg-card/30 p-5">
-            <h3 class="text-lg font-medium text-foreground mb-4">分类</h3>
-            <div class="space-y-0">
-              {(categories as CategoryWithCount[]).map((cat) => (
-                <a
-                  href={`/blog/categories/${cat.slug}`}
-                  class="flex items-center justify-between py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors group"
-                >
-                  <span class="flex items-center gap-2">
-                    <span class="w-1 h-1 rounded-full bg-border group-hover:bg-foreground/50 transition-colors"></span>
-                    {cat.name}
-                  </span>
-                  <span class="text-xs text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors tabular-nums">
-                    {cat.count}
-                  </span>
-                </a>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-      </div>
-    </section>
+            {entriesByYear[year].map((entry) => (
+              <BlogListCard entry={entry} />
+            ))}
+          </section>
+        ))}
+        {entries.length === 0 && (
+          <p class="py-12 text-muted-foreground">这里暂时还没有文章。</p>
+        )}
+        <Pagination
+          collection="blog"
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          basePath={basePath}
+        />
+      </section>
+      <aside class="archive-aside" aria-label="探索文章">
+        <p class="aside-label">按主题阅读</p>
+        <h2>找到感兴趣的方向</h2>
+        <div class="category-list">
+          {categories.map((category) => {
+            const cat =
+              typeof category === "string"
+                ? { name: category, slug: slugify(category), count: undefined }
+                : category;
+            return (
+              <a href={`/blog/categories/${cat.slug}/`}>
+                <span>{cat.name}</span>
+                <span>{cat.count}</span>
+              </a>
+            );
+          })}
+        </div>
+        <a class="archive-more" href="/blog/tags/">
+          浏览全部标签 <span aria-hidden="true">↗</span>
+        </a>
+        <p class="archive-note">
+          把遇到的问题写下来，
+          <br />
+          也把走过的路留给后来的人。
+        </p>
+      </aside>
+    </div>
   </div>
 </BaseLayout>
+<style>
+  .archive-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 230px;
+    gap: 64px;
+    border-top: 1px solid hsl(var(--border));
+    padding-top: 30px;
+  }
+  .archive-main {
+    min-width: 0;
+  }
+  .year-group {
+    margin-bottom: 36px;
+  }
+  .year-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 10px;
+  }
+  .year-heading h2 {
+    font-family: var(--font-editorial);
+    font-size: 28px;
+    font-weight: 500;
+  }
+  .year-heading > span {
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+  }
+  .archive-aside {
+    position: sticky;
+    top: 100px;
+    align-self: start;
+    padding-left: 26px;
+    border-left: 1px solid hsl(var(--border));
+  }
+  .aside-label {
+    font-size: 11px;
+    color: hsl(var(--primary));
+    margin-bottom: 12px;
+  }
+  .archive-aside h2 {
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+  .category-list a {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 13px;
+    color: hsl(var(--muted-foreground));
+  }
+  .category-list a:hover {
+    color: hsl(var(--primary));
+  }
+  .category-list a > span:last-child {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+  .archive-more {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid hsl(var(--border));
+    padding-top: 18px;
+    margin-top: 14px;
+    font-size: 12px;
+    color: hsl(var(--primary));
+  }
+  .archive-note {
+    margin-top: 30px;
+    font-family: var(--font-editorial);
+    font-size: 14px;
+    line-height: 2;
+    color: hsl(var(--muted-foreground));
+  }
+  @media (max-width: 1023px) {
+    .archive-layout {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+    .archive-aside {
+      position: static;
+      padding: 24px 0 0;
+      border-left: 0;
+      border-top: 1px solid hsl(var(--border));
+    }
+    .category-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 32px;
+    }
+    .archive-note {
+      display: none;
+    }
+  }
+</style>

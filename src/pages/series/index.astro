@@ -1,0 +1,224 @@
+---
+import BaseLayout from "@components/base/BaseLayout.astro";
+import PageHeader from "@components/common/PageHeader.astro";
+import ReadingTabs from "@components/series/ReadingTabs.astro";
+import SmartImage from "@components/common/SmartImage.astro";
+import WorkCard from "@components/writings/WorkCard.astro";
+import { getSeries } from "@lib/series";
+import { formatDate } from "@lib/formatDate";
+const series = await getSeries();
+const technical = series.filter((item) => item.entry.data.kind === "technical");
+const literary = series.filter((item) => item.entry.data.kind === "literary");
+---
+
+<BaseLayout title="系列合集" description="技术专题与文学作品，按章节顺序阅读。">
+  <div class="site-container">
+    <PageHeader
+      contained
+      title="系列合集"
+      countText={
+        [
+          technical.length ? `${technical.length} 个技术合集` : "",
+          literary.length ? `${literary.length} 部作品` : "",
+        ]
+          .filter(Boolean)
+          .join(" · ") || "0 个合集"
+      }
+    />
+    <ReadingTabs active="series" />
+    {technical.length > 0 && (
+      <h2 class="collection-heading">
+        技术合集 <span>{technical.length} 个</span>
+      </h2>
+    )}
+    {technical.map((item, index) => (
+      <article class="series-row">
+        {item.chapters[0].data.image ? (
+          <a
+            class="series-cover"
+            href={item.href}
+            aria-label={`查看合集：${item.entry.data.title}`}
+          >
+            <SmartImage
+              src={item.chapters[0].data.image}
+              alt={item.chapters[0].data.title}
+              width={520}
+              class="cover-image"
+              loading={index === 0 ? "eager" : "lazy"}
+            />
+          </a>
+        ) : (
+          <div class="series-mark" aria-hidden="true">
+            <span>系列 / {String(index + 1).padStart(2, "0")}</span>
+            <strong>{item.chapters.length.toString().padStart(2, "0")}</strong>
+            <span>篇 · 顺序阅读</span>
+          </div>
+        )}
+        <div class="series-copy">
+          <p class="meta">
+            {item.chapters.length} 篇
+            {item.updated && (
+              <>
+                {" "}
+                · 更新于{" "}
+                <time datetime={item.updated.toISOString()}>
+                  {formatDate(item.updated)}
+                </time>
+              </>
+            )}
+          </p>
+          <h2>
+            <a href={item.href}>{item.entry.data.title}</a>
+          </h2>
+          <p class="description">{item.entry.data.description}</p>
+          {item.entry.data.audience && (
+            <p class="audience">适合：{item.entry.data.audience}</p>
+          )}
+          <a class="open-series" href={item.href}>
+            查看介绍与目录 <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </article>
+    ))}
+    {literary.length > 0 && (
+      <section aria-labelledby="literary-series">
+        <h2 id="literary-series" class="collection-heading">
+          文学作品 <span>{literary.length} 部</span>
+        </h2>
+        {literary.map((item) => (
+          <WorkCard series={item} />
+        ))}
+      </section>
+    )}
+    {!series.length && (
+      <p class="py-12 text-muted-foreground">
+        合集正在整理中，可以先浏览全部文章。
+      </p>
+    )}
+  </div>
+</BaseLayout>
+<style>
+  .collection-heading {
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+    font-family: var(--font-editorial);
+    font-size: 24px;
+    margin-block: 12px 24px;
+  }
+  .collection-heading span {
+    color: hsl(var(--muted-foreground));
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .series-row {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 48px;
+    padding: 16px 0 42px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .series-cover {
+    display: block;
+    align-self: start;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 6px;
+    background: hsl(var(--secondary));
+  }
+  .series-cover :global(.cover-image) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.25s ease;
+  }
+  .series-cover:hover :global(.cover-image) {
+    transform: scale(1.025);
+  }
+  .series-cover:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 4px;
+  }
+  .series-mark {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 28px;
+    background: hsl(var(--primary) / 0.07);
+    border-radius: 6px;
+    color: hsl(var(--primary));
+  }
+  .series-mark span {
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+  .series-mark strong {
+    font-family: var(--font-editorial);
+    font-size: 72px;
+    font-weight: 400;
+    line-height: 1;
+  }
+  .series-copy {
+    padding: 8px 0;
+    max-width: 660px;
+  }
+  .meta,
+  .audience {
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+    line-height: 1.8;
+  }
+  h2 {
+    font-family: var(--font-editorial);
+    font-size: clamp(25px, 3vw, 32px);
+    margin: 14px 0;
+  }
+  .description {
+    font-size: 14px;
+    line-height: 1.9;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 14px;
+  }
+  .open-series {
+    display: inline-flex;
+    gap: 32px;
+    margin-top: 24px;
+    font-size: 13px;
+    color: hsl(var(--primary));
+  }
+  h2 a:hover {
+    color: hsl(var(--primary));
+  }
+  @media (min-width: 641px) and (max-width: 767px) {
+    .series-row {
+      grid-template-columns: 200px minmax(0, 1fr);
+      gap: 28px;
+    }
+  }
+  @media (max-width: 640px) {
+    .series-row {
+      grid-template-columns: 1fr;
+      gap: 22px;
+    }
+    .series-mark {
+      flex-direction: row;
+      align-items: baseline;
+      padding: 20px;
+    }
+    .series-mark strong {
+      font-size: 48px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .series-cover :global(.cover-image) {
+      transition: none;
+    }
+    .series-cover:hover :global(.cover-image) {
+      transform: none;
+    }
+  }
+</style>

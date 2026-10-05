@@ -3,6 +3,7 @@ import Social from "@components/common/Social.astro";
 import { getEntry } from "astro:content";
 import { getSiteStats, getTotalWordCount } from "@lib/contentParser";
 import { SITE_INFO } from "@lib/config";
+import { getSeries } from "@lib/series";
 
 const socialEntry = await getEntry("social", "-index");
 const socialLinks = socialEntry?.data.platforms || {
@@ -18,6 +19,14 @@ const socialLinks = socialEntry?.data.platforms || {
 };
 
 const siteStatsData = await getSiteStats();
+const literaryWorks = (await getSeries()).filter(
+  (series) => series.entry.data.kind === "literary",
+);
+const chapterCount = literaryWorks.reduce(
+  (count, series) => count + series.chapters.length,
+  0,
+);
+const standaloneWritingCount = siteStatsData.writings - chapterCount;
 
 let totalViews = "--";
 const statsData = {
@@ -28,20 +37,14 @@ const statsData = {
 };
 ---
 
-<footer
-  id="main-footer"
-  class="w-full py-6 mt-12 border-t border-border/30"
->
-  <div class="container px-4 lg:px-8 mx-auto">
-    <div class="flex flex-col items-center gap-4">
+<footer id="main-footer" class="w-full py-8 mt-4 border-t border-border/60">
+  <div class="site-container">
+    <div class="flex flex-col items-start gap-4 md:flex-row md:flex-wrap md:items-center md:justify-between">
       <!-- 主要内容 -->
-      <div class="flex items-center gap-4 text-sm text-txt-light dark:text-darkmode-txt-light">
+      <div class="flex items-center gap-4 text-sm text-muted-foreground">
         <span>© {new Date().getFullYear()}</span>
         <span class="text-border">·</span>
-        <a
-          href={SITE_INFO.URL}
-          class="hover:text-foreground transition-colors"
-        >
+        <a href={SITE_INFO.URL} class="hover:text-foreground transition-colors">
           {SITE_INFO.SITE_NAME}
         </a>
         <span class="hidden md:inline text-border">·</span>
@@ -49,14 +52,44 @@ const statsData = {
       </div>
 
       <!-- 统计信息 -->
-      <div class="flex flex-wrap items-center justify-center gap-x-3 text-xs text-txt-light/60 dark:text-darkmode-txt-light/60">
-        <span>{statsData.totalArticles} 篇文章</span>
+      <div class="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
+        <span>{statsData.totalArticles} 篇技术文章</span>
+        {siteStatsData.notes > 0 && <span>· {siteStatsData.notes} 篇笔记</span>}
+        {literaryWorks.length > 0 && (
+          <span>
+            · {literaryWorks.length} 部作品 · {chapterCount} 章
+          </span>
+        )}
+        {standaloneWritingCount > 0 && (
+          <span>· {standaloneWritingCount} 篇文字</span>
+        )}
         <span>·</span>
         <span>{statsData.totalWords} 字</span>
         <span>·</span>
         <span>运行 {statsData.runningDays} 天</span>
       </div>
+      <nav
+        aria-label="页脚链接"
+        class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground"
+      >
+        <a class="hover:text-primary transition-colors" href="/terms/">
+          使用条款
+        </a>
+        <a class="hover:text-primary transition-colors" href="/rss.xml">
+          技术 RSS
+        </a>
+        {siteStatsData.writings > 0 && (
+          <a
+            class="hover:text-primary transition-colors"
+            href="/writings/rss.xml"
+          >
+            文字 RSS
+          </a>
+        )}
+        <a class="hover:text-primary transition-colors" href="/feed.xml">
+          全站 RSS
+        </a>
+      </nav>
     </div>
   </div>
 </footer>
-

@@ -1,0 +1,204 @@
+---
+import { render } from "astro:content";
+import BaseLayout from "@components/base/BaseLayout.astro";
+import Breadcrumbs from "@components/common/Breadcrumbs.astro";
+import WorkCover from "@components/writings/WorkCover.astro";
+import ChapterList from "@components/series/ChapterList.astro";
+import { getSeries } from "@lib/series";
+import { chapterHref, type ReadingSeries } from "@lib/seriesModel";
+import { formatDate } from "@lib/formatDate";
+export async function getStaticPaths() {
+  return (await getSeries())
+    .filter((series) => series.entry.data.kind === "literary")
+    .map((series) => ({
+      params: { slug: series.entry.id },
+      props: { series },
+    }));
+}
+interface Props {
+  series: ReadingSeries;
+}
+const { series } = Astro.props;
+const { Content } = await render(series.entry);
+---
+
+<BaseLayout
+  title={series.entry.data.title}
+  description={series.entry.data.description}
+>
+  <div class="site-container work-page">
+    <Breadcrumbs
+      title={series.entry.data.title}
+      className="text-xs text-muted-foreground"
+    />
+    <header class="work-heading">
+      <div class="book-cover">
+        <WorkCover series={series} />
+      </div>
+      <div>
+        <p class="work-meta">
+          {series.entry.data.genre || "文学作品"} · {series.chapters.length} 章
+        </p>
+        <h1>{series.entry.data.title}</h1>
+        <p class="work-description">{series.entry.data.description}</p>
+        {series.updated && (
+          <p class="work-updated">
+            更新于{" "}
+            <time datetime={series.updated.toISOString()}>
+              {formatDate(series.updated)}
+            </time>
+          </p>
+        )}
+        <a class="start-reading" href={chapterHref(series.chapters[0])}>
+          从第一章开始 <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </header>
+    <div class="work-layout">
+      <aside class="work-intro">
+        <div class="prose prose-site prose-sm">
+          <Content />
+        </div>
+        <a href="/writings/">← 返回文字</a>
+      </aside>
+      <section class="chapter-section" aria-labelledby="work-chapters">
+        <div class="chapter-heading">
+          <h2 id="work-chapters">章节目录</h2>
+          <span>按故事顺序阅读</span>
+        </div>
+        <ChapterList series={series} />
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+<style>
+  .work-page {
+    padding-top: 32px;
+    padding-bottom: 48px;
+  }
+  .work-heading {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 56px;
+    align-items: center;
+    margin-block: 36px 48px;
+  }
+  .work-meta {
+    color: hsl(var(--primary));
+    font-size: 12px;
+  }
+  h1 {
+    font-family: var(--font-editorial);
+    font-size: clamp(32px, 4vw, 48px);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    margin-block: 16px;
+  }
+  .work-description {
+    max-width: 38rem;
+    color: hsl(var(--muted-foreground));
+    font-size: 15px;
+    line-height: 2;
+    text-wrap: pretty;
+  }
+  .work-updated {
+    color: hsl(var(--muted-foreground));
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    margin-top: 18px;
+  }
+  .start-reading {
+    display: inline-flex;
+    gap: 40px;
+    align-items: center;
+    min-height: 44px;
+    padding: 12px 20px;
+    margin-top: 24px;
+    border-radius: 4px;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-size: 13px;
+    transition: opacity 0.2s;
+  }
+  .start-reading:hover {
+    opacity: 0.85;
+  }
+  .work-layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 56px;
+    border-top: 1px solid hsl(var(--border));
+    padding-top: 32px;
+  }
+  .work-intro {
+    align-self: start;
+  }
+  .work-intro a {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    margin-top: 24px;
+    font-size: 13px;
+    color: hsl(var(--primary));
+  }
+  .chapter-section {
+    min-width: 0;
+  }
+  .chapter-heading {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+  h2 {
+    font-family: var(--font-editorial);
+    font-size: 25px;
+  }
+  .chapter-heading span {
+    color: hsl(var(--muted-foreground));
+    font-size: 12px;
+  }
+  a:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 5px;
+  }
+  @media (max-width: 767px) {
+    .work-heading {
+      grid-template-columns: 160px minmax(0, 1fr);
+      gap: 28px;
+      margin-block: 28px 36px;
+    }
+    h1 {
+      font-size: 32px;
+    }
+    .work-description {
+      font-size: 13px;
+    }
+    .work-layout {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+    .work-intro a {
+      margin-top: 8px;
+    }
+  }
+  @media (max-width: 479px) {
+    .work-heading {
+      grid-template-columns: 1fr;
+    }
+    .book-cover {
+      width: 160px;
+    }
+    h1 {
+      font-size: 34px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .start-reading {
+      transition: none;
+    }
+  }
+</style>

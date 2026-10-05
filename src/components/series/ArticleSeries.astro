@@ -1,0 +1,119 @@
+---
+import ChapterList from "./ChapterList.astro";
+import type { ReadingSeries, Chapter } from "@lib/seriesModel";
+import { getChapterNavigation } from "@lib/seriesModel";
+interface Props {
+  series: ReadingSeries;
+  currentId: string;
+  currentCollection?: Chapter["collection"];
+  sidebar?: boolean;
+}
+const {
+  series,
+  currentId,
+  currentCollection = "blog",
+  sidebar = false,
+} = Astro.props;
+const { position } = getChapterNavigation(series, {
+  id: currentId,
+  collection: currentCollection,
+});
+const literary = series.entry.data.kind === "literary";
+---
+
+{sidebar ? (
+  <nav class="series-sidebar" aria-label={literary ? "作品章节" : "系列章节"}>
+    <p class="series-label">
+      {literary ? "作品目录" : "系列合集"} · {position} /{" "}
+      {series.chapters.length}
+    </p>
+    <a class="series-name" href={series.href}>
+      {series.entry.data.title}
+    </a>
+    <ChapterList
+      series={series}
+      currentId={currentId}
+      currentCollection={currentCollection}
+      compact
+    />
+  </nav>
+) : (
+  <div class="series-banner">
+    <div class="banner-heading">
+      <a href={series.href}>{series.entry.data.title}</a>
+      <span>
+        第 {position} / {series.chapters.length} {literary ? "章" : "篇"}
+      </span>
+    </div>
+    <a class="view-series" href={series.href}>
+      {literary ? "返回作品目录" : "合集介绍与目录"} →
+    </a>
+    <details class="mobile-chapters">
+      <summary>{literary ? "展开作品目录" : "展开系列章节"}</summary>
+      <ChapterList
+        series={series}
+        currentId={currentId}
+        currentCollection={currentCollection}
+        compact
+      />
+    </details>
+  </div>
+)}
+<style>
+  .series-banner {
+    padding: 18px 20px;
+    margin-bottom: 28px;
+    background: hsl(var(--primary) / 0.06);
+    border-left: 2px solid hsl(var(--primary) / 0.5);
+    border-radius: 0 4px 4px 0;
+  }
+  .banner-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 16px;
+  }
+  .banner-heading a {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .banner-heading span,
+  .series-label {
+    color: hsl(var(--muted-foreground));
+    font-size: 11px;
+  }
+  .view-series {
+    display: inline-block;
+    margin-top: 8px;
+    color: hsl(var(--primary));
+    font-size: 12px;
+  }
+  .series-name {
+    display: block;
+    margin: 10px 0 16px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.6;
+  }
+  .series-name:hover {
+    color: hsl(var(--primary));
+  }
+  .mobile-chapters {
+    display: none;
+    margin-top: 16px;
+    border-top: 1px solid hsl(var(--border));
+    padding-top: 12px;
+  }
+  summary {
+    font-size: 12px;
+    color: hsl(var(--primary));
+    cursor: pointer;
+    padding: 6px 0;
+  }
+  @media (max-width: 1023px) {
+    .mobile-chapters {
+      display: block;
+    }
+  }
+</style>

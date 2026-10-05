@@ -1,5 +1,5 @@
 ---
-import type { GetStaticPaths } from "astro";
+import type { GetStaticPaths, Page } from "astro";
 import CollectionLayout from "@components/blog/CollectionLayout.astro";
 import { getTaxa, getTaxaWithCount } from "@lib/taxonomyParser";
 import { getEntries, getIndex } from "@lib/contentParser";
@@ -7,27 +7,26 @@ import { sortByDate } from "@lib/sortFunctions";
 import { getPageSize } from "@lib/config";
 import type { BlogEntry } from "@/types";
 
-const entriesPerPage = getPageSize('blog');
-export async function getStaticPaths({ paginate }: any) {
+export const getStaticPaths = (async ({ paginate }) => {
   const entries = await getEntries("blog", sortByDate);
-  return paginate(entries,{pageSize:4});
+  return paginate(entries, { pageSize: getPageSize("blog") })
+    .filter(({ params }) => params.page !== "1");
+}) satisfies GetStaticPaths;
+
+interface Props {
+  page: Page<BlogEntry>;
 }
 
-const { page } = Astro.params;
-console.log("分类页面page:",page);
-const currentPageIndex = page && !isNaN(Number(page)) ? Number(page) : 1;
+const { page } = Astro.props;
+const currentPageIndex = page.currentPage;
 const entryIndex = (await getIndex("blog")) as BlogEntry;
-const entries = (await getEntries("blog", sortByDate)) as BlogEntry[];
-const allBlogCount = entries.length;
+const allBlogCount = page.total;
 
 const categoriesWithCount = await getTaxaWithCount("blog", "categories");
 const tags = await getTaxa("blog", "tags");
 
-const indexOfLastEntry = currentPageIndex * entriesPerPage;
-const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
-const currentEntries = entries.slice(indexOfFirstEntry, indexOfLastEntry);
-
-const pageCount: number = Math.ceil(entries.length / entriesPerPage);
+const currentEntries = page.data;
+const pageCount = page.lastPage;
 ---
 
 <CollectionLayout

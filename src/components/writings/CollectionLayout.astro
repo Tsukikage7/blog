@@ -1,128 +1,113 @@
 ---
 import BaseLayout from "@components/base/BaseLayout.astro";
-import WritingsListCard from "@components/writings/WritingsListCard.astro";
+import WritingsListCard from "./WritingsListCard.astro";
+import WorkCard from "./WorkCard.astro";
 import Pagination from "@components/common/Pagination.astro";
 import PageHeader from "@components/common/PageHeader.astro";
-import LiquidGlassLess from "@components/common/LiquidGlassLess.astro";
-import type { WritingsEntry } from "@/types";
-
+import type { GenericEntry } from "@/types";
+import type { WritingItem } from "@lib/writings";
 interface Props {
-  entryIndex?: WritingsEntry;
-  entries: WritingsEntry[];
+  entryIndex?: GenericEntry;
+  items: WritingItem[];
   tags?: string[];
   pageIndex: number;
   pageCount: number;
-  allCount?: number;
+  countText: string;
   basePath?: string;
   currentTag?: string;
 }
-
 const {
   entryIndex,
-  entries,
+  items,
   tags = [],
   pageIndex,
   pageCount,
-  allCount,
+  countText,
   basePath,
   currentTag,
 } = Astro.props;
-
-const { title, description } = entryIndex?.data || {
-  title: "文字小筑",
-  description: "记录灵感与故事的角落",
-};
+const title = currentTag
+  ? `文字 · ${currentTag}`
+  : entryIndex?.data.title || "文字";
+const description = entryIndex?.data.description || "小说、散文与随笔。";
 ---
 
-<BaseLayout title={title} description={description}>
-  <div class="container px-3 lg:px-8">
+<BaseLayout
+  title={pageIndex > 1 ? `${title} · 第 ${pageIndex} 页` : title}
+  description={description}
+>
+  <div class="site-container">
     <PageHeader
+      contained
       title={title}
       description={description}
-      articleCount={allCount}
+      countText={countText}
     />
-
-    <section class="">
-      <div class="flex flex-col lg:flex-row gap-6">
-        <!-- 主内容区 -->
-        <div class="flex-1">
-          {entries.length === 0 ? (
-            <LiquidGlassLess
-              heavy
-              wrapperClass="dock rounded-lg p-8 text-center"
-            >
-              <p class="text-txt-light dark:text-darkmode-txt-light text-lg">
-                暂无作品，敬请期待...
-              </p>
-            </LiquidGlassLess>
-          ) : (
-            entries.map((entry, index) => (
-              <div class="mb-4" style={`animation-delay: ${index * 100}ms`}>
-                <WritingsListCard entry={entry} />
-              </div>
-            ))
-          )}
-
-          {pageCount > 1 && (
-            <Pagination
-              collection="writings"
-              pageIndex={pageIndex}
-              pageCount={pageCount}
-              basePath={basePath}
-            />
-          )}
-        </div>
-
-        <!-- 侧边栏 -->
-        <div class="lg:w-64 lg:sticky lg:top-[4.5rem] lg:self-start space-y-4">
-          {tags.length > 0 && (
-            <LiquidGlassLess
-              heavy
-              wrapperClass="dock rounded-lg p-4"
-            >
-              <h3 class="text-base font-medium text-foreground mb-3">
-                标签
-              </h3>
-              <div class="flex flex-wrap gap-2">
-                <a
-                  href="/writings"
-                  class={`inline-flex items-center px-2.5 py-1 rounded-md text-sm transition-colors ${
-                    !currentTag
-                      ? "bg-foreground text-background"
-                      : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  全部
-                </a>
-                {tags.map((tag) => (
-                  <a
-                    href={`/writings/tags/${encodeURIComponent(tag)}`}
-                    class={`inline-flex items-center px-2.5 py-1 rounded-md text-sm transition-colors ${
-                      currentTag === tag
-                        ? "bg-foreground text-background"
-                        : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}
-                  >
-                    {tag}
-                  </a>
-                ))}
-              </div>
-            </LiquidGlassLess>
-          )}
-
-          <LiquidGlassLess
-            heavy
-            wrapperClass="dock rounded-lg p-4"
+    {tags.length > 1 && (
+      <nav class="writing-filters" aria-label="文字关键词">
+        <a href="/writings/" aria-current={!currentTag ? "page" : undefined}>
+          全部
+        </a>
+        {tags.map((tag) => (
+          <a
+            href={`/writings/tags/${encodeURIComponent(tag)}/`}
+            aria-current={currentTag === tag ? "page" : undefined}
           >
-            <h3 class="text-base font-medium text-foreground mb-3">
-              关于这里
-            </h3>
-            <p class="text-sm text-muted-foreground leading-relaxed">
-              这里是我的文学创作空间，收录短篇小说、散文随笔和偶尔的诗歌。文字是思想的载体，故事是灵魂的倒影。
-            </p>
-          </LiquidGlassLess>
-        </div>
-      </div>
+            {tag}
+          </a>
+        ))}
+      </nav>
+    )}
+    <section aria-label="作品与独立文字" class="writing-list">
+      {items.map((item) =>
+        item.kind === "series" ? (
+          <WorkCard series={item.series} />
+        ) : (
+          <WritingsListCard entry={item.entry} />
+        ),
+      )}
+      {!items.length && (
+        <p class="empty-writing">
+          这里暂时没有文字，先去看看 <a href="/blog/">技术文章 →</a>
+        </p>
+      )}
     </section>
+    {pageCount > 1 && (
+      <Pagination
+        collection="writings"
+        pageIndex={pageIndex}
+        pageCount={pageCount}
+        basePath={basePath}
+      />
+    )}
   </div>
 </BaseLayout>
+<style>
+  .writing-list {
+    border-top: 1px solid hsl(var(--border));
+  }
+  .writing-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    font-size: 13px;
+    padding-bottom: 24px;
+    color: hsl(var(--muted-foreground));
+  }
+  .writing-filters a:hover,
+  .writing-filters a[aria-current] {
+    color: hsl(var(--primary));
+  }
+  .writing-filters a:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 4px;
+  }
+  .empty-writing {
+    padding-block: 48px;
+    color: hsl(var(--muted-foreground));
+    font-size: 14px;
+  }
+  .empty-writing a {
+    color: hsl(var(--primary));
+  }
+</style>

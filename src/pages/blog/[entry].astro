@@ -1,9 +1,10 @@
 ---
 import { getCollection, type CollectionEntry, render } from "astro:content";
 import EntryLayout from "@components/blog/EntryLayout.astro";
+import { isPublishedEntry } from "@lib/contentParser";
 
 export async function getStaticPaths() {
-  const blogEntries = await getCollection("blog");
+  const blogEntries = await getCollection("blog", isPublishedEntry);
 
   const paths = blogEntries.map((entry) => ({
     params: { entry: entry.id },

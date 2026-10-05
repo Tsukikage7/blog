@@ -1,8 +1,5 @@
 ---
-import BaseLayout from "@components/base/BaseLayout.astro";
-import { upperHumanize } from "@lib/textConverter";
-import PageHeader from "@components/common/PageHeader.astro";
-import { FaHashtag } from "react-icons/fa";
+import TaxaLayout from "@components/blog/TaxaLayout.astro";
 
 interface Props {
   taxonomy: string;
@@ -10,44 +7,13 @@ interface Props {
   allTaxa: string[];
 }
 
-const { taxonomy, taxa, allTaxa }: Props = Astro.props;
+const { taxonomy, taxa, allTaxa } = Astro.props;
 ---
 
-<BaseLayout title={upperHumanize(taxonomy)}>
-  <div class="container px-3 lg:px-8">
-    <PageHeader title={upperHumanize(taxonomy)} articleCount={taxa.length} />
-    <section class="section py-12">
-      <div class="container px-3 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {
-            taxa.map((taxon: string) => {
-              const count = allTaxa.filter((c) => c === taxon).length;
-              return (
-                <a
-                  href={`/notes/${taxonomy}/${taxon}`}
-                  class="group flex items-center justify-between py-3 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <div class="flex items-center gap-2">
-                    <span class="w-1 h-1 rounded-full bg-border group-hover:bg-foreground/50 transition-colors"></span>
-                    <span class="text-sm md:text-base">
-                      {upperHumanize(taxon)}
-                    </span>
-                  </div>
-                  <span class="text-xs text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors tabular-nums">
-                    {count}
-                  </span>
-                </a>
-              );
-            })
-          }
-        </div>
-
-        {taxa.length === 0 && (
-          <div class="text-center py-12">
-            <p class="text-muted-foreground text-lg">暂无标签</p>
-          </div>
-        )}
-      </div>
-    </section>
-  </div>
-</BaseLayout>
+<TaxaLayout
+  collection="notes"
+  taxonomy={taxonomy}
+  taxonomyTitle="笔记标签"
+  taxa={taxa}
+  allTaxa={allTaxa}
+/>

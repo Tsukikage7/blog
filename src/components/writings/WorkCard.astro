@@ -1,0 +1,151 @@
+---
+import type { ReadingSeries } from "@lib/seriesModel";
+import { chapterHref } from "@lib/seriesModel";
+import { formatDate } from "@lib/formatDate";
+import WorkCover from "./WorkCover.astro";
+interface Props {
+  series: ReadingSeries;
+}
+const { series } = Astro.props;
+---
+
+<article class="work-row">
+  <a
+    class="work-cover-link"
+    href={series.href}
+    aria-label={`查看作品：${series.entry.data.title}`}
+  >
+    <WorkCover series={series} />
+  </a>
+  <div class="work-copy">
+    <p class="work-meta">
+      {series.entry.data.genre || "文学作品"} · {series.chapters.length} 章
+      {series.updated && (
+        <span>
+          更新于{" "}
+          <time datetime={series.updated.toISOString()}>
+            {formatDate(series.updated)}
+          </time>
+        </span>
+      )}
+    </p>
+    <h2>
+      <a href={series.href}>{series.entry.data.title}</a>
+    </h2>
+    <p class="work-description">{series.entry.data.description}</p>
+    <div class="work-links">
+      <a href={series.href}>
+        查看作品与目录 <span aria-hidden="true">→</span>
+      </a>
+      <a href={chapterHref(series.chapters[0])}>从第一章开始</a>
+    </div>
+  </div>
+</article>
+<style>
+  .work-row {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 48px;
+    align-items: center;
+    padding-block: 32px 40px;
+    border-block-end: 1px solid hsl(var(--border));
+  }
+  .work-cover-link {
+    display: block;
+    max-width: 240px;
+  }
+  .work-copy {
+    min-width: 0;
+    max-width: 38rem;
+  }
+  .work-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    font-size: 12px;
+    line-height: 1.8;
+    color: hsl(var(--muted-foreground));
+    font-variant-numeric: tabular-nums;
+  }
+  h2 {
+    font-family: var(--font-editorial);
+    font-size: clamp(26px, 3.4vw, 36px);
+    line-height: 1.5;
+    margin-block: 16px;
+    text-wrap: balance;
+  }
+  .work-description {
+    color: hsl(var(--muted-foreground));
+    font-size: 14px;
+    line-height: 2;
+    text-wrap: pretty;
+  }
+  .work-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 28px;
+    margin-top: 28px;
+    font-size: 13px;
+  }
+  .work-links a:first-child {
+    color: hsl(var(--primary));
+    display: inline-flex;
+    gap: 24px;
+    min-height: 44px;
+    align-items: center;
+  }
+  .work-links a:last-child {
+    color: hsl(var(--muted-foreground));
+    text-underline-offset: 5px;
+  }
+  a {
+    transition: color 0.2s;
+  }
+  a:hover {
+    color: hsl(var(--primary));
+  }
+  .work-links a:last-child:hover {
+    text-decoration: underline;
+  }
+  a:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 5px;
+    border-radius: 2px;
+  }
+  @media (max-width: 767px) {
+    .work-row {
+      grid-template-columns: 160px minmax(0, 1fr);
+      gap: 28px;
+      padding-top: 12px;
+    }
+    h2 {
+      font-size: 28px;
+      margin-block: 12px;
+    }
+    .work-description {
+      font-size: 13px;
+    }
+    .work-links {
+      gap: 4px 20px;
+      margin-top: 16px;
+    }
+  }
+  @media (max-width: 479px) {
+    .work-row {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+    .work-cover-link {
+      width: 160px;
+    }
+    h2 {
+      font-size: 30px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    a {
+      transition: none;
+    }
+  }
+</style>

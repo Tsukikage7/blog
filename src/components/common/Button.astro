@@ -49,19 +49,19 @@ const size = type === "primary" ? "md" : "sm";
     >
       <div
         class={`
-    ${color ? color : "bg-bg-t dark:bg-darkmode-bg-t"}
+    ${color ? color : "bg-muted"}
     ${type == "primary" ? "p-0.5 rounded-md" : "p-[1.5px] rounded-sm"}`}
       >
         <div
-          class={`bg-bg-p dark:bg-darkmode-bg-p
+          class={`bg-background
       ${type == "primary" ? "px-4 py-2 rounded-md" : "px-2 py-0.5 rounded-sm"}
       ${hoverInvert ? "group-hover:bg-opacity-0" : ""}`}
         >
           <div
             class={`text-transparent bg-clip-text
-        ${color ? color : "bg-bg-t dark:bg-darkmode-bg-t"}
+        ${color ? color : "bg-muted"}
         ${type == "primary" ? "font-bold" : ""}
-        ${hoverInvert ? "group-hover:text-txt-p dark:group-hover:text-darkmode-txt-p" : ""}`}
+        ${hoverInvert ? "group-hover:text-foreground" : ""}`}
           >
             {label}
           </div>

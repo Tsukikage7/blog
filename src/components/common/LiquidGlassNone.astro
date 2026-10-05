@@ -1,24 +1,23 @@
 ---
 interface Props {
   containerType?: "div" | "section" | "nav" | "header" | "footer";
-  
+
   containerClass?: string;
-  
+
   wrapperClass?: string;
-  
+
   textClass?: string;
-  
+
   animation?: "fadeLeft" | "fadeRight" | "fadeUp" | "fadeDown" | "none";
-  
+
   heavy?: boolean;
-  
+
   showContainer?: boolean;
 
-  
   effectClass?: string;
-  
+
   tintClass?: string;
-  
+
   shineClass?: string;
 }
 
@@ -26,7 +25,7 @@ const {
   containerType = "div",
   containerClass = "",
   wrapperClass = "dock",
-  animation = "fadeUp",
+  animation = "none",
   heavy = false,
   showContainer = true,
   textClass = "",
@@ -35,10 +34,19 @@ const {
   shineClass = "",
 } = Astro.props;
 
+const Container = containerType;
+
+const animationClasses = {
+  fadeLeft: "intersect:animate-fadeLeft",
+  fadeRight: "intersect:animate-fadeRight",
+  fadeUp: "intersect:animate-fadeUp",
+  fadeDown: "intersect:animate-fadeDown",
+  none: "",
+};
 const animationClass =
-  animation !== "none"
-    ? `intersect:animate-${animation} transition-all duration-300 fast-slow`
-    : "";
+  animation === "none"
+    ? ""
+    : `${animationClasses[animation]} transition-all duration-300 ease-fast-slow`;
 
 const effectClassStr =
   (heavy ? "liquidGlass-effect-h " : "liquidGlass-effect ") + effectClass;
@@ -46,52 +54,12 @@ const tintClassStr =
   (heavy ? "liquidGlass-tint-h " : "liquidGlass-tint ") + tintClass;
 ---
 
-{
-  containerType === "section" ? (
-    <section class={`liquid-glass-container ${containerClass}`}>
-      <div class={`liquidGlass-wrapper ${wrapperClass}`}>
-        <div class={`liquidGlass-text ${textClass} ${animationClass}`}>
-          <slot />
-        </div>
-      </div>
-    </section>
-  ) : containerType === "nav" ? (
-    <nav class={`liquid-glass-container ${containerClass}`}>
-      <div class={`liquidGlass-wrapper ${wrapperClass}`}>
-        <div class={`liquidGlass-text ${textClass} ${animationClass}`}>
-          <slot />
-        </div>
-      </div>
-    </nav>
-  ) : containerType === "header" ? (
-    <header class={`liquid-glass-container ${containerClass}`}>
-      <div class={`liquidGlass-wrapper ${wrapperClass}`}>
-        <div class={`liquidGlass-text ${textClass} ${animationClass}`}>
-          <slot />
-        </div>
-      </div>
-    </header>
-  ) : containerType === "footer" ? (
-    <footer class={`liquid-glass-container ${containerClass}`}>
-      <div class={`liquidGlass-wrapper ${wrapperClass}`}>
-        <div class={`liquidGlass-text ${textClass} ${animationClass}`}>
-          <slot />
-        </div>
-      </div>
-    </footer>
-  ) : (
-    <div class={`liquid-glass-container ${containerClass}`}>
-      <div class={`liquidGlass-wrapper ${wrapperClass}`}>
-        <div class={`liquidGlass-text ${textClass} ${animationClass}`}>
-          <slot />
-        </div>
-      </div>
+<Container class={`liquid-glass-container ${containerClass}`}>
+  <div
+    class={`liquidGlass-wrapper rounded-lg border border-border/50 bg-card/35 text-card-foreground ${wrapperClass}`}
+  >
+    <div class={`liquidGlass-text ${textClass} ${animationClass}`}>
+      <slot />
     </div>
-  )
-}
-
-<style>
-  .liquidGlass-wrapper{
-    @apply bg-white dark:bg-darkmode-bg-p;
-  }
-</style>
+  </div>
+</Container>

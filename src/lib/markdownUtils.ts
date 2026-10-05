@@ -63,16 +63,6 @@ function smoothScrollToAnchor(): void {
   });
 }
 
-function setupResponsiveTables(): void {
-  const tables = document.querySelectorAll('.table-wrapper') as NodeListOf<HTMLElement>;
-  tables.forEach(wrapper => {
-    const table = wrapper.querySelector('table') as HTMLTableElement;
-    if (table && table.scrollWidth > wrapper.clientWidth) {
-      wrapper.style.overflowX = 'auto';
-    }
-  });
-}
-
 function createImageModal(imgSrc: string, imgAlt: string): HTMLElement {
   const modal = document.createElement('div');
   modal.innerHTML = `
@@ -155,7 +145,6 @@ function transformImageUrl(url: string): string {
 
 function initMarkdownUtils(): void {
   smoothScrollToAnchor();
-  setupResponsiveTables();
   setupImageModal();
 }
 
@@ -163,7 +152,6 @@ document.addEventListener('DOMContentLoaded', initMarkdownUtils);
 
 export {
   smoothScrollToAnchor,
-  setupResponsiveTables,
   setupImageModal,
   transformImageUrl,
   initMarkdownUtils

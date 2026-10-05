@@ -9,68 +9,36 @@ const { title, className = "" } = Astro.props;
 const normalizedTitle = (title || "").trim();
 const firstTwo = normalizedTitle.slice(0, 2);
 const isHan = (ch: string) => /[\u3400-\u9FFF]/.test(ch);
-const firstTwoAreHan = firstTwo.length === 2 && isHan(firstTwo[0]) && isHan(firstTwo[1]);
-const englishWord = normalizedTitle.match(/[A-Za-z]+(?:'[A-Za-z]+)?/i)?.[0] || "";
+const firstTwoAreHan =
+  firstTwo.length === 2 && isHan(firstTwo[0]) && isHan(firstTwo[1]);
+const englishWord =
+  normalizedTitle.match(/[A-Za-z]+(?:'[A-Za-z]+)?/i)?.[0] || "";
 const displayText = firstTwoAreHan
   ? firstTwo
-  : (englishWord ? englishWord.toUpperCase() : firstTwo.toUpperCase());
-
-const gradients = [
-  "from-zinc-600 to-zinc-800",
-  "from-zinc-500 to-zinc-700",
-  "from-zinc-700 to-zinc-900",
-  "from-neutral-600 to-neutral-800",
-  "from-stone-600 to-stone-800",
-  "from-gray-600 to-gray-800",
-  "from-slate-600 to-slate-800",
-  "from-zinc-600 to-neutral-800",
-  "from-stone-500 to-stone-700",
-  "from-gray-500 to-gray-700"
-];
-
-const getGradientIndex = (str: string) => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; 
-  }
-  return Math.abs(hash) % gradients.length;
-};
-
-const selectedGradient = gradients[getGradientIndex(title)];
+  : englishWord
+    ? englishWord.toUpperCase()
+    : firstTwo.toUpperCase();
 ---
 
-<div 
-  class={`relative flex items-center justify-center bg-gradient-to-br ${selectedGradient} overflow-hidden ${className}`}
+<div
+  class={`relative flex items-center justify-center bg-linear-to-br from-primary to-primary/75 overflow-hidden ${className}`}
 >
-  
   <div class="absolute inset-0 opacity-20">
-    
-    <div class="absolute top-4 right-4 w-16 h-16 bg-white rounded-full opacity-30"></div>
-    <div class="absolute bottom-6 left-6 w-12 h-12 bg-white rounded-full opacity-20"></div>
-    
-    <div class="absolute top-1/2 left-4 w-8 h-8 bg-white transform rotate-45 opacity-25"></div>
+    <div class="absolute top-4 right-4 w-16 h-16 bg-primary-foreground rounded-full opacity-30"></div>
+    <div class="absolute bottom-6 left-6 w-12 h-12 bg-primary-foreground rounded-full opacity-20"></div>
+
+    <div class="absolute top-1/2 left-4 w-8 h-8 bg-primary-foreground transform rotate-45 opacity-25"></div>
   </div>
-  
-  
+
   <div class="relative z-10 text-center">
-    <div class="text-white font-bold text-4xl md:text-5xl lg:text-6xl tracking-wider drop-shadow-lg">
+    <div class="text-primary-foreground font-bold text-4xl md:text-5xl lg:text-6xl tracking-wider drop-shadow-lg">
       {displayText}
     </div>
-    
-    <div class="mt-2 text-white/80 text-sm md:text-base font-medium tracking-wide">
-      {title.length > 10 ? title.slice(0, 20) + '...' : title}
+
+    <div class="mt-2 text-primary-foreground/80 text-sm md:text-base font-medium tracking-wide">
+      {title.length > 10 ? title.slice(0, 20) + "..." : title}
     </div>
   </div>
-  
-  
-  <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-50"></div>
-</div>
 
-<style>
-  
-  .drop-shadow-lg {
-    filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04)) drop-shadow(0 4px 3px rgb(0 0 0 / 0.1));
-  }
-</style>
+  <div class="absolute inset-0 bg-linear-to-tr from-transparent via-primary-foreground/10 to-transparent opacity-50"></div>
+</div>

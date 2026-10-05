@@ -11,7 +11,7 @@ const { slug, className = "" } = Astro.props as {
 <span
   id="busuanzi_container_page_pv"
   class={`inline-flex items-center gap-1 ${className}`}
-  style="display:none"
+  hidden
 >
   <FaRegEye className="text-base" />
   <span id="busuanzi_value_page_pv" class="tabular-nums">--</span>
@@ -43,7 +43,7 @@ const { slug, className = "" } = Astro.props as {
       
       const container = document.getElementById("busuanzi_container_page_pv");
       if (container) {
-        container.style.display = "none";
+        container.hidden = true;
       }
     };
 
@@ -57,7 +57,7 @@ const { slug, className = "" } = Astro.props as {
       const value = document.getElementById("busuanzi_value_page_pv");
 
       if (container && value && value.textContent !== "--") {
-        container.style.display = "inline-flex";
+        container.hidden = false;
       } else if (container && value) {
         
         setTimeout(showContainer, 500);

@@ -1,46 +1,298 @@
 ---
-import ThemeScript from "@components/base/ThemeScript.astro";
+const modes = [
+  { value: "system", label: "跟随系统" },
+  { value: "light", label: "浅色" },
+  { value: "dark", label: "深色" },
+];
+const palettes = [
+  { value: "sage", label: "灰绿" },
+  { value: "indigo", label: "靛蓝" },
+  { value: "violet", label: "紫藤" },
+  { value: "umber", label: "暖棕" },
+];
 ---
 
-<div class="inline-flex a mr-2">
-  <input
-    class="absolute opacity-0"
-    id="theme-switcher"
-    data-theme-switcher
-    type="checkbox"
-  />
-  <label
-    class="relative inline-block h-4 w-6 cursor-pointer"
-    for="theme-switcher"
+<div class="appearance-control">
+  <button
+    type="button"
+    class="appearance-trigger"
+    popovertarget="appearance-panel"
+    aria-label="外观设置"
+    title="外观设置"
   >
-    <span class="sr-only">theme switcher</span>
-    <a
-      class="absolute -top-1 left-0 flex h-6 w-6 items-center justify-center rounded-full"
-      title="切换主题"
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.7"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
     >
-      <svg
-        class="absolute z-10 opacity-100 dark:opacity-0"
-        viewBox="0 0 24 24"
-        height="21"
-        width="21"
+      <path d="M12 3a9 9 0 1 0 0 18h1.4a2.1 2.1 0 0 0 1.5-3.6 1.6 1.6 0 0 1 1.1-2.7h1a4 4 0 0 0 4-4C21 6.3 17 3 12 3Z" />
+      <circle cx="7.5" cy="10" r=".8" />
+      <circle cx="10.5" cy="6.8" r=".8" />
+      <circle cx="15" cy="7.5" r=".8" />
+      <circle cx="7.5" cy="14.5" r=".8" />
+    </svg>
+  </button>
+  <section
+    id="appearance-panel"
+    class="appearance-panel"
+    popover="auto"
+    aria-labelledby="appearance-title"
+  >
+    <div class="appearance-heading">
+      <h2 id="appearance-title">外观设置</h2>
+      <button
+        type="button"
+        class="appearance-close"
+        popovertarget="appearance-panel"
+        popovertargetaction="hide"
+        aria-label="关闭外观设置"
       >
-        <path
-          fill="#000"
-          d="M20.742 13.045a8.088 8.088 0 0 1-2.077.271c-2.135 0-4.14-.83-5.646-2.336a8.025 8.025 0 0 1-2.064-7.723A1 1 0 0 0 9.73 2.034a10.014 10.014 0 0 0-4.489 2.582c-3.898 3.898-3.898 10.243 0 14.143a9.937 9.937 0 0 0 7.072 2.93 9.93 9.93 0 0 0 7.07-2.929 10.007 10.007 0 0 0 2.583-4.491 1.001 1.001 0 0 0-1.224-1.224zm-2.772 4.301a7.947 7.947 0 0 1-5.656 2.343 7.953 7.953 0 0 1-5.658-2.344c-3.118-3.119-3.118-8.195 0-11.314a7.923 7.923 0 0 1 2.06-1.483 10.027 10.027 0 0 0 2.89 7.848 9.972 9.972 0 0 0 7.848 2.891 8.036 8.036 0 0 1-1.484 2.059z"
-        ></path>
-      </svg>
-      <svg
-        class="absolute z-10 opacity-0 dark:opacity-100"
-        viewBox="0 0 24 24"
-        height="21"
-        width="21"
-      >
-        <path
-          fill="#fff"
-          d="M6.993 12c0 2.761 2.246 5.007 5.007 5.007s5.007-2.246 5.007-5.007S14.761 6.993 12 6.993 6.993 9.239 6.993 12zM12 8.993c1.658 0 3.007 1.349 3.007 3.007S13.658 15.007 12 15.007 8.993 13.658 8.993 12 10.342 8.993 12 8.993zM10.998 19h2v3h-2zm0-17h2v3h-2zm-9 9h3v2h-3zm17 0h3v2h-3zM4.219 18.363l2.12-2.122 1.415 1.414-2.12 2.122zM16.24 6.344l2.122-2.122 1.414 1.414-2.122 2.122zM6.342 7.759 4.22 5.637l1.415-1.414 2.12 2.122zm13.434 10.605-1.414 1.414-2.122-2.122 1.414-1.414z"
-        ></path>
-      </svg>
-    </a>
-  </label>
+        ×
+      </button>
+    </div>
+    <fieldset>
+      <legend>显示模式</legend>
+      <div class="mode-options">
+        {modes.map((mode) => (
+          <label class="mode-option">
+            <input
+              type="radio"
+              name="appearance-mode"
+              value={mode.value}
+              data-appearance-mode
+              checked={mode.value === "system"}
+            />
+            <span>{mode.label}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>主题配色</legend>
+      <div class="palette-options">
+        {palettes.map((palette) => (
+          <label class="palette-option">
+            <input
+              type="radio"
+              name="appearance-palette"
+              value={palette.value}
+              data-appearance-palette
+              checked={palette.value === "sage"}
+            />
+            <span
+              class="palette-preview"
+              data-color={palette.value}
+              aria-hidden="true"
+            >
+              <span class="palette-check">✓</span>
+            </span>
+            <span>{palette.label}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+    <div class="appearance-footer">
+      <span>选择会自动保存</span>
+      <button type="button" data-appearance-reset>
+        恢复默认
+      </button>
+    </div>
+  </section>
 </div>
-<ThemeScript />
+
+<style>
+  .appearance-control {
+    flex-shrink: 0;
+  }
+  button {
+    cursor: pointer;
+  }
+  .appearance-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    color: hsl(var(--muted-foreground));
+    transition:
+      color 0.18s,
+      background 0.18s;
+  }
+  .appearance-trigger:hover {
+    color: hsl(var(--primary));
+    background: hsl(var(--muted));
+  }
+  .appearance-panel {
+    position: fixed;
+    inset: 80px max(20px, calc((100vw - 1200px) / 2)) auto auto;
+    width: min(320px, calc(100vw - 32px));
+    margin: 0;
+    padding: 20px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 14px;
+    background: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+    box-shadow: 0 16px 48px -12px hsl(var(--foreground) / 0.2);
+  }
+  .appearance-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .appearance-heading h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .appearance-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    font-size: 23px;
+    line-height: 1;
+    color: hsl(var(--muted-foreground));
+  }
+  .appearance-close:hover {
+    background: hsl(var(--muted));
+  }
+  fieldset {
+    min-width: 0;
+    padding: 0;
+    margin: 0 0 22px;
+    border: 0;
+  }
+  legend {
+    padding: 0;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+  }
+  .mode-options {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 8px;
+    background: hsl(var(--muted) / 0.65);
+  }
+  .mode-option,
+  .palette-option {
+    position: relative;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  .mode-option > span {
+    display: block;
+    padding: 9px 4px;
+    border-radius: 5px;
+    text-align: center;
+    color: hsl(var(--muted-foreground));
+  }
+  .mode-option input:checked + span {
+    background: hsl(var(--popover));
+    color: hsl(var(--primary));
+    box-shadow: 0 1px 4px hsl(var(--foreground) / 0.08);
+    font-weight: 600;
+  }
+  .palette-options {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .palette-option {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 8px;
+    color: hsl(var(--muted-foreground));
+  }
+  .palette-preview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 5px solid hsl(var(--popover));
+    box-shadow: 0 0 0 1px hsl(var(--border));
+    color: #fff;
+  }
+  .palette-preview[data-color="sage"] {
+    background: hsl(165.2 38.5% 33.1%);
+  }
+  .palette-preview[data-color="indigo"] {
+    background: hsl(225 43% 42%);
+  }
+  .palette-preview[data-color="violet"] {
+    background: hsl(275 32% 42%);
+  }
+  .palette-preview[data-color="umber"] {
+    background: hsl(25 40% 36%);
+  }
+  .palette-check {
+    visibility: hidden;
+    font-size: 16px;
+  }
+  .palette-option input:checked + .palette-preview {
+    box-shadow: 0 0 0 2px hsl(var(--primary));
+  }
+  .palette-option input:checked + .palette-preview .palette-check {
+    visibility: visible;
+  }
+  .palette-option:has(input:checked) {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
+  .palette-option:hover .palette-preview {
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.55);
+  }
+  button:focus-visible,
+  input:focus-visible + span {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+  .appearance-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid hsl(var(--border));
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+  }
+  .appearance-footer button {
+    padding-block: 5px;
+    color: hsl(var(--primary));
+    font-size: 12px;
+  }
+  .appearance-footer button:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  @media (max-width: 539px) {
+    .appearance-panel {
+      top: 72px;
+      right: 16px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .appearance-trigger {
+      transition: none;
+    }
+  }
+</style>

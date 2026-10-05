@@ -14,63 +14,53 @@ const heirarchy: HeadingHierarchy[] = createHeadingHierarchy(headings);
 const toc = heirarchy.filter((heading) => heading.depth <= tocDepth);
 ---
 
-{
-  toc.length > 0 && (
-    <nav class="toc-nav intersect:animate-fadeLeft" data-toc-nav>
-      <button
-        class="toc-header"
-        data-toc-toggle
-        aria-expanded={defaultExpanded ? "true" : "false"}
+{toc.length > 0 && (
+  <nav class="toc-nav" data-toc-nav>
+    <button
+      class="toc-header"
+      data-toc-toggle
+      aria-expanded={defaultExpanded ? "true" : "false"}
+    >
+      <span class="toc-title">文章目录</span>
+      <svg
+        class="toc-icon"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
       >
-        <span class="toc-title">内容导航</span>
-        <svg
-          class="toc-icon"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-      </button>
-      <div class={`toc-content ${defaultExpanded ? "toc-content--expanded" : ""}`} data-toc-content>
-        <ul class="toc-list">
-          {toc.map((heading) => (
-            <li class={heading.depth === 2 ? "toc-item" : "toc-item toc-item--nested"}>
-              <a href={`#${heading.slug}`} class="toc-link" data-toc-link>
-                {heading.text}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </nav>
-  )
-}
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+    <div
+      class={`toc-content ${defaultExpanded ? "toc-content--expanded" : ""}`}
+      data-toc-content
+    >
+      <ul class="toc-list">
+        {toc.map((heading) => (
+          <li
+            class={
+              heading.depth === 2 ? "toc-item" : "toc-item toc-item--nested"
+            }
+          >
+            <a href={`#${heading.slug}`} class="toc-link" data-toc-link>
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </nav>
+)}
 
 <style>
-  :global(h1, h2, h3, h4, h5, h6) {
-    scroll-margin-top: 5rem;
-  }
-
-  @media (min-width: 768px) {
-    :global(h1, h2, h3, h4, h5, h6) {
-      scroll-margin-top: 6rem;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    :global(h1, h2, h3, h4, h5, h6) {
-      scroll-margin-top: 8rem;
-    }
-  }
-
   .toc-nav {
     padding: 0.5rem 0;
+    border-top: 1px solid hsl(var(--border));
   }
 
   .toc-header {
@@ -82,7 +72,7 @@ const toc = heirarchy.filter((heading) => heading.depth <= tocDepth);
     background: none;
     border: none;
     cursor: pointer;
-    border-radius: 0.375rem;
+    border-radius: var(--radius-sm);
     transition: background 0.15s ease;
   }
 
@@ -153,7 +143,7 @@ const toc = heirarchy.filter((heading) => heading.depth <= tocDepth);
     line-height: 1.4;
     color: hsl(var(--muted-foreground));
     text-decoration: none;
-    border-radius: 0.25rem;
+    border-radius: var(--radius-xs);
     transition: all 0.15s ease;
     border-left: 2px solid transparent;
   }
@@ -171,32 +161,32 @@ const toc = heirarchy.filter((heading) => heading.depth <= tocDepth);
 
 <script>
   function getHeaderHeight(): number {
-    const header = document.querySelector('header');
+    const header = document.querySelector("header");
     return header ? header.offsetHeight + 32 : 140;
   }
 
   function setupToc() {
     // 收起/展开功能
-    const toggleButtons = document.querySelectorAll('[data-toc-toggle]');
-    toggleButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const expanded = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', String(!expanded));
+    const toggleButtons = document.querySelectorAll("[data-toc-toggle]");
+    toggleButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const expanded = btn.getAttribute("aria-expanded") === "true";
+        btn.setAttribute("aria-expanded", String(!expanded));
         const content = btn.nextElementSibling as HTMLElement;
-        content?.classList.toggle('toc-content--expanded', !expanded);
+        content?.classList.toggle("toc-content--expanded", !expanded);
       });
     });
 
     // 链接点击处理
-    const tocLinks = document.querySelectorAll('[data-toc-link]');
-    tocLinks.forEach(link => {
+    const tocLinks = document.querySelectorAll("[data-toc-link]");
+    tocLinks.forEach((link) => {
       const newLink = link.cloneNode(true);
       link.parentNode?.replaceChild(newLink, link);
 
-      newLink.addEventListener('click', (e: Event) => {
+      newLink.addEventListener("click", (e: Event) => {
         e.preventDefault();
         const target = e.currentTarget as HTMLAnchorElement;
-        const href = target.getAttribute('href');
+        const href = target.getAttribute("href");
         if (!href) return;
 
         const targetId = href.substring(1);
@@ -204,12 +194,14 @@ const toc = heirarchy.filter((heading) => heading.depth <= tocDepth);
 
         if (targetElement) {
           const rect = targetElement.getBoundingClientRect();
-          const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-          const targetScrollTop = currentScrollTop + rect.top - getHeaderHeight();
+          const currentScrollTop =
+            window.pageYOffset || document.documentElement.scrollTop;
+          const targetScrollTop =
+            currentScrollTop + rect.top - getHeaderHeight();
 
           window.scrollTo({
             top: Math.max(0, targetScrollTop),
-            behavior: 'smooth'
+            behavior: "smooth",
           });
 
           history.pushState(null, "", `#${targetId}`);
@@ -218,6 +210,6 @@ const toc = heirarchy.filter((heading) => heading.depth <= tocDepth);
     });
   }
 
-  document.addEventListener('DOMContentLoaded', setupToc);
-  document.addEventListener('astro:page-load', setupToc);
+  document.addEventListener("DOMContentLoaded", setupToc);
+  document.addEventListener("astro:page-load", setupToc);
 </script>

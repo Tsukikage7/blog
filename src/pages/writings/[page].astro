@@ -1,54 +1,28 @@
 ---
 import CollectionLayout from "@components/writings/CollectionLayout.astro";
-import { getEntries, getIndex } from "@lib/contentParser";
-import { sortByDate } from "@lib/sortFunctions";
-import { getPageSize } from "@lib/config";
-import type { WritingsEntry } from "@/types";
-
+import { getWritingsCatalog } from "@lib/writings";
 export async function getStaticPaths() {
-  const allEntries = (await getEntries("writings", sortByDate)) as WritingsEntry[];
-  const entries = allEntries.filter((entry) => !entry.data.draft);
-  const entriesPerPage = getPageSize("writings") || 10;
-  const pageCount = Math.ceil(entries.length / entriesPerPage);
-
-  const paths = [];
-  for (let i = 2; i <= pageCount; i++) {
-    paths.push({
-      params: { page: `page/${i}` },
-      props: { pageIndex: i },
-    });
-  }
-
-  return paths;
+  const { items, pageSize } = await getWritingsCatalog();
+  return Array.from(
+    { length: Math.max(0, Math.ceil(items.length / pageSize) - 1) },
+    (_, i) => ({
+      params: { page: String(i + 2) },
+      props: { pageIndex: i + 2 },
+    }),
+  );
 }
-
 interface Props {
   pageIndex: number;
 }
-
 const { pageIndex } = Astro.props;
-
-const entryIndex = (await getIndex("writings")) as WritingsEntry;
-const allEntries = (await getEntries("writings", sortByDate)) as WritingsEntry[];
-const entries = allEntries.filter((entry) => !entry.data.draft);
-const allCount = entries.length;
-
-// 获取所有标签
-const tags = [...new Set(entries.flatMap((entry) => entry.data.tags || []))].sort();
-
-const entriesPerPage = getPageSize("writings") || 10;
-const indexOfLastEntry = pageIndex * entriesPerPage;
-const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
-const currentEntries = entries.slice(indexOfFirstEntry, indexOfLastEntry);
-
-const pageCount = Math.ceil(entries.length / entriesPerPage);
+const { items, tags, index, countText, pageSize } = await getWritingsCatalog();
 ---
 
 <CollectionLayout
-  entryIndex={entryIndex}
-  entries={currentEntries}
+  entryIndex={index}
+  items={items.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)}
   tags={tags}
   pageIndex={pageIndex}
-  pageCount={pageCount}
-  allCount={allCount}
+  pageCount={Math.ceil(items.length / pageSize)}
+  countText={countText}
 />

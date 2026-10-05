@@ -1,15 +1,16 @@
 ---
-import type { SearchableEntry } from "@/types";
 import BaseLayout from "@components/base/BaseLayout.astro";
+import PageHeader from "@components/common/PageHeader.astro";
 import Search from "@components/search/Search";
-
-interface Props {
-  searchList: SearchableEntry[];
-}
-
-const { searchList } = Astro.props;
 ---
 
-<BaseLayout title="搜索" description="在本站搜索内容">
-  <Search client:load searchList={searchList} />
+<BaseLayout title="搜索" description="在本站搜索内容" noindex>
+  <div class="site-container">
+    <PageHeader
+      contained
+      title="搜索"
+      description="从一个关键词，找到曾经记录下来的答案。"
+    />
+    <Search client:load />
+  </div>
 </BaseLayout>

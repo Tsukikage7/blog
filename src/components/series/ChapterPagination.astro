@@ -1,0 +1,92 @@
+---
+import type { ReadingSeries } from "@lib/seriesModel";
+import {
+  chapterDisplayTitle,
+  chapterHref,
+  getChapterNavigation,
+  type Chapter,
+} from "@lib/seriesModel";
+interface Props {
+  series: ReadingSeries;
+  currentId: string;
+  currentCollection?: Chapter["collection"];
+}
+const { series, currentId, currentCollection = "blog" } = Astro.props;
+const { previous, next } = getChapterNavigation(series, {
+  id: currentId,
+  collection: currentCollection,
+});
+const literary = series.entry.data.kind === "literary";
+const unit = literary ? "章" : "篇";
+---
+
+<nav
+  class="chapter-pagination"
+  aria-label={literary ? "章节导航" : "系列前后篇"}
+>
+  <a
+    href={previous ? chapterHref(previous) : series.href}
+    rel={previous ? "prev" : undefined}
+  >
+    <span>
+      {previous ? `← 上一${unit}` : literary ? "← 作品目录" : "← 合集目录"}
+    </span>
+    <strong>
+      {previous ? chapterDisplayTitle(previous) : series.entry.data.title}
+    </strong>
+  </a>
+  <a
+    href={next ? chapterHref(next) : series.href}
+    rel={next ? "next" : undefined}
+  >
+    <span>
+      {next
+        ? `下一${unit} →`
+        : literary
+          ? "当前最后一章 · 返回目录 →"
+          : "已到最后一篇 · 回顾合集 →"}
+    </span>
+    <strong>
+      {next ? chapterDisplayTitle(next) : series.entry.data.title}
+    </strong>
+  </a>
+</nav>
+<style>
+  .chapter-pagination {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    border-block: 1px solid hsl(var(--border));
+    padding-block: 24px;
+    margin-block: 32px;
+  }
+  a {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px;
+  }
+  a:last-child {
+    text-align: right;
+  }
+  span {
+    color: hsl(var(--primary));
+    font-size: 12px;
+  }
+  strong {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  a:hover strong {
+    color: hsl(var(--primary));
+  }
+  @media (max-width: 480px) {
+    .chapter-pagination {
+      gap: 16px;
+    }
+    strong {
+      font-size: 13px;
+    }
+  }
+</style>

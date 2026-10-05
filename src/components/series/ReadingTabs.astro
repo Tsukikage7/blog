@@ -1,0 +1,39 @@
+---
+interface Props {
+  active: "blog" | "series" | "notes";
+}
+const { active } = Astro.props;
+---
+
+<nav class="reading-tabs" aria-label="阅读方式">
+  <a href="/blog/" aria-current={active === "blog" ? "page" : undefined}>
+    技术文章
+  </a>
+  <a href="/series/" aria-current={active === "series" ? "page" : undefined}>
+    系列合集
+  </a>
+  <a href="/notes/" aria-current={active === "notes" ? "page" : undefined}>
+    技术笔记
+  </a>
+</nav>
+<style>
+  .reading-tabs {
+    display: flex;
+    gap: 28px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  a {
+    padding: 12px 0;
+    font-size: 14px;
+    color: hsl(var(--muted-foreground));
+    border-bottom: 2px solid transparent;
+  }
+  a:hover,
+  a[aria-current] {
+    color: hsl(var(--primary));
+  }
+  a[aria-current] {
+    border-color: hsl(var(--primary));
+  }
+</style>

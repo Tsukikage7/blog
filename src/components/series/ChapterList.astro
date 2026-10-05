@@ -1,0 +1,120 @@
+---
+import type { ReadingSeries } from "@lib/seriesModel";
+import {
+  chapterDisplayTitle,
+  chapterHref,
+  type Chapter,
+} from "@lib/seriesModel";
+interface Props {
+  series: ReadingSeries;
+  currentId?: string;
+  currentCollection?: Chapter["collection"];
+  compact?: boolean;
+}
+const { series, currentId, currentCollection, compact = false } = Astro.props;
+---
+
+<ol class:list={["chapters", { compact }]}>
+  {series.chapters.map((chapter) => (
+    <li>
+      <a
+        href={chapterHref(chapter)}
+        aria-current={
+          chapter.id === currentId && chapter.collection === currentCollection
+            ? "page"
+            : undefined
+        }
+      >
+        <span class="number">
+          {String(chapter.data.seriesOrder).padStart(2, "0")}
+        </span>
+        <div>
+          <span class="chapter-title">{chapterDisplayTitle(chapter)}</span>
+          {!compact &&
+            series.entry.data.kind !== "literary" &&
+            chapter.data.description &&
+            chapter.data.description.trim() !== chapter.data.title.trim() && (
+              <p>{chapter.data.description}</p>
+            )}
+        </div>
+        {!compact && (
+          <span class="arrow" aria-hidden="true">
+            ↗
+          </span>
+        )}
+      </a>
+    </li>
+  ))}
+</ol>
+<style>
+  .chapters {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  a {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) 16px;
+    gap: 20px;
+    padding: 24px 0;
+    border-bottom: 1px solid hsl(var(--border) / 0.6);
+    transition: color 0.2s;
+  }
+  .number {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: hsl(var(--primary));
+    padding-top: 3px;
+  }
+  .chapter-title {
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.6;
+  }
+  p {
+    color: hsl(var(--muted-foreground));
+    font-size: 13px;
+    line-height: 1.9;
+    margin-top: 8px;
+  }
+  .arrow {
+    color: hsl(var(--muted-foreground));
+  }
+  a:hover,
+  a[aria-current] {
+    color: hsl(var(--primary));
+  }
+  a:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 4px;
+  }
+  .compact a {
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 10px;
+    padding: 9px 6px;
+    border: 0;
+    border-radius: 4px;
+  }
+  .compact .chapter-title,
+  .compact .number {
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .compact .number {
+    padding-top: 0;
+  }
+  .compact a[aria-current] {
+    background: hsl(var(--primary) / 0.08);
+    font-weight: 600;
+  }
+  @media (max-width: 767px) {
+    a {
+      gap: 12px;
+      grid-template-columns: 26px minmax(0, 1fr) 16px;
+      padding: 20px 0;
+    }
+    .chapter-title {
+      font-size: 16px;
+    }
+  }
+</style>

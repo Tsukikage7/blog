@@ -1,14 +1,10 @@
 ---
 import { getCollection, type CollectionEntry, render } from "astro:content";
 import EntryLayout from "@components/writings/EntryLayout.astro";
+import { isPublishedEntry } from "@lib/contentParser";
 
 export async function getStaticPaths() {
-  const writingsEntries = await getCollection("writings", ({ data, id }) => {
-    // 排除草稿和索引文件
-    if (data.draft) return false;
-    if (id === "-index" || id.startsWith("-")) return false;
-    return true;
-  });
+  const writingsEntries = await getCollection("writings", isPublishedEntry);
 
   const paths = writingsEntries.map((entry) => ({
     params: { entry: entry.id },

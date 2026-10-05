@@ -2,15 +2,37 @@
 import { plainify } from "@lib/textConverter";
 import Footer from "@components/base/Footer.astro";
 import Header from "@components/base/Header.astro";
+import ThemeScript from "@components/base/ThemeScript.astro";
 import MusicPlayer from "@components/common/MusicPlayer.astro";
-import "@/styles/main.scss";
+import "@/styles/main.css";
+import "katex/dist/katex.min.css";
 import { ClientRouter } from "astro:transitions";
 import Background from "@/components/base/Background.astro";
 import { Tooltips } from "astro-tooltips";
-import { SITE_INFO, MUSIC_PLAYER_CONFIG } from "@lib/config";
+import { SITE_INFO, MUSIC_PLAYER_CONFIG, AVATAR_IMAGE } from "@lib/config";
 import { isDevelopment } from "@lib/env";
-import MermaidClient from "@components/common/MermaidClient";
 import { SEO } from "astro-seo";
+import { getImage } from "astro:assets";
+import {
+  absoluteUrl,
+  canonicalUrl,
+  serializeJsonLd,
+  SITE_URL,
+} from "@lib/site";
+import { breadcrumbs } from "@lib/breadcrumbs";
+import { getEntries } from "@lib/contentParser";
+
+const [favicon16, favicon32, appleTouchIcon] = await Promise.all(
+  [16, 32, 180].map((size) =>
+    getImage({
+      src: AVATAR_IMAGE,
+      width: size,
+      height: size,
+      format: "webp",
+      layout: "none",
+    }),
+  ),
+);
 
 export interface Props {
   title?: string;
@@ -44,81 +66,158 @@ const {
 } = Astro.props;
 
 // Check if current page is music page (to hide floating player)
-const isMusicPage = Astro.url.pathname === '/music' || Astro.url.pathname === '/music/';
-
-let basicSettings: any = {};
-let seoSettings: any = {};
-let customSettings: any = {};
+const isMusicPage =
+  Astro.url.pathname === "/music" || Astro.url.pathname === "/music/";
 
 const siteTitle = SITE_INFO.SITE_NAME;
 const siteSubTitle = SITE_INFO.SUBNAME;
-const siteImage = SITE_INFO.LOGO_IMAGE || "/favicon.ico";
-const baseUrl = SITE_INFO.URL || "/";
-const siteKeywords = basicSettings?.site_keywords || "";
-const siteTagline = basicSettings?.site_tagline || "";
-
-const metaTitle = seoSettings?.seo_meta_title || "";
-const metaDescription = description || SITE_INFO.DESCRIPTION;
-const metaKeywords = keywords || SITE_INFO.KEY_WORDS;
-const googleAnalyticsId = SITE_INFO.GOOGLE_ANALYTICS_ID || "";
-const baiduAnalyticsId = SITE_INFO.BAIDU_ANALYTICS_ID || "";
-
-const customHeaderCode = customSettings?.custom_header_code || "";
-const customFooterCode = customSettings?.custom_footer_code || "";
-
-// SEO 相关变量
-const pageTitle = title ? `${plainify(title)} | ${siteTitle}` : `${siteTitle} | ${siteSubTitle}`;
-const pageDescription = plainify(description || metaDescription);
-const pageImage = image ? `${baseUrl}${image}` : `${baseUrl}${siteImage}`;
-const pageUrl = `${baseUrl}${Astro.url.pathname}`;
-
-// 格式化日期
-const formatDate = (date: Date | string | undefined) => {
-  if (!date) return undefined;
-  return date instanceof Date ? date.toISOString() : new Date(date).toISOString();
+const siteImage = SITE_INFO.LOGO_IMAGE;
+const metaKeywords = keywords || tags?.join(", ") || SITE_INFO.KEY_WORDS;
+const googleAnalyticsId = SITE_INFO.GOOGLE_ANALYTICS_ID;
+const baiduAnalyticsId = SITE_INFO.BAIDU_ANALYTICS_ID;
+const cleanTitle = plainify(title || siteTitle);
+const pageTitle = title
+  ? `${cleanTitle} | ${siteTitle}`
+  : `${siteTitle} | ${siteSubTitle}`;
+const pageDescription = plainify(description || SITE_INFO.DESCRIPTION)
+  .replace(/\s+/g, " ")
+  .trim()
+  .slice(0, 200);
+const pageImage = absoluteUrl(image || siteImage);
+const imageExtension = new URL(pageImage).pathname
+  .split(".")
+  .pop()
+  ?.toLowerCase();
+const imageType = (
+  {
+    webp: "image/webp",
+    png: "image/png",
+    avif: "image/avif",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    gif: "image/gif",
+  } as Record<string, string>
+)[imageExtension || ""];
+const pageUrl = canonicalUrl(
+  canonical ? new URL(canonical, SITE_URL).pathname : Astro.url.pathname,
+);
+const formatDate = (value: Date | string | undefined) => {
+  if (!value) return undefined;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : undefined;
+};
+const collection = Astro.url.pathname.split("/")[1];
+const emptyCollection =
+  (collection === "notes" || collection === "writings") &&
+  (await getEntries(collection)).length === 0;
+const pageNoindex =
+  noindex ||
+  emptyCollection ||
+  Astro.url.pathname === "/404/" ||
+  Astro.url.pathname === "/404";
+const person = {
+  "@type": "Person",
+  "@id": absoluteUrl("/about/#author"),
+  name: author || SITE_INFO.AUTHOR,
+  url: canonicalUrl("/about"),
+};
+const trail = breadcrumbs(new URL(pageUrl).pathname, cleanTitle);
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: `${SITE_URL}/`,
+      name: siteTitle,
+      description: SITE_INFO.DESCRIPTION,
+      inLanguage: "zh-CN",
+      publisher: { "@id": person["@id"] },
+    },
+    person,
+    {
+      "@type": articleType ? "BlogPosting" : "WebPage",
+      "@id": `${pageUrl}#${articleType ? "article" : "webpage"}`,
+      url: pageUrl,
+      name: cleanTitle,
+      ...(articleType
+        ? {
+            headline: cleanTitle,
+            image: [pageImage],
+            datePublished: formatDate(publishedTime),
+            dateModified: formatDate(modifiedTime || publishedTime),
+            author: { "@id": person["@id"] },
+            publisher: { "@id": person["@id"] },
+            mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl },
+            articleSection: section,
+            keywords: tags,
+          }
+        : {}),
+      description: pageDescription,
+      inLanguage: "zh-CN",
+      isPartOf: { "@id": `${SITE_URL}/#website` },
+      ...(trail.length > 1
+        ? { breadcrumb: { "@id": `${pageUrl}#breadcrumb` } }
+        : {}),
+    },
+    ...(trail.length > 1
+      ? [
+          {
+            "@type": "BreadcrumbList",
+            "@id": `${pageUrl}#breadcrumb`,
+            itemListElement: trail.map((item, index) => ({
+              "@type": "ListItem",
+              position: index + 1,
+              name: item.label,
+              item: absoluteUrl(item.href),
+            })),
+          },
+        ]
+      : []),
+  ],
 };
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
-    
     <link
-      rel="logo-192x192"
+      rel="apple-touch-icon"
+      type="image/webp"
       sizes="180x180"
-      href="/favicon/logo-192x192.png"
+      href={appleTouchIcon.src}
     />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="/favicon/favicon-32x32.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="/favicon/favicon-16x16.png"
-    />
+    <link rel="icon" type="image/webp" sizes="32x32" href={favicon32.src} />
+    <link rel="icon" type="image/webp" sizes="16x16" href={favicon16.src} />
 
     <link rel="sitemap" href="/sitemap-index.xml" />
-    
-    <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/rss.xml" />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="技术 RSS"
+      href="/rss.xml"
+    />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="文字 RSS"
+      href="/writings/rss.xml"
+    />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="全站 RSS"
+      href="/feed.xml"
+    />
 
     <meta name="theme-name" content="pages" />
-    <meta name="msapplication-TileColor" content="#000000" />
-    <meta
-      name="theme-color"
-      media="(prefers-color-scheme: light)"
-      content="#fff"
-    />
-    <meta
-      name="theme-color"
-      media="(prefers-color-scheme: dark)"
-      content="#000"
-    />
+    <meta name="msapplication-TileColor" content="" />
+    <meta name="theme-color" content="" />
+    <ThemeScript />
     <meta name="generator" content={Astro.generator} />
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta charset="utf-8" />
 
     <meta
       name="viewport"
@@ -129,8 +228,8 @@ const formatDate = (date: Date | string | undefined) => {
     <SEO
       title={pageTitle}
       description={pageDescription}
-      canonical={canonical || pageUrl}
-      noindex={noindex}
+      canonical={pageUrl}
+      noindex={pageNoindex}
       openGraph={{
         basic: {
           title: title ? plainify(title) : siteTitle,
@@ -146,15 +245,17 @@ const formatDate = (date: Date | string | undefined) => {
         image: {
           url: pageImage,
           alt: title ? plainify(title) : siteTitle,
-          type: "image/png",
+          type: imageType,
         },
-        article: articleType ? {
-          publishedTime: formatDate(publishedTime),
-          modifiedTime: formatDate(modifiedTime),
-          authors: author ? [author] : [SITE_INFO.AUTHOR || siteTitle],
-          section: section,
-          tags: tags,
-        } : undefined,
+        article: articleType
+          ? {
+              publishedTime: formatDate(publishedTime),
+              modifiedTime: formatDate(modifiedTime),
+              authors: [person.url],
+              section: section,
+              tags: tags,
+            }
+          : undefined,
       }}
       twitter={{
         card: "summary_large_image",
@@ -171,90 +272,42 @@ const formatDate = (date: Date | string | undefined) => {
       }}
     />
 
-    
-    
-    
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <link rel="preconnect" href="https://assets.tsukikage7.com" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link
-      rel="preconnect"
-      href="https://www.googletagmanager.com"
-      crossorigin
-    />
-    <link rel="preconnect" href="https://hm.baidu.com" crossorigin />
-
-    
-    <link rel="dns-prefetch" href="
-    <link rel="dns-prefetch" href="
-
-    
-    <link
-      rel="preload"
-      as="style"
-      href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css"
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-      onload="this.rel='stylesheet'"
-    />
-    <noscript>
+    {googleAnalyticsId && (
       <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css"
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer"
+        rel="preconnect"
+        href="https://www.googletagmanager.com"
+        crossorigin
       />
-    </noscript>
-    
-    <link
-      rel="preload"
-      as="script"
-      href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"
-      crossorigin="anonymous"
-    />
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-      defer></script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-      defer></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/twikoo@1.6.44/dist/twikoo.min.js"
-      integrity="sha384-dZ/hSVfTPHuzXyECOYCetAvMd0cgqWxN5Fh+mwo86PV4GdU9xgQ/MNzh/YM/lotR"
-      crossorigin="anonymous"
-      defer></script>
-    
+    )}
+    {baiduAnalyticsId && (
+      <link rel="preconnect" href="https://hm.baidu.com" crossorigin />
+    )}
+
     <ClientRouter fallback="swap" />
     <Tooltips interactive={false} delay={[100, 50]} />
 
-    
-    {
-      !isDevelopment() && googleAnalyticsId && (
-        <>
-          <script
-            async
-            src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
-          />
-          <script
-            set:html={`
+    {!isDevelopment() && googleAnalyticsId && (
+      <>
+        <script
+          async
+          src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+        />
+        <script
+          set:html={`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
           gtag('config', '${googleAnalyticsId}');
         `}
-          />
-        </>
-      )
-    }
+        />
+      </>
+    )}
 
-    
-    {
-      !isDevelopment() && baiduAnalyticsId && (
-        <script
-          set:html={`
+    {!isDevelopment() && baiduAnalyticsId && (
+      <script
+        set:html={`
         var _hmt = _hmt || [];
         (function() {
           var hm = document.createElement("script");
@@ -263,16 +316,34 @@ const formatDate = (date: Date | string | undefined) => {
           s.parentNode.insertBefore(hm, s);
         })();
       `}
-        />
-      )
-    }
+      />
+    )}
     <meta name="baidu-site-verification" content="codeva-RmOcCYpW8H" />
-    
-    {customHeaderCode && <Fragment set:html={customHeaderCode} />}
 
-    
+    {!pageNoindex && (
+      <script
+        type="application/ld+json"
+        set:html={serializeJsonLd(structuredData)}
+      />
+    )}
+
     <style>
-      
+      .skip-link {
+        position: fixed;
+        top: 0.75rem;
+        left: 0.75rem;
+        z-index: 50;
+        padding: 0.65rem 1rem;
+        border-radius: var(--radius-md);
+        background: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+        transform: translateY(-160%);
+      }
+
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
       .page-loading {
         position: fixed;
         top: 0;
@@ -298,7 +369,6 @@ const formatDate = (date: Date | string | undefined) => {
         visibility: visible;
       }
 
-      
       .loading-container {
         display: flex;
         flex-direction: column;
@@ -307,7 +377,6 @@ const formatDate = (date: Date | string | undefined) => {
         padding: 1.5rem;
       }
 
-      
       .loading-spinner {
         width: 2rem;
         height: 2rem;
@@ -315,7 +384,6 @@ const formatDate = (date: Date | string | undefined) => {
         animation: spin 1s linear infinite;
       }
 
-      
       .loading-text {
         font-size: 0.875rem;
         font-weight: 500;
@@ -329,14 +397,20 @@ const formatDate = (date: Date | string | undefined) => {
         }
       }
 
-      
       html {
         view-transition-name: root;
       }
 
       ::view-transition-old(root),
       ::view-transition-new(root) {
-        animation-duration: 0.3s;
+        animation-duration: 0.15s;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+          animation: none;
+        }
       }
 
       ::view-transition-old(root) {
@@ -365,11 +439,11 @@ const formatDate = (date: Date | string | undefined) => {
         }
       }
     </style>
-
-    
   </head>
   <body>
-    
+    <a class="skip-link" href="#main-content">
+      跳转到正文
+    </a>
     <svg style="position: absolute; width: 0; height: 0; pointer-events: none;">
       <defs>
         <filter
@@ -385,19 +459,34 @@ const formatDate = (date: Date | string | undefined) => {
             baseFrequency="0.001 0.004"
             numOctaves="1"
             seed="17"
-            result="turbulence"></feTurbulence>
-          
+            result="turbulence"
+          ></feTurbulence>
 
           <feComponentTransfer in="turbulence" result="mapped">
-            <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5"
+            <feFuncR
+              type="gamma"
+              amplitude="1"
+              exponent="10"
+              offset="0.5"
             ></feFuncR>
-            <feFuncG type="gamma" amplitude="0" exponent="1" offset="0"
+            <feFuncG
+              type="gamma"
+              amplitude="0"
+              exponent="1"
+              offset="0"
             ></feFuncG>
-            <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5"
+            <feFuncB
+              type="gamma"
+              amplitude="0"
+              exponent="1"
+              offset="0.5"
             ></feFuncB>
           </feComponentTransfer>
 
-          <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap"
+          <feGaussianBlur
+            in="turbulence"
+            stdDeviation="3"
+            result="softMap"
           ></feGaussianBlur>
 
           <feSpecularLighting
@@ -418,22 +507,22 @@ const formatDate = (date: Date | string | undefined) => {
             k2="1"
             k3="1"
             k4="0"
-            result="litImage"></feComposite>
+            result="litImage"
+          ></feComposite>
 
           <feDisplacementMap
             in="SourceGraphic"
             in2="softMap"
             scale="100"
             xChannelSelector="R"
-            yChannelSelector="G"></feDisplacementMap>
+            yChannelSelector="G"
+          ></feDisplacementMap>
         </filter>
       </defs>
     </svg>
 
-    
     <div class="page-loading">
       <div class="loading-container">
-        
         <svg
           class="loading-spinner"
           xmlns="http://www.w3.org/2000/svg"
@@ -448,63 +537,25 @@ const formatDate = (date: Date | string | undefined) => {
         >
           <path d="M21 12a9 9 0 1 1-6.219-8.56" />
         </svg>
-        <div class="loading-text" id="loading-text">加载中...</div>
+        <div class="loading-text" id="loading-text">
+          加载中...
+        </div>
       </div>
     </div>
 
     <Background />
     <Header />
-    <main id="main-content" class="flex-1 pb-16 md:pb-36">
+    <main id="main-content" tabindex="-1" class="flex-1 pb-16 md:pb-20">
       <slot />
     </main>
     <Footer />
     {MUSIC_PLAYER_CONFIG.ENABLED && !isMusicPage && <MusicPlayer />}
-    <MermaidClient client:load />
-    
-    
     <script>
-      
-      function renderMathSafely() {
-        if (
-          typeof (window as any).renderMathInElement !== "undefined" &&
-          document.body
-        ) {
-          try {
-            (window as any).renderMathInElement(document.body, {
-              delimiters: [
-                { left: "$$", right: "$$", display: true },
-                { left: "$", right: "$", display: false },
-                { left: "\\(", right: "\\)", display: false },
-                { left: "\\[", right: "\\]", display: true },
-              ],
-              throwOnError: false,
-            });
-          } catch (error) {
-            console.warn("KaTeX rendering failed:", error);
-          }
-        }
-      }
-
-      
-      document.addEventListener("DOMContentLoaded", renderMathSafely);
-
-      
-      document.addEventListener("astro:page-load", renderMathSafely);
-
-      
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", renderMathSafely);
-      } else {
-        renderMathSafely();
-      }
+      import "../../scripts/mermaid";
     </script>
-
-    
     <script>
-      
       let loadingTimeout: NodeJS.Timeout | null = null;
 
-      
       const loadingTexts = [
         "加载中...",
         "正在准备...",
@@ -524,7 +575,6 @@ const formatDate = (date: Date | string | undefined) => {
       }
 
       function showPageLoading(delay = 0) {
-        
         if (loadingTimeout) {
           clearTimeout(loadingTimeout);
           loadingTimeout = null;
@@ -532,18 +582,15 @@ const formatDate = (date: Date | string | undefined) => {
 
         const loadingElement = document.querySelector(".page-loading");
         if (loadingElement) {
-          
           updateLoadingText();
 
           if (delay > 0) {
-            
             requestAnimationFrame(() => {
               setTimeout(() => {
                 loadingElement.classList.add("active");
               }, delay);
             });
           } else {
-            
             requestAnimationFrame(() => {
               loadingElement.classList.add("active");
             });
@@ -554,7 +601,6 @@ const formatDate = (date: Date | string | undefined) => {
       function hidePageLoading(delay = 100) {
         const loadingElement = document.querySelector(".page-loading");
         if (loadingElement) {
-          
           loadingTimeout = setTimeout(() => {
             requestAnimationFrame(() => {
               loadingElement.classList.remove("active");
@@ -564,7 +610,6 @@ const formatDate = (date: Date | string | undefined) => {
         }
       }
 
-      
       function isQuickNavigation() {
         return (
           document.readyState === "complete" ||
@@ -572,19 +617,15 @@ const formatDate = (date: Date | string | undefined) => {
         );
       }
 
-      
       document.addEventListener("astro:before-preparation", () => {
-        
         const delay = isQuickNavigation() ? 150 : 0;
         showPageLoading(delay);
       });
 
-      
       document.addEventListener("astro:page-load", () => {
         hidePageLoading();
       });
 
-      
       document.addEventListener("click", (e) => {
         const target = e.target as HTMLElement;
         const link = target.closest("a");
@@ -593,9 +634,7 @@ const formatDate = (date: Date | string | undefined) => {
           const url = new URL(link.href);
           const currentUrl = new URL(window.location.href);
 
-          
           if (url.origin === currentUrl.origin && !url.hash) {
-            
             const isDownload =
               link.hasAttribute("download") ||
               link.href.match(/\.(pdf|doc|docx|zip|rar|exe|dmg)$/i);
@@ -604,7 +643,6 @@ const formatDate = (date: Date | string | undefined) => {
             const isTel = link.href.startsWith("tel:");
             const isAnchor = link.getAttribute("href")?.startsWith("#");
 
-            
             if (
               !isDownload &&
               !isExternal &&
@@ -612,7 +650,6 @@ const formatDate = (date: Date | string | undefined) => {
               !isTel &&
               !isAnchor
             ) {
-              
               if (url.pathname !== currentUrl.pathname) {
                 showPageLoading();
               }
@@ -621,12 +658,8 @@ const formatDate = (date: Date | string | undefined) => {
         }
       });
 
-      
-      window.addEventListener("popstate", () => {
-        showPageLoading();
-      });
+      // 页面导航由 astro:before-preparation 处理，页内历史跳转不显示遮罩。
 
-      
       document.addEventListener("submit", (e) => {
         const form = e.target as HTMLFormElement;
         if (form && form.method.toLowerCase() === "get") {
@@ -634,20 +667,13 @@ const formatDate = (date: Date | string | undefined) => {
         }
       });
 
-      
       document.addEventListener("DOMContentLoaded", () => {
         hidePageLoading();
       });
 
-      
       if (document.readyState === "complete") {
         hidePageLoading();
       }
-
-      
     </script>
-
-    
-    {customFooterCode && <Fragment set:html={customFooterCode} />}
   </body>
 </html>

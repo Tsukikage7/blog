@@ -1,15 +1,13 @@
 ---
 import BaseLayout from "@components/base/BaseLayout.astro";
-import Pagination from "@components/common/Pagination.astro";
 import PageHeader from "@components/common/PageHeader.astro";
-import type { NotesEntry } from "@/types";
+import Pagination from "@components/common/Pagination.astro";
+import ReadingTabs from "@components/series/ReadingTabs.astro";
 import { formatDate } from "@lib/formatDate";
-import { plainify, slugify } from "@lib/textConverter";
-import { SITE_INFO } from "@lib/config";
-import { Image } from "astro:assets";
-
+import { slugify, plainify } from "@lib/textConverter";
+import type { NotesEntry } from "@/types";
 interface Props {
-  entryIndex: NotesEntry;
+  entryIndex?: NotesEntry;
   entries: NotesEntry[];
   tags: string[];
   pageIndex: number;
@@ -17,7 +15,6 @@ interface Props {
   allNotesCount?: number;
   basePath?: string;
 }
-
 const {
   entryIndex,
   entries,
@@ -27,152 +24,114 @@ const {
   allNotesCount,
   basePath,
 } = Astro.props;
-
-const { title, description } = entryIndex
-  ? entryIndex.data
-  : {
-      title: "站点动态",
-      description: "最新的站点动态和更新",
-    };
+const title = entryIndex?.data.title || "技术笔记";
+const description =
+  entryIndex?.data.description || "学习记录、代码片段与环境备忘。";
 ---
 
-<BaseLayout title={title} description={description}>
-  <div class="container px-6 lg:px-8">
+<BaseLayout
+  title={pageIndex > 1 ? `${title} · 第 ${pageIndex} 页` : title}
+  description={description}
+>
+  <div class="site-container">
     <PageHeader
+      contained
       title={title}
       description={description}
       articleCount={allNotesCount}
     />
-
-    <section>
-      <div class="flex flex-col lg:flex-row gap-8">
-
-        <!-- 主内容区 -->
-        <main class="flex-1">
-          {entries.length === 0 ? (
-            <div class="rounded-lg border border-border/30 bg-card/30 p-8 text-center">
-              <p class="text-muted-foreground">暂无动态内容</p>
-            </div>
-          ) : (
-            <div class="space-y-6">
-              {entries.map((entry) => {
-                const slug = slugify(entry.data.title);
-                const entryDate = entry.data.date ? formatDate(entry.data.date) : null;
-                const contentPreview = entry.body
-                  ? plainify(entry.body).slice(0, 150) + (plainify(entry.body).length > 150 ? "..." : "")
-                  : "";
-
-                return (
-                  <a
-                    href={`/notes/${slug}`}
-                    class="group block rounded-lg border border-border/30 bg-card/30 hover:border-border/60 hover:bg-card/50 transition-all p-5"
-                  >
-                    <!-- 头部：头像 + 作者 + 日期 -->
-                    <div class="flex items-center gap-3 mb-4">
-                      <img
-                        src={SITE_INFO.AUTHOR_AVATAR}
-                        alt="作者头像"
-                        class="w-10 h-10 rounded-full object-cover"
-                      />
-                      <div>
-                        <div class="font-medium text-foreground">Tsukikage</div>
-                        <div class="flex items-center gap-3 text-xs text-muted-foreground/60">
-                          {entryDate && <span>{entryDate}</span>}
-                          {entry.data.location && <span>{entry.data.location}</span>}
-                          {entry.data.mood && <span>{entry.data.mood}</span>}
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- 标题 -->
-                    <h3 class="text-lg font-medium text-foreground group-hover:text-foreground/70 transition-colors mb-2">
-                      {entry.data.title}
-                    </h3>
-
-                    <!-- 内容预览 -->
-                    <p class="text-sm text-muted-foreground leading-relaxed mb-4">
-                      {entry.data.description || contentPreview}
-                    </p>
-
-                    <!-- 图片 -->
-                    {entry.data.images && entry.data.images.length > 0 && (
-                      <div class="flex flex-wrap gap-2 mb-4">
-                        {entry.data.images.slice(0, 4).map((image: any) => (
-                          <div class="w-20 h-20 rounded-lg overflow-hidden bg-muted/30">
-                            <Image
-                              src={image.src}
-                              alt={image.alt || ""}
-                              width={80}
-                              height={80}
-                              class="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          </div>
-                        ))}
-                        {entry.data.images.length > 4 && (
-                          <div class="w-20 h-20 rounded-lg bg-muted/50 flex items-center justify-center text-sm text-muted-foreground">
-                            +{entry.data.images.length - 4}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    <!-- 标签 -->
-                    {entry.data.tags && entry.data.tags.length > 0 && (
-                      <div class="flex flex-wrap gap-3">
-                        {entry.data.tags.slice(0, 5).map((tag: string) => (
-                          <span class="text-xs text-muted-foreground/50">
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </a>
-                );
-              })}
-            </div>
-          )}
-
-          {pageCount > 1 && (
-            <Pagination
-              collection="notes"
-              pageIndex={pageIndex}
-              pageCount={pageCount}
-              basePath={basePath}
-            />
-          )}
-        </main>
-
-        <!-- 侧边栏 -->
-        <aside class="lg:w-72 lg:sticky lg:top-[4.5rem] lg:self-start space-y-4">
-          <!-- 标签 -->
-          {tags.length > 0 && (
-            <div class="rounded-lg border border-border/30 bg-card/30 p-5">
-              <h3 class="text-lg font-medium text-foreground mb-4">标签</h3>
-              <div class="space-y-0">
-                {tags.map((tag) => (
-                  <a
-                    href={`/notes/tags/${tag}`}
-                    class="flex items-center gap-2 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors group"
-                  >
-                    <span class="w-1 h-1 rounded-full bg-border group-hover:bg-foreground/50 transition-colors"></span>
-                    {tag}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <!-- 关于 -->
-          <div class="rounded-lg border border-border/30 bg-card/30 p-5">
-            <h3 class="text-lg font-medium text-foreground mb-3">关于这里</h3>
-            <p class="text-sm text-muted-foreground leading-relaxed">
-              记录日常的碎片与灵感，分享生活中的点滴感悟。
+    <ReadingTabs active="notes" />
+    <div class="notes-layout">
+      <section aria-label="笔记列表">
+        {entries.map((entry) => (
+          <article class="note-row">
+            {entry.data.created && (
+              <time datetime={entry.data.created.toISOString()}>
+                {formatDate(entry.data.created)}
+              </time>
+            )}
+            <h2>
+              <a href={`/notes/${entry.id}/`}>{entry.data.title}</a>
+            </h2>
+            <p>
+              {entry.data.description ||
+                plainify(entry.body || "").slice(0, 120)}
             </p>
+          </article>
+        ))}
+        {entries.length === 0 && (
+          <p class="py-12 text-muted-foreground">这里暂时还没有笔记。</p>
+        )}
+        <Pagination
+          collection="notes"
+          pageIndex={pageIndex}
+          pageCount={pageCount}
+          basePath={basePath}
+        />
+      </section>
+      {tags.length > 0 && (
+        <aside aria-label="笔记标签">
+          <p class="aside-label">按技术查找</p>
+          <div class="note-tags">
+            {tags.map((tag) => (
+              <a href={`/notes/tags/${slugify(tag)}/`}>{tag}</a>
+            ))}
           </div>
         </aside>
-
-      </div>
-    </section>
+      )}
+    </div>
   </div>
 </BaseLayout>
+<style>
+  .notes-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 64px;
+  }
+  .note-row {
+    border-bottom: 1px solid hsl(var(--border) / 0.6);
+    padding: 24px 0;
+  }
+  .note-row:first-child {
+    padding-top: 4px;
+  }
+  time,
+  .aside-label {
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+  }
+  h2 {
+    font-family: var(--font-editorial);
+    font-size: 24px;
+    line-height: 1.6;
+    margin: 10px 0;
+  }
+  p {
+    color: hsl(var(--muted-foreground));
+    font-size: 14px;
+    line-height: 1.9;
+  }
+  a:hover {
+    color: hsl(var(--primary));
+  }
+  a:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 4px;
+  }
+  .note-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    margin-top: 20px;
+    font-size: 13px;
+  }
+  @media (max-width: 767px) {
+    .notes-layout {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+    h2 {
+      font-size: 21px;
+    }
+  }
+</style>

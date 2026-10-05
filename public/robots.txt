@@ -1,6 +1,0 @@
-User-agent: *
-Allow: /
-
-Disallow: /api/*
-
-Sitemap: https://tsukikage7.com/sitemap-index.xml

@@ -2,30 +2,32 @@ import { slug } from "github-slugger";
 import { marked } from "marked";
 
 marked.use({
-  mangle: false,
-  headerIds: false, 
   gfm: true, 
   breaks: true, 
   pedantic: false,
-  sanitize: false,
-  smartLists: true,
-  smartypants: false,
 });
 
 const renderer = new marked.Renderer();
 
-renderer.heading = function(text: string, level: number) {
+renderer.heading = function({ text, depth, tokens }) {
   const escapedText = slug(text);
-  return `<h${level} id="${escapedText}">
-    <a href="#${escapedText}" class="anchor-link">${text}</a>
-  </h${level}>`;
+  return `<h${depth} id="${escapedText}">
+    <a href="#${escapedText}" class="anchor-link">${this.parser.parseInline(tokens)}</a>
+  </h${depth}>`;
 };
 
-renderer.code = function(code: string, language: string | undefined) {
+const escapeHtml = (text: string) => text
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#39;");
+
+renderer.code = function({ text: code, lang: language }) {
   const validLang = language && language !== '' ? language : 'text';
   return `<div class="code-block-wrapper">
     <div class="code-block-header">
-      <span class="code-language">${validLang}</span>
+      <span class="code-language">${escapeHtml(validLang)}</span>
       <button class="copy-code-btn" onclick="copyCode(this)" title="复制代码">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -33,37 +35,35 @@ renderer.code = function(code: string, language: string | undefined) {
         </svg>
       </button>
     </div>
-    <pre><code class="language-${validLang}">${code}</code></pre>
+    <pre><code class="language-${escapeHtml(validLang)}">${escapeHtml(code)}</code></pre>
   </div>`;
 };
 
-renderer.table = function(header: string, body: string) {
+const renderTable = renderer.table;
+renderer.table = function(table) {
   return `<div class="table-wrapper">
-    <table class="markdown-table">
-      <thead>${header}</thead>
-      <tbody>${body}</tbody>
-    </table>
+    ${renderTable.call(this, table).replace("<table>", '<table class="markdown-table">')}
   </div>`;
 };
 
-renderer.link = function(href: string, title: string | null, text: string) {
+renderer.link = function({ href, title, tokens }) {
   
   const isExternal = href.startsWith('http://') || href.startsWith('https://');
   const target = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
-  const titleAttr = title ? ` title="${title}"` : '';
-  return `<a href="${href}"${titleAttr}${target}>${text}</a>`;
+  const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
+  return `<a href="${escapeHtml(href)}"${titleAttr}${target}>${this.parser.parseInline(tokens)}</a>`;
 };
 
-renderer.image = function(href: string, title: string | null, text: string) {
-  const titleAttr = title ? ` title="${title}"` : '';
+renderer.image = function({ href, title, text }) {
+  const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
   return `<figure class="markdown-image">
-    <img src="${href}" alt="${text}"${titleAttr} loading="lazy" class="responsive-image" />
-    ${text ? `<figcaption>${text}</figcaption>` : ''}
+    <img src="${escapeHtml(href)}" alt="${escapeHtml(text)}"${titleAttr} loading="lazy" class="responsive-image" />
+    ${text ? `<figcaption>${escapeHtml(text)}</figcaption>` : ''}
   </figure>`;
 };
 
-renderer.blockquote = function(quote: string) {
-  return `<blockquote class="markdown-blockquote">${quote}</blockquote>`;
+renderer.blockquote = function({ tokens }) {
+  return `<blockquote class="markdown-blockquote">${this.parser.parse(tokens)}</blockquote>`;
 };
 
 marked.setOptions({ renderer });
@@ -73,8 +73,8 @@ export const slugify = (content: string) => {
   return slug(content.toString());
 };
 
-export const markdownify = async (content: string, div?: boolean) => {
-  const options = { renderer };
+export const markdownify = (content: string, div?: boolean) => {
+  const options = { renderer, async: false as const };
   
   return div ? marked.parse(content, options) : marked.parseInline(content, options);
 };
@@ -118,7 +118,7 @@ export const lowerHumanize = (content: string | undefined) => {
 };
 
 export const plainify = (content: string) => {
-  const parseMarkdown = marked.parse(content);
+  const parseMarkdown = marked.parse(content, { async: false });
   const filterBrackets = parseMarkdown.replace(/<\/?[^>]+(>|$)/gm, "");
   const filterSpaces = filterBrackets.replace(/[\r\n]\s*[\r\n]/gm, "");
   const stripHTML = htmlEntityDecoder(filterSpaces);

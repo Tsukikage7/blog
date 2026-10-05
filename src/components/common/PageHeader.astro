@@ -1,28 +1,76 @@
 ---
 import Breadcrumbs from "@components/common/Breadcrumbs.astro";
-import { upperHumanize } from "@lib/textConverter";
-
 interface Props {
   title?: string;
   description?: string;
   articleCount?: number;
+  countLabel?: string;
+  countText?: string;
+  contained?: boolean;
 }
-
-const { title = "", description, articleCount }: Props = Astro.props;
+const {
+  title = "",
+  description,
+  articleCount,
+  countLabel = "篇",
+  countText,
+  contained = false,
+} = Astro.props;
 ---
 
-<section class="container">
-  <div
-    class="flex flex-row items-center justify-between pb-4 intersect:animate-fadeDown"
-  >
-    <div class="flex items-center gap-4">
-      <h1>{upperHumanize(title)}</h1>
-      {typeof articleCount === 'number' && (
-        <span class="text-sm text-muted-foreground/60 tabular-nums">
-          {articleCount} 篇
-        </span>
-      )}
-    </div>
-    <Breadcrumbs className="pl-4" />
+<header class:list={["page-header", { "site-container": !contained }]}>
+  <Breadcrumbs
+    className="page-breadcrumbs text-xs text-muted-foreground"
+    title={title}
+  />
+  <div class="page-heading">
+    <h1>{title}</h1>
+    {(countText || typeof articleCount === "number") && (
+      <span class="page-count">
+        {countText || `${articleCount} ${countLabel}`}
+      </span>
+    )}
   </div>
-</section>
+  {description && <p class="page-description">{description}</p>}
+</header>
+<style>
+  .page-header {
+    padding-top: 36px;
+    padding-bottom: 36px;
+  }
+  .page-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    margin-top: 24px;
+  }
+  h1 {
+    font-family: var(--font-editorial);
+    font-size: clamp(32px, 4vw, 46px);
+    line-height: 1.35;
+    font-weight: 600;
+    letter-spacing: -0.035em;
+  }
+  .page-count {
+    color: hsl(var(--primary));
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .page-description {
+    max-width: 42rem;
+    margin-top: 14px;
+    color: hsl(var(--muted-foreground));
+    font-size: 14px;
+    line-height: 1.9;
+    text-wrap: pretty;
+  }
+  @media (max-width: 767px) {
+    .page-header {
+      padding-top: 24px;
+      padding-bottom: 28px;
+    }
+    .page-heading {
+      margin-top: 18px;
+    }
+  }
+</style>

@@ -1,10 +1,13 @@
 ---
+import { getSeries } from "@lib/series";
+import ArticleSeries from "@components/series/ArticleSeries.astro";
+import ChapterPagination from "@components/series/ChapterPagination.astro";
 import BaseLayout from "@components/base/BaseLayout.astro";
 import { plainify } from "@lib/textConverter";
 import { render, type CollectionEntry, getCollection } from "astro:content";
 import TableOfContents from "@components/common/TableOfContents.astro";
+import Breadcrumbs from "@components/common/Breadcrumbs.astro";
 import EntryHeader from "@components/common/EntryHeader.astro";
-import "../../styles/markdown.scss";
 import { SITE_INFO } from "@lib/config";
 import LiquidGlassLess from "@components/common/LiquidGlassLess.astro";
 import Comment from "@components/base/Comment.astro";
@@ -12,57 +15,52 @@ import Comment from "@components/base/Comment.astro";
 import ShareButton from "@components/blog/ShareButton.astro";
 import RecommendedReadCard from "@components/blog/RecommendedReadCard.astro";
 import type { BlogEntry } from "@/types";
+import { isPublishedEntry } from "@lib/contentParser";
 
 interface Props {
   entry: CollectionEntry<"blog">;
 }
 const { entry } = Astro.props;
 const { title, description, image, updated } = entry.data;
+const readingSeries = entry.data.series
+  ? (await getSeries()).find((item) => item.entry.id === entry.data.series)
+  : undefined;
 
 const { headings } = await render(entry);
 
 const descriptionLenth = 200;
-const globalHideToc = false;
 const tocDepth = 3;
 
-const actuallyHideToc =
-  globalHideToc ||
-  headings.filter((heading) => heading.depth <= tocDepth).length === 0;
-
-const articleClass = "w-full lg:w-3/4 xl:w-4/5"; 
-
-const tocClass = actuallyHideToc
-  ? "hidden"
-  : "hidden md:flex md:w-1/4 lg:w-1/5";
+const articleClass = "min-w-0 w-full max-w-[760px] flex-1";
 
 const entryDescription =
   description ||
   (entry.body ? plainify(entry.body.slice(0, descriptionLenth)) : "");
 
-const allBlogPosts = (await getCollection("blog", ({ filePath }) => {
-  if(filePath?.includes("-index.md")){
-    return false;
-  }
-  return true;
-})) as BlogEntry[];
+const allBlogPosts = (await getCollection(
+  "blog",
+  isPublishedEntry,
+)) as BlogEntry[];
 
 const currentTags = entry.data.tags || [];
 const currentCategories = entry.data.categories || [];
 
 const recommendedPosts = allBlogPosts
-  .filter((post) => post.id !== entry.id) 
+  .filter(
+    (post) =>
+      post.id !== entry.id &&
+      (!readingSeries || post.data.series !== readingSeries.entry.id),
+  )
   .map((post) => {
     let score = 0;
     const postTags = post.data.tags || [];
     const postCategories = post.data.categories || [];
 
-    
     const tagMatches = postTags.filter((tag) =>
       currentTags.includes(tag),
     ).length;
     score += tagMatches * 2;
 
-    
     const categoryMatches = postCategories.filter((cat) =>
       currentCategories.includes(cat),
     ).length;
@@ -71,26 +69,21 @@ const recommendedPosts = allBlogPosts
     return { post, score };
   })
   .sort((a, b) => {
-
     if (b.score !== a.score) {
       return b.score - a.score;
     }
-    const dateA = new Date(
-      a.post.data.created || 0,
-    );
-    const dateB = new Date(
-      b.post.data.created || 0,
-    );
+    const dateA = new Date(a.post.data.created || 0);
+    const dateB = new Date(b.post.data.created || 0);
     return dateB.getTime() - dateA.getTime();
   })
-  .slice(0, 5) 
+  .slice(0, 5)
   .map((item) => item.post);
 ---
 
 <BaseLayout
   title={title}
   description={entryDescription}
-  image={image?.src}
+  image={typeof image === "string" ? image : image?.src}
   articleType={true}
   publishedTime={entry.data.created}
   modifiedTime={entry.data.updated}
@@ -98,9 +91,13 @@ const recommendedPosts = allBlogPosts
   tags={entry.data.tags}
   section={entry.data.categories?.[0]}
 >
-  <section class="flex container px-3 sm:px-4 lg:px-8">
+  <section class="site-container flex flex-col gap-10 pt-8 md:pt-10 lg:flex-row lg:items-start lg:gap-14">
     <div class:list={[articleClass]}>
+      <Breadcrumbs className="mb-7 text-xs" title={plainify(title)} />
       <article>
+        {readingSeries && (
+          <ArticleSeries series={readingSeries} currentId={entry.id} />
+        )}
         <section>
           <EntryHeader
             entry={entry}
@@ -113,18 +110,15 @@ const recommendedPosts = allBlogPosts
             showViewCount
           />
         </section>
-        <LiquidGlassLess
-          containerType="section"
-          heavy
-          wrapperClass="panel flex flex-col justify-between mb-4 rounded-xl intersect-no-queue min-h-96"
-        >
-          <div
-            class="p-4 sm:p-6 md:p-8 prose max-w-none markdown-content text-txt-p dark:text-darkmode-txt-p intersect:animate-fadeUp prose-sm sm:prose-base"
-          >
+        <div class="mb-10 border-t border-border/60 pt-7">
+          <div class="prose prose-site prose-base max-w-none markdown-content">
             <slot />
           </div>
-        </LiquidGlassLess>
-        
+        </div>
+
+        {readingSeries && (
+          <ChapterPagination series={readingSeries} currentId={entry.id} />
+        )}
 
         <!-- 分享和版权信息 -->
         <div class="mt-6 pt-6 border-t border-border/30">
@@ -139,8 +133,13 @@ const recommendedPosts = allBlogPosts
 
           <div class="text-center text-xs text-muted-foreground/70 space-y-2">
             <div class="flex flex-wrap items-center justify-center gap-1">
-              <span>© 2025</span>
-              <a href={SITE_INFO.URL} class="hover:text-foreground transition-colors">{SITE_INFO.SITE_NAME}</a>
+              <span>© {new Date().getFullYear()}</span>
+              <a
+                href={SITE_INFO.URL}
+                class="hover:text-foreground transition-colors"
+              >
+                {SITE_INFO.SITE_NAME}
+              </a>
               <span>·</span>
               <a
                 target="_blank"
@@ -152,74 +151,72 @@ const recommendedPosts = allBlogPosts
             </div>
             <div class="flex items-center justify-center gap-1">
               <span>更新于</span>
-              <span>{updated ? new Date(updated).toLocaleDateString("zh-CN") : "未知"}</span>
+              <span>
+                {updated
+                  ? new Date(updated).toLocaleDateString("zh-CN")
+                  : "未知"}
+              </span>
             </div>
           </div>
         </div>
 
         <LiquidGlassLess
           heavy
-          wrapperClass="dock rounded-xl p-6 my-4"
-          textClass="intersect-no-queue  px-3 lg:px-8 "
+          wrapperClass="border-0 bg-transparent py-6 my-4"
+          textClass=""
         >
           <Comment />
         </LiquidGlassLess>
       </article>
     </div>
 
-    
-    <div
-      class="flex-col h-full sticky top-20 lg:top-24 ml-4 space-y-4 hidden lg:flex lg:w-1/4 xl:w-1/5"
-    >
+    <div class="sticky top-24 hidden max-h-[calc(100dvh-7rem)] w-56 shrink-0 flex-col gap-8 overflow-y-auto lg:flex">
+      {readingSeries && (
+        <ArticleSeries series={readingSeries} currentId={entry.id} sidebar />
+      )}
       <TableOfContents headings={headings} tocDepth={tocDepth} />
 
-      
-      {
-        recommendedPosts.length > 0 && (
-          <LiquidGlassLess
-            heavy
-            wrapperClass="dock rounded-xl overflow-hidden mb-3"
-            textClass="intersect-no-queue"
-          >
-            <div class="py-2">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-txt-p dark:text-darkmode-txt-p flex items-center gap-2">
-                  <svg
-                    class="w-5 h-5 text-muted-foreground"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                    />
-                  </svg>
-                  推荐阅读
-                </h3>
-              </div>
-
-              <div class="space-y-1">
-                {recommendedPosts.map((post, index) => (
-                  <div
-                    class="intersect:animate-fadeUp"
-                    style={`animation-delay: ${index * 100}ms`}
-                  >
-                    <RecommendedReadCard
-                      entry={post}
-                      showImage={true}
-                      showReadingTime={true}
-                      compact={true}
-                    />
-                  </div>
-                ))}
-              </div>
+      {recommendedPosts.length > 0 && (
+        <LiquidGlassLess
+          heavy
+          wrapperClass="border-0 bg-transparent border-t border-border/60 pt-4"
+          textClass="intersect-no-queue"
+        >
+          <div class="py-2">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-medium text-foreground flex items-center gap-2">
+                <svg
+                  class="w-5 h-5 text-muted-foreground"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
+                推荐阅读
+              </h3>
             </div>
-          </LiquidGlassLess>
-        )
-      }
+
+            <div class="space-y-1">
+              {recommendedPosts.map((post) => (
+                <div>
+                  <RecommendedReadCard
+                    entry={post}
+                    showImage={false}
+                    showReadingTime={true}
+                    compact={true}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </LiquidGlassLess>
+      )}
     </div>
   </section>
 </BaseLayout>
@@ -227,31 +224,33 @@ const recommendedPosts = allBlogPosts
 <script>
   // 代码块收起/展开功能（使用 grid 动画，参考内容导航）
   function setupCodeCollapse() {
-    const codeBlocks = document.querySelectorAll('.markdown-content pre.astro-code');
+    const codeBlocks = document.querySelectorAll(
+      ".markdown-content pre.astro-code",
+    );
 
     codeBlocks.forEach((pre) => {
       // 避免重复处理
-      if (pre.closest('.code-collapse-wrapper')) return;
+      if (pre.closest(".code-collapse-wrapper")) return;
 
-      const code = pre.querySelector('code');
-      const lines = code ? code.querySelectorAll('.line').length : 0;
-      const language = pre.getAttribute('data-language') || 'code';
+      const code = pre.querySelector("code");
+      const lines = code ? code.querySelectorAll(".line").length : 0;
+      const language = pre.getAttribute("data-language") || "code";
 
       // 创建包装器
-      const wrapper = document.createElement('div');
-      wrapper.className = 'code-collapse-wrapper';
+      const wrapper = document.createElement("div");
+      wrapper.className = "code-collapse-wrapper";
 
       // 创建头部
-      const header = document.createElement('div');
-      header.className = 'code-collapse-header';
-      header.setAttribute('aria-expanded', 'false');
+      const header = document.createElement("div");
+      header.className = "code-collapse-header";
+      header.setAttribute("aria-expanded", "false");
       header.innerHTML = `
         <div class="code-collapse-title">
           <svg class="code-collapse-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
           <span class="code-collapse-text">${language.toUpperCase()}</span>
-          ${lines > 0 ? `<span class="code-collapse-count">${lines} 行</span>` : ''}
+          ${lines > 0 ? `<span class="code-collapse-count">${lines} 行</span>` : ""}
         </div>
         <div class="code-collapse-actions">
           <button class="code-collapse-copy-btn" type="button" title="复制代码">
@@ -268,12 +267,12 @@ const recommendedPosts = allBlogPosts
       `;
 
       // 创建内容容器（用于 grid 动画）
-      const content = document.createElement('div');
-      content.className = 'code-collapse-content'; // 默认收起
+      const content = document.createElement("div");
+      content.className = "code-collapse-content"; // 默认收起
 
       // 创建内部包装器
-      const inner = document.createElement('div');
-      inner.className = 'code-collapse-inner';
+      const inner = document.createElement("div");
+      inner.className = "code-collapse-inner";
 
       // 组装 DOM 结构
       pre.parentNode?.insertBefore(wrapper, pre);
@@ -283,58 +282,64 @@ const recommendedPosts = allBlogPosts
       wrapper.appendChild(content);
 
       // 收起/展开点击事件
-      const toggleBtn = header.querySelector('.code-collapse-btn');
+      const toggleBtn = header.querySelector(".code-collapse-btn");
       const toggleAction = () => {
-        const isExpanded = header.getAttribute('aria-expanded') === 'true';
-        header.setAttribute('aria-expanded', String(!isExpanded));
-        content.classList.toggle('code-collapse-content--expanded', !isExpanded);
+        const isExpanded = header.getAttribute("aria-expanded") === "true";
+        header.setAttribute("aria-expanded", String(!isExpanded));
+        content.classList.toggle(
+          "code-collapse-content--expanded",
+          !isExpanded,
+        );
 
-        const icon = header.querySelector('.code-collapse-icon') as HTMLElement;
-        const btnText = toggleBtn?.querySelector('.code-collapse-action-text');
+        const icon = header.querySelector(".code-collapse-icon") as HTMLElement;
+        const btnText = toggleBtn?.querySelector(".code-collapse-action-text");
 
         if (icon) {
-          icon.style.transform = !isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+          icon.style.transform = !isExpanded
+            ? "rotate(180deg)"
+            : "rotate(0deg)";
         }
         if (btnText) {
-          btnText.textContent = !isExpanded ? '收起' : '展开';
+          btnText.textContent = !isExpanded ? "收起" : "展开";
         }
       };
 
-      toggleBtn?.addEventListener('click', (e) => {
+      toggleBtn?.addEventListener("click", (e) => {
         e.stopPropagation();
         toggleAction();
       });
 
       // 点击头部也可以展开/收起
-      header.addEventListener('click', (e) => {
-        if ((e.target as HTMLElement).closest('.code-collapse-copy-btn')) return;
-        if ((e.target as HTMLElement).closest('.code-collapse-btn')) return;
+      header.addEventListener("click", (e) => {
+        if ((e.target as HTMLElement).closest(".code-collapse-copy-btn"))
+          return;
+        if ((e.target as HTMLElement).closest(".code-collapse-btn")) return;
         toggleAction();
       });
 
       // 复制功能
-      const copyBtn = header.querySelector('.code-collapse-copy-btn');
-      copyBtn?.addEventListener('click', async (e) => {
+      const copyBtn = header.querySelector(".code-collapse-copy-btn");
+      copyBtn?.addEventListener("click", async (e) => {
         e.stopPropagation();
-        const codeText = code?.textContent || '';
+        const codeText = code?.textContent || "";
 
         try {
           await navigator.clipboard.writeText(codeText);
-          const copyText = copyBtn.querySelector('.code-collapse-action-text');
+          const copyText = copyBtn.querySelector(".code-collapse-action-text");
           if (copyText) {
-            copyText.textContent = '已复制';
+            copyText.textContent = "已复制";
             setTimeout(() => {
-              copyText.textContent = '复制';
+              copyText.textContent = "复制";
             }, 2000);
           }
         } catch (err) {
-          console.error('复制失败:', err);
+          console.error("复制失败:", err);
         }
       });
     });
   }
 
   // 初始化
-  document.addEventListener('DOMContentLoaded', setupCodeCollapse);
-  document.addEventListener('astro:page-load', setupCodeCollapse);
+  document.addEventListener("DOMContentLoaded", setupCodeCollapse);
+  document.addEventListener("astro:page-load", setupCodeCollapse);
 </script>

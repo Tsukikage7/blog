@@ -1,62 +1,28 @@
 ---
-import { lowerHumanize } from "@lib/textConverter";
-
-const { className }: { className?: string } = Astro.props;
-
-// 路径翻译映射
-const pathTranslations: Record<string, string> = {
-  "blog": "博客",
-  "categories": "分类",
-  "tags": "标签",
-  "notes": "动态",
-  "writings": "文字",
-  "about": "关于",
-  "search": "搜索",
-  "music": "音乐馆",
-};
-
-const translatePath = (path: string): string => {
-  const lower = path.toLowerCase();
-  return pathTranslations[lower] || lowerHumanize(path.replace(/[-_]/g, " ")) || path;
-};
-
-const paths = Astro.url.pathname.split("/").filter((x) => x);
-let parts = [
-  {
-    label: "首页",
-    href: "/",
-    "aria-label": Astro.url.pathname === "/" ? "page" : undefined,
-  },
-];
-
-paths.forEach((label: string, i: number) => {
-  const href = `/${paths.slice(0, i + 1).join("/")}`;
-
-  const decodedLabel = decodeURIComponent(label);
-  label !== "page" &&
-    parts.push({
-      label: translatePath(decodedLabel),
-      href,
-      "aria-label": Astro.url.pathname === href ? "page" : undefined,
-    });
-});
+import { breadcrumbs } from "@lib/breadcrumbs";
+const { className, title }: { className?: string; title?: string } =
+  Astro.props;
+const parts = breadcrumbs(Astro.url.pathname, title);
 ---
 
-<nav aria-label="Breadcrumb" class={className}>
-  <ol class="inline-flex" role="list">
-    {
-      parts.map(({ label, ...attrs }, index) => (
-        <li class="mx-1 capitalize" role="listitem">
-          {index > 0 && <span class="inlin-block mr-1">/</span>}
-          {index !== parts.length - 1 ? (
-            <a class="text-txt-p dark:text-darkmode-txt-p" {...attrs}>
-              {label}
-            </a>
-          ) : (
-            <span class="text-txt-light dark:text-darkmode-txt-light">{label}</span>
-          )}
-        </li>
-      ))
-    }
+<nav aria-label="面包屑导航" class={className}>
+  <ol class="inline-flex max-w-full flex-wrap" role="list">
+    {parts.map(({ label, ...attrs }, index) => (
+      <li class={`mx-1 capitalize ${index === parts.length - 1 ? "min-w-0 break-words" : "shrink-0"}`} role="listitem">
+        {index > 0 && <span class="inline-block mr-1 shrink-0">/</span>}
+        {index !== parts.length - 1 ? (
+          <a class="shrink-0 text-foreground" {...attrs}>
+            {label}
+          </a>
+        ) : (
+          <span
+            class="break-words text-muted-foreground"
+            aria-current="page"
+          >
+            {label}
+          </span>
+        )}
+      </li>
+    ))}
   </ol>
 </nav>

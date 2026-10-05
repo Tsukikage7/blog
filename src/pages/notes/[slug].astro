@@ -1,755 +1,134 @@
 ---
-import { getCollection, getEntry, render } from "astro:content";
+import { render } from "astro:content";
 import BaseLayout from "@components/base/BaseLayout.astro";
-import { formatDate } from "@lib/formatDate";
-import { Image } from "astro:assets";
-import { SITE_INFO } from "@lib/config";
-import LiquidGlass from "@components/common/LiquidGlassLess.astro";
-import { slugify } from "@lib/textConverter";
+import Breadcrumbs from "@components/common/Breadcrumbs.astro";
+import EntryHeader from "@components/common/EntryHeader.astro";
+import TableOfContents from "@components/common/TableOfContents.astro";
+import ArticleSeries from "@components/series/ArticleSeries.astro";
+import ChapterPagination from "@components/series/ChapterPagination.astro";
 import Comment from "@components/base/Comment.astro";
-import {
-  FaRegCalendarAlt,
-  FaMapMarkerAlt,
-  FaSmile,
-  FaRegComment,
-  FaRegHeart,
-  FaRegBookmark,
-  FaShare,
-  FaHeartbeat,
-  FaHeart,
-} from "react-icons/fa";
-
+import { getEntries } from "@lib/contentParser";
+import { getSeries } from "@lib/series";
+import { slugify } from "@lib/textConverter";
+import { SITE_INFO } from "@lib/config";
+import type { NotesEntry } from "@/types";
 export async function getStaticPaths() {
-  const notesEntries = await getCollection("notes");
-  return notesEntries.map((entry) => ({
-    params: { slug: slugify(entry.data.title) },
+  return (await getEntries("notes")).map((entry) => ({
+    params: { slug: entry.id },
     props: { entry },
   }));
 }
-
+interface Props {
+  entry: NotesEntry;
+}
 const { entry } = Astro.props;
-const { slug } = Astro.params;
-const {
-  title,
-  description,
-  date,
-  tags,
-  image,
-  imageAlt,
-  images,
-  mood,
-  location,
-} = entry.data;
-
-const displayImages =
-  images && images.length > 0
-    ? images
-    : image
-      ? [{ src: image, alt: imageAlt || `${title} - 默认图片` }]
-      : [];
-
-const entryDate = date ? formatDate(date) : null;
-
-const allNotes = await getCollection("notes");
-const relatedNotes = allNotes
-  .filter(
-    (note) =>
-      slugify(note.data.title) !== slug &&
-      note.data.tags &&
-      tags &&
-      note.data.tags.some((tag) => tags.includes(tag)),
-  )
-  .slice(0, 5);
-
-const latestNotes = allNotes
-  .filter((note) => slugify(note.data.title) !== slug)
-  .sort((a, b) => {
-    const dateA = a.data.created ? new Date(a.data.created).getTime() : 0;
-    const dateB = b.data.created ? new Date(b.data.created).getTime() : 0;
-    return dateB - dateA;
-  })
-  .slice(0, 3);
-
-const { Content } = await render(entry);
+const { Content, headings } = await render(entry);
+const series = entry.data.series
+  ? (await getSeries()).find((item) => item.entry.id === entry.data.series)
+  : undefined;
 ---
 
-<BaseLayout title={title} description={description || ""}>
-  <div class="container px-3 lg:px-8">
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      
-      <div class="w-full lg:col-span-3">
-        <LiquidGlass
-          heavy
-          containerClass="pb-6 rounded-lg"
-          textClass="p-3 md:p-5"
-          animation="fadeRight"
-        >
-          
-          <div class="flex items-center mb-6">
-            <div
-              class="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700"
-            >
-              <img
-                src={SITE_INFO.AUTHOR_AVATAR}
-                alt="作者头像"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div class="ml-4">
-              <h4 class="font-bold text-lg">Tsukikage</h4>
-              <div
-                class="flex items-center text-sm text-gray-700 dark:text-gray-100"
-              >
-                {
-                  entryDate && (
-                    <span class="flex items-center">
-                      <FaRegCalendarAlt className="mr-1" />
-                      {entryDate}
-                    </span>
-                  )
-                }
-              </div>
-            </div>
-          </div>
-
-          
-          <h1 class="text-3xl font-bold mb-4">{title}</h1>
-
-          
-          <div class="flex flex-wrap gap-4 mb-6">
-            {
-              mood && (
-                <div class="flex items-center text-gray-600 dark:text-gray-300">
-                  <FaSmile className="mr-1" />
-                  <span>{mood}</span>
-                </div>
-              )
-            }
-
-            {
-              location && (
-                <div class="flex items-center text-gray-600 dark:text-gray-300">
-                  <FaMapMarkerAlt className="mr-1" />
-                  <span>{location}</span>
-                </div>
-              )
-            }
-          </div>
-
-          
-          {
-            displayImages.length > 0 && (
-              <div class="mb-6">
-                <div
-                  class={`image-grid image-grid-${Math.min(displayImages.length, 9)}`}
-                >
-                  {displayImages.slice(0, 9).map((img, index) => (
-                    <div class="image-item">
-                      <Image
-                        src={img.src}
-                        alt={img.alt || `图片 ${index + 1}`}
-                        width={800}
-                        height={800}
-                        quality={95}
-                        format="webp"
-                        class="w-full h-full object-cover shadow-lg rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                        data-image-index={index}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          }
-
-          
-          <div
-            class="md:text-lg prose dark:prose-invert max-w-none mb-8 text-txt-s dark:text-darkmode-txt-s"
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  articleType
+  publishedTime={entry.data.created}
+  modifiedTime={entry.data.updated}
+  author={SITE_INFO.AUTHOR}
+  tags={entry.data.tags}
+>
+  <section class="site-container note-detail">
+    <div class="note-main">
+      <Breadcrumbs className="mb-7 text-xs" title={entry.data.title} />
+      <article>
+        {series && (
+          <ArticleSeries
+            series={series}
+            currentId={entry.id}
+            currentCollection="notes"
+          />
+        )}
+        <EntryHeader
+          entry={entry}
+          showImage={false}
+          showReadingTime
+          showModDate
+        />
+        {entry.data.tags?.length ? (
+          <nav
+            aria-label="笔记标签"
+            class="mb-7 flex flex-wrap gap-4 text-xs text-primary"
           >
-            <Content />
-          </div>
-
-
-          {
-            tags && tags.length > 0 && (
-              <div class="flex flex-wrap gap-2.5 mb-6">
-                {tags.map((tag) => (
-                  <a
-                    href={`/notes/tags/${tag}`}
-                    class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-full
-                           bg-gradient-to-r from-primary/15 to-primary/8
-                           text-primary dark:text-primary-light
-                           border border-primary/25 dark:border-primary/35
-                           hover:from-primary/25 hover:to-primary/15
-                           hover:border-primary/50 dark:hover:border-primary/60
-                           hover:shadow-lg hover:shadow-primary/20
-                           hover:scale-105
-                           transition-all duration-300 ease-out
-                           backdrop-blur-sm"
-                  >
-                    <span class="mr-1.5 text-lg text-primary/70 dark:text-primary-light/70">#</span>
-                    {tag}
-                  </a>
-                ))}
-              </div>
-            )
-          }
-
-          
-          <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
-            <div class="flex justify-around">
-
-              <button
-                id="commentBtn"
-                class="flex items-center gap-2 text-gray-700 dark:text-gray-100 hover:text-blue-500 transition-colors"
-              >
-                <FaRegComment />
-                <span>评论</span>
-              </button>
-              <button
-                id="bookmarkBtn"
-                class="flex items-center gap-2 text-gray-700 dark:text-gray-100 hover:text-yellow-500 transition-colors"
-              >
-                <FaRegBookmark id="bookmarkIcon" />
-                <span id="bookmarkText">收藏</span>
-              </button>
-              <button
-                id="shareBtn"
-                class="flex items-center gap-2 text-gray-700 dark:text-gray-100 hover:text-green-500 transition-colors"
-              >
-                <FaShare />
-                <span>分享</span>
-              </button>
-            </div>
-          </div>
-        </LiquidGlass>
-
-        
-        <LiquidGlass
-          heavy
-          containerClass="pb-6 rounded-lg"
-          textClass="p-5"
-        >
-          <h3 class="text-xl font-bold mb-4">评论</h3>
-          <Comment />
-          
-        </LiquidGlass>
-      </div>
-
-      
-      <div class="lg:col-span-1">
-        
-        {
-          relatedNotes.length > 0 && (
-            <LiquidGlass
-              heavy
-              wrapperClass="dock !p-6 mb-6"
-              containerClass="rounded-lg"
-              textClass="p-1"
-              animation="fadeLeft"
-            >
-              <h3 class="font-bold mb-4">相关动态</h3>
-              <div class="space-y-2">
-                {relatedNotes.map((note) => (
-                  <div class="dark:border-gray-800 p-3 rounded-lg hover:bg-muted transition-all duration-300">
-                    <a
-                      href={`/notes/${slugify(note.data.title)}`}
-                      class="block hover:text-primary-500 transition-colors"
-                    >
-                      <h5 class="font-medium line-clamp-2">
-                        {note.data.title}
-                      </h5>
-                      <p class="text-sm text-gray-700 dark:text-gray-400 mt-1">
-                        {note.data.created && formatDate(note.data.created)}
-                      </p>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </LiquidGlass>
-          )
-        }
-
-        
-        <LiquidGlass
-          heavy
-          containerClass="pb-4 rounded-lg"
-          textClass="p-1"
-          animation="fadeLeft"
-        >
-          <h3 class="font-bold mb-4 px-2">最新动态</h3>
-          <div class="space-y-2">
-            {
-              latestNotes.map((note) => (
-                <div class="dark:border-gray-800 p-3 rounded-lg hover:bg-muted transition-all duration-300">
-                  <a
-                    href={`/notes/${slugify(note.data.title)}`}
-                    class="block hover:text-primary-500 transition-colors"
-                  >
-                    <h5 class="text-txt-p dark:text-darkmode-txt-p font-bold line-clamp-2">
-                      {note.data.title}
-                    </h5>
-                    <p class="text-md text-gray-700 dark:text-darkmode-txt-p">
-                      {note.data.description && note.data.description}
-                    </p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      {note.data.created && formatDate(note.data.created)}
-                    </p>
-                  </a>
-                </div>
-              ))
-            }
-          </div>
-          <div class="mt-2 text-center">
-            <a
-              href="/notes"
-              class="text-primary-500 hover:text-primary-600 transition-colors"
-            >
-              查看全部动态
-            </a>
-          </div>
-        </LiquidGlass>
-      </div>
+            {entry.data.tags.map((tag) => (
+              <a href={`/notes/tags/${slugify(tag)}/`}>{tag}</a>
+            ))}
+          </nav>
+        ) : null}
+        <div class="prose prose-site prose-base max-w-none markdown-content border-t border-border/60 pt-7">
+          <Content />
+        </div>
+        {series && (
+          <ChapterPagination
+            series={series}
+            currentId={entry.id}
+            currentCollection="notes"
+          />
+        )}
+        <a class="back-note" href="/notes/">
+          ← 返回技术笔记
+        </a>
+      </article>
+      <Comment />
     </div>
-  </div>
+    <aside class="note-aside">
+      {series && (
+        <ArticleSeries
+          series={series}
+          currentId={entry.id}
+          currentCollection="notes"
+          sidebar
+        />
+      )}
+      <TableOfContents headings={headings} />
+    </aside>
+  </section>
 </BaseLayout>
-
 <style>
-  
-  .image-grid {
-    display: grid;
-    gap: 8px;
-    border-radius: 25px;
-    
-  }
-
-  
-  .image-grid-1 {
-    grid-template-columns: 1fr;
-    max-width: 400px;
-  }
-
-  
-  .image-grid-2 {
-    grid-template-columns: 1fr 1fr;
-    max-width: 400px;
-  }
-
-  
-  .image-grid-3 {
-    grid-template-columns: 1fr 1fr;
-    max-width: 400px;
-  }
-  .image-grid-3 .image-item:first-child {
-    grid-column: 1 / -1;
-  }
-
-  
-  .image-grid-4 {
-    grid-template-columns: 1fr 1fr;
-    max-width: 400px;
-  }
-
-  
-  .image-grid-5,
-  .image-grid-6 {
-    grid-template-columns: 1fr 1fr 1fr;
-    max-width: 400px;
-  }
-  .image-grid-5 .image-item:nth-child(-n + 2),
-  .image-grid-6 .image-item:nth-child(-n + 3) {
-    grid-column: span 1;
-  }
-
-  
-  .image-grid-7,
-  .image-grid-8,
-  .image-grid-9 {
-    grid-template-columns: 1fr 1fr 1fr;
-    max-width: 400px;
-  }
-
-  .image-item {
-    aspect-ratio: 1;
-    
-    
-  }
-
-  
-  .image-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-
-  .image-modal.active {
+  .note-detail {
     display: flex;
+    align-items: flex-start;
+    gap: 56px;
+    padding-top: 40px;
   }
-
-  .modal-content {
-    max-width: 90%;
-    max-height: 90%;
-    position: relative;
-  }
-
-  .modal-image {
+  .note-main {
+    min-width: 0;
     width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 8px;
+    max-width: 760px;
+    flex: 1;
   }
-
-  .modal-close {
-    position: absolute;
-    top: -40px;
-    right: 0;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 8px;
+  .note-aside {
+    width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
   }
-
-  .modal-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    padding: 12px 16px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 18px;
+  .back-note {
+    display: inline-block;
+    margin: 32px 0;
+    font-size: 13px;
+    color: hsl(var(--primary));
   }
-
-  .modal-prev {
-    left: -60px;
-  }
-
-  .modal-next {
-    right: -60px;
-  }
-
-  @media (max-width: 768px) {
-    .image-grid {
-      max-width: 100% !important;
-    }
-
-    .modal-nav {
+  @media (max-width: 1023px) {
+    .note-aside {
       display: none;
     }
-
-    .modal-close {
-      top: 10px;
-      right: 10px;
+    .note-detail {
+      padding-top: 28px;
+    }
+    .note-main {
+      margin-inline: auto;
     }
   }
 </style>
-
-<div id="imageModal" class="image-modal">
-  <div class="modal-content">
-    <button class="modal-close" id="closeModal">&times;</button>
-    <button class="modal-nav modal-prev" id="prevModal">&lt;</button>
-    <img id="modalImage" class="modal-image" src="" alt="" />
-    <button class="modal-nav modal-next" id="nextModal">&gt;</button>
-  </div>
-</div>
-
-<script type="module">
-  let currentImageIndex = 0;
-  let modalImages = [];
-
-  
-  function initImageModal() {
-    const imageElements = document.querySelectorAll("[data-image-index]");
-    modalImages = Array.from(imageElements).map((img) => {
-      const imgElement = img;
-      return {
-        src: imgElement.src,
-        alt: imgElement.alt,
-      };
-    });
-
-    
-    imageElements.forEach((img, index) => {
-      img.addEventListener("click", () => openImageModal(index));
-    });
-  }
-
-  
-  function openImageModal(index) {
-    currentImageIndex = index;
-    const modal = document.getElementById("imageModal");
-    const modalImage = document.getElementById("modalImage");
-
-    if (modal && modalImage && modalImages[index]) {
-      modalImage.src = modalImages[index].src;
-      modalImage.alt = modalImages[index].alt;
-      modal.classList.add("active");
-      document.body.style.overflow = "hidden";
-    }
-  }
-
-  
-  function closeImageModal() {
-    const modal = document.getElementById("imageModal");
-    if (modal) {
-      modal.classList.remove("active");
-      document.body.style.overflow = "auto";
-    }
-  }
-
-  
-  function prevImage() {
-    if (currentImageIndex > 0) {
-      openImageModal(currentImageIndex - 1);
-    }
-  }
-
-  
-  function nextImage() {
-    if (currentImageIndex < modalImages.length - 1) {
-      openImageModal(currentImageIndex + 1);
-    }
-  }
-
-  
-  document.addEventListener("keydown", (e) => {
-    const modal = document.getElementById("imageModal");
-    if (modal && modal.classList.contains("active")) {
-      switch (e.key) {
-        case "Escape":
-          closeImageModal();
-          break;
-        case "ArrowLeft":
-          prevImage();
-          break;
-        case "ArrowRight":
-          nextImage();
-          break;
-      }
-    }
-  });
-
-  
-  const imageModal = document.getElementById("imageModal");
-  if (imageModal) {
-    imageModal.addEventListener("click", (e) => {
-      const target = e.target;
-      if (target && target.id === "imageModal") {
-        closeImageModal();
-      }
-    });
-  }
-
-  const closeModal = document.getElementById("closeModal");
-  if (closeModal) {
-    closeModal.addEventListener("click", closeImageModal);
-  }
-
-  const prevModal = document.getElementById("prevModal");
-  if (prevModal) {
-    prevModal.addEventListener("click", prevImage);
-  }
-
-  const nextModal = document.getElementById("nextModal");
-  if (nextModal) {
-    nextModal.addEventListener("click", nextImage);
-  }
-
-  
-  document.addEventListener("DOMContentLoaded", initImageModal);
-
-  
-  document.addEventListener("astro:page-load", initImageModal);
-
-  
-
-  
-  let isBookmarked = false;
-  let noteSlug = window.location.pathname.split("/").pop() || "";
-  noteSlug = decodeURI(noteSlug);
-
-  
-  async function loadInteractionState() {
-    const noteId = window.location.pathname;
-    const savedBookmarked = localStorage.getItem(`bookmarked_${noteId}`);
-
-    isBookmarked = savedBookmarked === "true";
-
-    updateBookmarkButton();
-  }
-
-  
-  function saveBookmarkState() {
-    const noteId = window.location.pathname;
-    localStorage.setItem(`bookmarked_${noteId}`, isBookmarked.toString());
-  }
-
-  
-
-  
-  function updateBookmarkButton() {
-    const bookmarkBtn = document.getElementById("bookmarkBtn");
-    const bookmarkIcon = document.getElementById("bookmarkIcon");
-    const bookmarkText = document.getElementById("bookmarkText");
-
-    if (bookmarkBtn && bookmarkIcon && bookmarkText) {
-      if (isBookmarked) {
-        bookmarkBtn.classList.add("text-yellow-500");
-        bookmarkBtn.classList.remove("text-gray-700", "dark:text-gray-100");
-        bookmarkText.textContent = "已收藏";
-      } else {
-        bookmarkBtn.classList.remove("text-yellow-500");
-        bookmarkBtn.classList.add("text-gray-700", "dark:text-gray-100");
-        bookmarkText.textContent = "收藏";
-      }
-    }
-  }
-
-  
-
-  
-  function toggleBookmark() {
-    if (!isBookmarked) {
-      
-      const title = document.title;
-      const url = window.location.href;
-      const message =
-        navigator.userAgent.indexOf("Mac") !== -1
-          ? "请按 Cmd+D 将此页面添加到收藏夹"
-          : "请按 Ctrl+D 将此页面添加到收藏夹";
-      showToast(message);
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-
-      
-      
-      
-      
-      
-    } else {
-      
-      isBookmarked = false;
-      updateBookmarkButton();
-      saveBookmarkState();
-      showToast("已取消收藏");
-    }
-  }
-
-  
-  function scrollToComments() {
-    const commentSection = document.querySelector("h3");
-    if (commentSection && commentSection.textContent?.includes("评论")) {
-      commentSection.scrollIntoView({ behavior: "smooth" });
-    }
-  }
-
-  
-  function shareNote() {
-    const title = document.title;
-    const url = window.location.href;
-
-    if (navigator.share) {
-      
-      navigator
-        .share({
-          title: title,
-          url: url,
-        })
-        .then(() => {
-          showToast("分享成功");
-        })
-        .catch(() => {
-          fallbackShare(title, url);
-        });
-    } else {
-      fallbackShare(title, url);
-    }
-  }
-
-  
-  function fallbackShare(title, url) {
-    
-    navigator.clipboard
-      .writeText(url)
-      .then(() => {
-        showToast("链接已复制到剪贴板");
-      })
-      .catch(() => {
-        
-        const shareText = `${title} - ${url}`;
-        const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
-        window.open(shareUrl, "_blank");
-      });
-  }
-
-  
-  function showToast(message) {
-    const toast = document.createElement("div");
-    toast.className =
-      "fixed top-4 right-4 bg-black/80 text-white px-4 py-2 rounded-lg z-50 transition-opacity";
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.opacity = "0";
-      setTimeout(() => {
-        document.body.removeChild(toast);
-      }, 300);
-    }, 2000);
-  }
-
-  
-  async function initInteractions() {
-    await loadInteractionState();
-
-    const commentBtn = document.getElementById("commentBtn");
-    const bookmarkBtn = document.getElementById("bookmarkBtn");
-    const shareBtn = document.getElementById("shareBtn");
-
-    if (commentBtn) {
-      commentBtn.addEventListener("click", scrollToComments);
-    }
-
-    if (bookmarkBtn) {
-      bookmarkBtn.addEventListener("click", toggleBookmark);
-    }
-
-    if (shareBtn) {
-      shareBtn.addEventListener("click", shareNote);
-    }
-  }
-
-  
-  document.addEventListener("DOMContentLoaded", initInteractions);
-  document.addEventListener("astro:page-load", initInteractions);
-</script>

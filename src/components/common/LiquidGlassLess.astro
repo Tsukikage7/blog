@@ -2,26 +2,25 @@
 import { UI_CONFIG } from "@lib/config";
 interface Props {
   containerType?: "div" | "section" | "nav" | "header" | "footer";
-  
+
   containerClass?: string;
-  
-  wrapperClass?: string;  
-  
+
+  wrapperClass?: string;
+
   textClass?: string;
-  
+
   animation?: "fadeLeft" | "fadeRight" | "fadeUp" | "fadeDown" | "none";
-  
+
   heavy?: boolean;
-  
+
   showContainer?: boolean;
-  
+
   enableGlassEffect?: boolean;
 
-  
   effectClass?: string;
-  
+
   tintClass?: string;
-  
+
   shineClass?: string;
 }
 
@@ -29,7 +28,7 @@ const {
   containerType = "div",
   containerClass = "",
   wrapperClass = "dock",
-  animation = "fadeUp",
+  animation = "none",
   heavy = false,
   showContainer = true,
   enableGlassEffect = UI_CONFIG.ENABLE_GLASS_EFFECT,
@@ -39,10 +38,19 @@ const {
   shineClass = "",
 } = Astro.props;
 
+const Container = containerType;
+
+const animationClasses = {
+  fadeLeft: "intersect:animate-fadeLeft",
+  fadeRight: "intersect:animate-fadeRight",
+  fadeUp: "intersect:animate-fadeUp",
+  fadeDown: "intersect:animate-fadeDown",
+  none: "",
+};
 const animationClass =
-  animation !== "none"
-    ? `intersect:animate-${animation} transition-all duration-300 fast-slow`
-    : "";
+  animation === "none"
+    ? ""
+    : `${animationClasses[animation]} transition-all duration-300 ease-fast-slow`;
 
 const effectClassStr = enableGlassEffect
   ? (heavy ? "liquidGlass-effect-h " : "liquidGlass-effect ") + effectClass
@@ -54,98 +62,18 @@ const shineClassStr = enableGlassEffect
   ? `liquidGlass-shine ${shineClass}`
   : "";
 
-const flatWrapperClass = enableGlassEffect
-  ? wrapperClass
-  : `${wrapperClass} bg-card border border-border shadow-md`;
+const surfaceClass = enableGlassEffect ? "bg-card/35" : "bg-card";
 ---
 
-{
-  containerType === "section" ? (
-    <section class={`liquid-glass-container ${containerClass}`}>
-      <div class={`liquidGlass-wrapper ${flatWrapperClass}`}>
-        {enableGlassEffect && (
-          <div class={`${effectClassStr} ${animationClass}`} />
-        )}
-        {enableGlassEffect && (
-          <div class={`${tintClassStr} ${animationClass}`} />
-        )}
-        {enableGlassEffect && (
-          <div class={`${shineClassStr} ${animationClass}`} />
-        )}
-        <div class={`liquidGlass-text ${textClass} ${animationClass}`}>
-          <slot />
-        </div>
-      </div>
-    </section>
-  ) : containerType === "nav" ? (
-    <nav class={`liquid-glass-container ${containerClass}`}>
-      <div class={`liquidGlass-wrapper ${flatWrapperClass}`}>
-        {enableGlassEffect && (
-          <div class={`${effectClassStr} ${animationClass}`} />
-        )}
-        {enableGlassEffect && (
-          <div class={`${tintClassStr} ${animationClass}`} />
-        )}
-        {enableGlassEffect && (
-          <div class={`${shineClassStr} ${animationClass}`} />
-        )}
-        <div
-          class={`liquidGlass-text drop-shadow-md-white ${textClass} ${animationClass}`}
-        >
-          <slot />
-        </div>
-      </div>
-    </nav>
-  ) : containerType === "header" ? (
-    <header class={`liquid-glass-container ${containerClass}`}>
-      <div class={`liquidGlass-wrapper ${flatWrapperClass}`}>
-        {enableGlassEffect && (
-          <div class={`${effectClassStr} ${animationClass}`} />
-        )}
-        {enableGlassEffect && (
-          <div class={`${tintClassStr} ${animationClass}`} />
-        )}
-        {enableGlassEffect && (
-          <div class={`${shineClassStr} ${animationClass}`} />
-        )}
-        <div class={`liquidGlass-text ${textClass} ${animationClass}`}>
-          <slot />
-        </div>
-      </div>
-    </header>
-  ) : containerType === "footer" ? (
-    <footer class={`liquid-glass-container ${containerClass}`}>
-      <div class={`liquidGlass-wrapper ${flatWrapperClass}`}>
-        {enableGlassEffect && (
-          <div class={`${effectClassStr} ${animationClass}`} />
-        )}
-        {enableGlassEffect && (
-          <div class={`${tintClassStr} ${animationClass}`} />
-        )}
-        {enableGlassEffect && (
-          <div class={`${shineClassStr} ${animationClass}`} />
-        )}
-        <div class={`liquidGlass-text ${textClass} ${animationClass}`}>
-          <slot />
-        </div>
-      </div>
-    </footer>
-  ) : (
-    <div class={`liquid-glass-container ${containerClass}`}>
-      <div class={`liquidGlass-wrapper ${flatWrapperClass}`}>
-        {enableGlassEffect && (
-          <div class={`${effectClassStr} ${animationClass}`} />
-        )}
-        {enableGlassEffect && (
-          <div class={`${tintClassStr} ${animationClass}`} />
-        )}
-        {enableGlassEffect && (
-          <div class={`${shineClassStr} ${animationClass}`} />
-        )}
-        <div class={`liquidGlass-text ${textClass} ${animationClass}`}>
-          <slot />
-        </div>
-      </div>
+<Container class={`liquid-glass-container ${containerClass}`}>
+  <div
+    class={`liquidGlass-wrapper relative isolate overflow-hidden rounded-lg border border-border/50 text-card-foreground ${surfaceClass} ${wrapperClass}`}
+  >
+    {enableGlassEffect && <div class={`${effectClassStr} ${animationClass}`} />}
+    {enableGlassEffect && <div class={`${tintClassStr} ${animationClass}`} />}
+    {enableGlassEffect && <div class={`${shineClassStr} ${animationClass}`} />}
+    <div class={`liquidGlass-text ${textClass} ${animationClass}`}>
+      <slot />
     </div>
-  )
-}
+  </div>
+</Container>

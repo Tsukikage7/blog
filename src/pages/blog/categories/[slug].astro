@@ -1,0 +1,18 @@
+---
+import TaxonLayout from "@components/blog/TaxonLayout.astro";
+import { getBlogTaxonomyPaths } from "@lib/taxonomyParser";
+import type { BlogEntry } from "@/types";
+
+export async function getStaticPaths() {
+  return getBlogTaxonomyPaths("categories");
+}
+
+interface Props {
+  taxon: string;
+  entries: BlogEntry[];
+}
+
+const { taxon, entries } = Astro.props;
+---
+
+<TaxonLayout taxon={taxon} entries={entries} />
