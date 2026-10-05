@@ -1,14 +1,17 @@
 ---
 title: "[epoll] EP5 跨平台 IO 多路复用对比"
+image: "https://assets.tsukikage7.com/blog/cover/epoll-ep5.webp"
 description: Linux 的 epoll、macOS/BSD 的 kqueue、Windows 的 IOCP，以及 Go 的跨平台封装机制详解
 created: 2026-01-05 00:00:00
 updated: 2026-01-05 00:00:00
+series: epoll
+seriesOrder: 5
 categories:
-  - 后端开发
+  - Linux 与网络
 tags:
   - Linux
   - 网络编程
-  - IO多路复用
+  - I/O 多路复用
 ---
 
 前几章我们深入学习了 Linux 的 epoll，了解了它的原理、用法和优化技巧。但现实世界的软件开发往往不会这么单纯——你的服务器可能跑在 Linux 上，但开发机器是 macOS；你的 CLI 工具可能需要同时支持 Linux、macOS 和 Windows。

@@ -1,14 +1,17 @@
 ---
 title: "[epoll] EP7 监控与调试"
+image: "https://assets.tsukikage7.com/blog/cover/epoll-ep7.webp"
 description: epoll 的性能监控工具、常见问题诊断、性能瓶颈定位，以及实战中的调试技巧
 created: 2026-01-07 00:00:00
 updated: 2026-01-07 00:00:00
+series: epoll
+seriesOrder: 7
 categories:
-  - 后端开发
+  - Linux 与网络
 tags:
   - Linux
   - 网络编程
-  - IO多路复用
+  - I/O 多路复用
 ---
 
 代码写完上线，只是万里长征的第一步。生产环境中，各种诡异的问题会层出不穷：性能突然下降、内存持续增长、连接莫名断开……这时候，监控和调试能力就成了区分"能写代码"和"能解决问题"的分水岭。

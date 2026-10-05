@@ -1,6 +1,6 @@
 ---
-title: 博客
-description: 技术分享、学习笔记与思考总结
+title: 技术文章
+description: 工程问题、技术实践与机制分析。
 created: 2023-01-01T00:00:00.000+08:00
 categories:
   - 技术

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="960" viewBox="0 0 1536 960" role="img" aria-labelledby="title desc">
+<title id="title">Async tasks：异步任务，结果与并发</title>
+<desc id="desc">浅色技术图形封面，无人物；用蓝绿结构图表达文章主题。</desc>
+<defs><linearGradient id="paper" x2="1" y2="1"><stop stop-color="#fcfbf7"/><stop offset="1" stop-color="#f5f8f6"/></linearGradient>
+<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#83aeb0" stroke-width="1.6"/></marker></defs>
+<rect width="1536" height="960" fill="url(#paper)"/>
+<path d="M0 835 C330 700 570 995 1030 865 C1300 790 1430 780 1536 809 V960 H0Z" fill="#e5eeea" opacity=".5"/>
+<path d="M0 895 C420 795 595 935 1000 915 C1290 900 1385 850 1536 870 V960 H0Z" fill="#dce9e4" opacity=".36"/>
+<g font-family="'PingFang SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+<text x="96" y="290" font-size="38" font-weight="600" fill="#65817e">Async tasks</text>
+<text x="91" y="445" font-size="96" font-weight="750" fill="#263641">异步任务</text>
+<text x="91" y="571" font-size="92" font-weight="750" fill="#263641">结果与并发</text>
+<text x="835" y="250" font-size="25" font-weight="500" fill="#7892a2">request</text><text x="1225" y="250" font-size="25" font-weight="500" fill="#7892a2">completion</text><circle cx="860" cy="345" r="23" fill="#82a8ce"/><circle cx="860" cy="555" r="23" fill="#438b7e"/><path d="M895 345 C1095 345 1130 560 1290 560" fill="none" stroke="#82a8ce" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)" stroke-dasharray="7 11"/><path d="M895 555 C1070 555 1095 345 1290 345" fill="none" stroke="#438b7e" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)" /><rect x="1305" y="303" width="160" height="82" rx="16" fill="#dbece7" stroke="none" stroke-width="3"/><text x="1327" y="354" font-size="27" font-weight="500" fill="#438b7e">APPLY</text><rect x="1305" y="516" width="160" height="82" rx="16" fill="#e9eef2" stroke="none" stroke-width="3"/><text x="1327" y="567" font-size="27" font-weight="500" fill="#438b7e">IGNORE</text><text x="831" y="660" font-size="28" font-weight="500" fill="#82a8ce">epoch 1</text><text x="1165" y="715" font-size="28" font-weight="500" fill="#438b7e">epoch 2 wins</text>
+</g></svg>

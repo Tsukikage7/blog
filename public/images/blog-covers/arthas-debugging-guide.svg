@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="960" viewBox="0 0 1536 960" role="img" aria-labelledby="title desc">
+<title id="title">Arthas：线上诊断，追踪与观察</title>
+<desc id="desc">浅色技术图形封面，无人物；用蓝绿结构图表达文章主题。</desc>
+<defs><linearGradient id="paper" x2="1" y2="1"><stop stop-color="#fcfbf7"/><stop offset="1" stop-color="#f5f8f6"/></linearGradient>
+<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#83aeb0" stroke-width="1.6"/></marker></defs>
+<rect width="1536" height="960" fill="url(#paper)"/>
+<path d="M0 835 C330 700 570 995 1030 865 C1300 790 1430 780 1536 809 V960 H0Z" fill="#e5eeea" opacity=".5"/>
+<path d="M0 895 C420 795 595 935 1000 915 C1290 900 1385 850 1536 870 V960 H0Z" fill="#dce9e4" opacity=".36"/>
+<g font-family="'PingFang SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+<text x="96" y="290" font-size="38" font-weight="600" fill="#65817e">Arthas</text>
+<text x="91" y="445" font-size="96" font-weight="750" fill="#263641">线上诊断</text>
+<text x="91" y="571" font-size="92" font-weight="750" fill="#263641">追踪与观察</text>
+<rect x="820" y="300" width="335" height="330" rx="23" fill="#edf2f3" stroke="#b6cad5" stroke-width="3"/><rect x="849" y="333" width="205" height="28" rx="6" fill="#c4d7e7" stroke="none" stroke-width="3"/><rect x="849" y="384" width="196" height="28" rx="6" fill="#c4d7e7" stroke="none" stroke-width="3"/><rect x="849" y="435" width="254" height="28" rx="6" fill="#9fc7ba" stroke="none" stroke-width="3"/><rect x="849" y="486" width="178" height="28" rx="6" fill="#c4d7e7" stroke="none" stroke-width="3"/><rect x="849" y="537" width="169" height="28" rx="6" fill="#c4d7e7" stroke="none" stroke-width="3"/><circle cx="1300" cy="450" r="91" fill="#dfede8"/><circle cx="1300" cy="450" r="49" fill="none" stroke="#438b7e" stroke-width="7"/><path d="M1336 488 l42 48" fill="none" stroke="#438b7e" stroke-width="3" stroke-linecap="round"  /><path d="M1120 450 H1180" fill="none" stroke="#438b7e" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)" /><text x="844" y="720" font-size="27" font-weight="500" fill="#7892a2">TRACE</text><text x="1235" y="720" font-size="27" font-weight="500" fill="#7892a2">INSPECT</text>
+</g></svg>

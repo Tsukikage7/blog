@@ -1,824 +1,127 @@
 ---
-title: "io_uring: Linux 异步 I/O 的未来"
-description: 深入理解 Linux io_uring 机制，从设计哲学到实际应用，看它如何超越 epoll 成为下一代高性能 I/O 接口
+title: "io_uring：提交、完成与缓冲区生命周期"
+description: "区分就绪通知和完成通知，用一次文件读取说明 SQE、CQE、错误处理与缓冲区复用边界。"
 created: 2026-01-13 00:00:00
-updated: 2026-01-13 00:00:00
+updated: 2026-10-05
 categories:
-  - 后端开发
+  - Linux 与网络
 tags:
   - Linux
-  - 网络编程
-  - IO多路复用
+  - I/O
   - io_uring
+image: "https://assets.tsukikage7.com/blog/cover/io-uring.webp"
 ---
 
-如果你读过我之前的 epoll 系列，你会知道 epoll 已经很强大了——O(1) 的事件通知、回调驱动、能轻松处理百万连接。那为什么还需要 io_uring？
+epoll 通知文件描述符的就绪状态，程序随后执行实际读写；io_uring 允许提交一个操作，再从完成队列读取它的结果。理解这个区别，才能判断事件循环需要怎样管理请求与内存。
 
-答案很简单：epoll 虽然解决了"如何高效等待事件"的问题，但它没有解决"如何高效执行 I/O"的问题。
+这里使用普通 liburing 读取请求，先把请求的生命周期走完整，再讨论轮询、注册缓冲区和优化。本文不提供“比 epoll 快几倍”的结论。
 
-## epoll 的局限性
+## SQE 描述请求，CQE 描述完成
 
-让我们回顾一下使用 epoll 的典型代码：
+Submission Queue 保存待提交操作，Completion Queue 保存完成结果。程序获得一个 SQE 后填写操作、文件描述符、缓冲区和偏移；提交后，用 CQE 的 `user_data` 关联原请求，用 `res` 判断结果。[io_uring 概览](https://man7.org/linux/man-pages/man7/io_uring.7.html)描述了两组队列。
 
-```c
-// 等待事件
-int n = epoll_wait(epfd, events, MAX_EVENTS, -1);
+共享队列通常通过 mmap 映射，但共享控制结构不等于用户数据零拷贝，也不意味着不再需要系统调用。默认路径仍可能需要进入内核提交或等待，liburing 负责具体接口细节。
 
-// 处理每个就绪的 fd
-for (int i = 0; i < n; i++) {
-    if (events[i].events & EPOLLIN) {
-        // 这里仍然是同步调用！
-        read(events[i].data.fd, buf, sizeof(buf));
-    }
-}
-```
+## 生命周期比队列名称更重要
 
-注意到问题了吗？`epoll_wait` 告诉你"数据准备好了"，但 `read()` 调用本身仍然是同步的。虽然数据已经在内核缓冲区，`read()` 不会阻塞太久，但它仍然需要：
+| 阶段       | 程序需要保证                                 |
+| ---------- | -------------------------------------------- |
+| 填写 SQE   | 还有队列槽位，参数合法，关联标识明确         |
+| 提交后等待 | 请求缓冲区保持有效，不能修改或复用           |
+| 读取 CQE   | 区分等待接口错误与实际操作错误               |
+| 处理结果   | 处理 EOF、短读或短写；保存后续还需使用的字段 |
+| 标记已消费 | 不再访问该 CQE；业务缓冲区按请求生命周期回收 |
 
-1. **系统调用开销**：每次 read/write 都要陷入内核
-2. **数据拷贝**：从内核缓冲区拷贝到用户缓冲区
-3. **上下文切换**：用户态和内核态之间的切换
+`io_uring_submit` 的返回值表示提交数量，不是读取的字节数。[submit 文档](https://man7.org/linux/man-pages/man3/io_uring_submit.3.html)与 [wait_cqe 文档](https://man7.org/linux/man-pages/man3/io_uring_wait_cqe.3.html)解释了各自的返回值。
 
-当你有 10 万个活跃连接，每秒处理 100 万个请求时，这些开销就变得不可忽视了。
+普通读取完成时，`cqe->res < 0` 表示负的错误码，0 表示 EOF，正数是本次读取字节数。[prep_read 文档](https://man7.org/linux/man-pages/man3/io_uring_prep_read.3.html)说明了读取参数和完成结果。不要在操作失败时直接查看 `errno` 来替代 `-cqe->res`。
 
-### 系统调用的成本
+## 一个读取一次的完整程序
 
-一次系统调用大约需要 100-200 纳秒（现代 CPU）。听起来很快？但算一下：
-
-- 100 万 QPS = 每秒 100 万次 read + 100 万次 write = 200 万次系统调用
-- 200 万 × 150ns = 300ms
-
-也就是说，光是系统调用的开销就占用了 30% 的 CPU 时间。这还没算数据拷贝和其他处理逻辑。
-
-### Linux AIO 的失败尝试
-
-Linux 很早就有了 AIO（Asynchronous I/O）接口，理论上可以实现真正的异步 I/O：
+下面从文件偏移 0 读取最多 4,096 字节，并写到标准输出。只提交一个请求，不使用 SQPOLL、固定缓冲区、链接请求或 multishot，因此完成处理边界清晰。它不是完整文件复制工具，也不是 echo 服务器。
 
 ```c
-struct iocb cb;
-io_prep_pread(&cb, fd, buf, count, offset);
-io_submit(ctx, 1, &cb);
-// ... 做其他事情 ...
-io_getevents(ctx, 1, 1, events, NULL);  // 获取完成的操作
-```
-
-但 Linux AIO 有几个致命问题：
-
-1. **只支持 O_DIRECT**：必须绕过页缓存，不能用于普通文件读写
-2. **不支持网络 I/O**：只能用于磁盘操作
-3. **实现有 bug**：某些情况下会退化为同步操作
-4. **API 设计糟糕**：使用起来非常繁琐
-
-正是因为 Linux AIO 的种种问题，Jens Axboe（Linux 块设备子系统的维护者）在 2019 年设计了 io_uring。
-
-## io_uring 的设计哲学
-
-io_uring 的核心理念可以用一句话概括：**批量提交，异步完成，零拷贝通信**。
-
-### 环形缓冲区：告别系统调用
-
-io_uring 最创新的设计是使用两个环形缓冲区（ring buffer）在用户态和内核态之间通信：
-
-```mermaid
-flowchart LR
-    subgraph UserSpace["用户空间"]
-        SQ["提交队列 (SQ)<br/>Submission Queue"]
-        CQ["完成队列 (CQ)<br/>Completion Queue"]
-    end
-
-    subgraph KernelSpace["内核空间"]
-        Kernel["内核处理"]
-    end
-
-    SQ -->|"提交 I/O 请求"| Kernel
-    Kernel -->|"返回完成结果"| CQ
-```
-
-关键点在于：这两个队列是通过 `mmap` 映射到用户空间的，用户程序和内核可以直接读写，**不需要系统调用**！
-
-传统模式 vs io_uring：
-
-| 操作 | 传统模式 | io_uring |
-|------|----------|----------|
-| 提交 1000 个读请求 | 1000 次 read() 系统调用 | 写入 SQ，1 次 io_uring_enter() |
-| 获取完成结果 | 每次 read() 返回时获取 | 从 CQ 读取，可能 0 次系统调用 |
-
-### SQE 和 CQE
-
-提交队列中的每个条目叫 SQE（Submission Queue Entry），完成队列中的条目叫 CQE（Completion Queue Entry）。
-
-```c
-// SQE 结构（简化）
-struct io_uring_sqe {
-    __u8    opcode;      // 操作类型：读、写、accept 等
-    __u8    flags;       // 标志位
-    __u16   ioprio;      // I/O 优先级
-    __s32   fd;          // 文件描述符
-    __u64   off;         // 文件偏移
-    __u64   addr;        // 缓冲区地址
-    __u32   len;         // 长度
-    __u64   user_data;   // 用户数据，会原样返回
-    // ... 其他字段
-};
-
-// CQE 结构
-struct io_uring_cqe {
-    __u64   user_data;   // 来自 SQE 的用户数据
-    __s32   res;         // 操作结果（成功返回字节数，失败返回负数）
-    __u32   flags;       // 标志位
-};
-```
-
-`user_data` 字段非常重要——你可以在提交请求时设置它，内核会原样返回。这让你能够追踪哪个请求完成了。
-
-### 三种工作模式
-
-io_uring 支持三种工作模式，适应不同场景：
-
-**1. 默认模式（中断驱动）**
-
-```c
-// 提交请求后，需要调用 io_uring_enter() 通知内核
-io_uring_submit(&ring);  // 内部调用 io_uring_enter()
-```
-
-**2. SQPOLL 模式（内核轮询）**
-
-```c
-// 设置 IORING_SETUP_SQPOLL 标志
-struct io_uring_params params = {
-    .flags = IORING_SETUP_SQPOLL,
-    .sq_thread_idle = 10000,  // 空闲 10ms 后休眠
-};
-io_uring_queue_init_params(QUEUE_DEPTH, &ring, &params);
-
-// 提交请求后，内核线程会自动处理，不需要系统调用！
-```
-
-在 SQPOLL 模式下，内核会创建一个专门的线程来轮询 SQ。只要 SQ 中有新请求，内核线程就会处理，用户程序完全不需要调用 `io_uring_enter()`。
-
-**3. IOPOLL 模式（轮询完成）**
-
-```c
-// 设置 IORING_SETUP_IOPOLL 标志
-// 适用于高速 NVMe SSD，通过轮询而非中断来检测完成
-```
-
-### 零拷贝：更进一步
-
-io_uring 还支持注册缓冲区，实现真正的零拷贝：
-
-```c
-// 注册固定缓冲区
-struct iovec iovecs[NUM_BUFFERS];
-for (int i = 0; i < NUM_BUFFERS; i++) {
-    iovecs[i].iov_base = buffers[i];
-    iovecs[i].iov_len = BUFFER_SIZE;
-}
-io_uring_register_buffers(&ring, iovecs, NUM_BUFFERS);
-
-// 使用注册的缓冲区进行 I/O
-// 内核可以直接使用这些缓冲区，避免额外的拷贝和映射
-```
-
-## 实战：用 io_uring 写一个 echo 服务器
-
-理论讲够了，来看看实际代码。我们用 liburing（io_uring 的用户态封装库）来实现一个简单的 echo 服务器。
-
-### 基本结构
-
-```c
+#define _GNU_SOURCE
+#include <errno.h>
+#include <fcntl.h>
 #include <liburing.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 
-#define QUEUE_DEPTH 256
-#define BUFFER_SIZE 1024
-
-// 请求类型
-enum {
-    EVENT_TYPE_ACCEPT,
-    EVENT_TYPE_READ,
-    EVENT_TYPE_WRITE,
-};
-
-// 连接信息
-struct conn_info {
-    int fd;
-    int type;
-    char buf[BUFFER_SIZE];
-};
-
-struct io_uring ring;
-```
-
-### 初始化
-
-```c
-int setup_listening_socket(int port) {
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-
-    int opt = 1;
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
-    struct sockaddr_in addr = {
-        .sin_family = AF_INET,
-        .sin_port = htons(port),
-        .sin_addr.s_addr = INADDR_ANY,
-    };
-
-    bind(sock, (struct sockaddr*)&addr, sizeof(addr));
-    listen(sock, SOMAXCONN);
-
-    return sock;
-}
-
-int main() {
-    // 初始化 io_uring
-    io_uring_queue_init(QUEUE_DEPTH, &ring, 0);
-
-    int listen_fd = setup_listening_socket(8080);
-    printf("Server listening on port 8080\n");
-
-    // 提交第一个 accept 请求
-    add_accept_request(listen_fd);
-
-    // 事件循环
-    event_loop(listen_fd);
-
-    io_uring_queue_exit(&ring);
-    return 0;
-}
-```
-
-### 提交请求
-
-```c
-void add_accept_request(int listen_fd) {
+int main(int argc, char **argv) {
+    if (argc != 2) {
+        fprintf(stderr, "usage: %s FILE\n", argv[0]);
+        return 2;
+    }
+    int fd = open(argv[1], O_RDONLY);
+    if (fd < 0) { perror("open"); return 1; }
+    struct io_uring ring;
+    int rc = io_uring_queue_init(2, &ring, 0);
+    if (rc < 0) {
+        fprintf(stderr, "queue_init: %s\n", strerror(-rc));
+        close(fd);
+        return 1;
+    }
+    char buffer[4096];
     struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
-
-    struct conn_info *conn = malloc(sizeof(struct conn_info));
-    conn->fd = listen_fd;
-    conn->type = EVENT_TYPE_ACCEPT;
-
-    // 准备 accept 操作
-    io_uring_prep_accept(sqe, listen_fd, NULL, NULL, 0);
-    io_uring_sqe_set_data(sqe, conn);
-}
-
-void add_read_request(int fd) {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
-
-    struct conn_info *conn = malloc(sizeof(struct conn_info));
-    conn->fd = fd;
-    conn->type = EVENT_TYPE_READ;
-
-    // 准备 read 操作
-    io_uring_prep_recv(sqe, fd, conn->buf, BUFFER_SIZE, 0);
-    io_uring_sqe_set_data(sqe, conn);
-}
-
-void add_write_request(int fd, char *buf, size_t len) {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
-
-    struct conn_info *conn = malloc(sizeof(struct conn_info));
-    conn->fd = fd;
-    conn->type = EVENT_TYPE_WRITE;
-    memcpy(conn->buf, buf, len);
-
-    // 准备 write 操作
-    io_uring_prep_send(sqe, fd, conn->buf, len, 0);
-    io_uring_sqe_set_data(sqe, conn);
-}
-```
-
-### 事件循环
-
-```c
-void event_loop(int listen_fd) {
+    if (!sqe) { fprintf(stderr, "SQ full\n"); rc = -ENOSPC; goto done; }
+    io_uring_prep_read(sqe, fd, buffer, sizeof buffer, 0);
+    io_uring_sqe_set_data64(sqe, 1);
+    rc = io_uring_submit(&ring);
+    if (rc != 1) {
+        fprintf(stderr, "submit: %s\n", rc < 0 ? strerror(-rc) : "no request submitted");
+        rc = -EIO;
+        goto done;
+    }
     struct io_uring_cqe *cqe;
-
-    while (1) {
-        // 提交所有待处理的请求
-        io_uring_submit(&ring);
-
-        // 等待至少一个完成事件
-        int ret = io_uring_wait_cqe(&ring, &cqe);
-        if (ret < 0) {
-            perror("io_uring_wait_cqe");
-            break;
-        }
-
-        // 处理完成事件
-        struct conn_info *conn = io_uring_cqe_get_data(cqe);
-
-        switch (conn->type) {
-        case EVENT_TYPE_ACCEPT:
-            if (cqe->res >= 0) {
-                int client_fd = cqe->res;
-                printf("Accepted connection: fd=%d\n", client_fd);
-
-                // 为新连接添加读请求
-                add_read_request(client_fd);
-
-                // 继续接受新连接
-                add_accept_request(listen_fd);
-            }
-            break;
-
-        case EVENT_TYPE_READ:
-            if (cqe->res > 0) {
-                // 收到数据，echo 回去
-                add_write_request(conn->fd, conn->buf, cqe->res);
-            } else {
-                // 连接关闭或错误
-                printf("Connection closed: fd=%d\n", conn->fd);
-                close(conn->fd);
-            }
-            break;
-
-        case EVENT_TYPE_WRITE:
-            if (cqe->res > 0) {
-                // 写完成，继续读
-                add_read_request(conn->fd);
-            } else {
-                // 写失败
-                close(conn->fd);
-            }
-            break;
-        }
-
-        free(conn);
-        io_uring_cqe_seen(&ring, cqe);
-    }
+    do { rc = io_uring_wait_cqe(&ring, &cqe); } while (rc == -EINTR);
+    if (rc < 0) { fprintf(stderr, "wait: %s\n", strerror(-rc)); goto done; }
+    int result = cqe->res;
+    unsigned long long id = (unsigned long long) cqe->user_data;
+    io_uring_cqe_seen(&ring, cqe);
+    if (id != 1) { fprintf(stderr, "unexpected request id\n"); rc = -EIO; goto done; }
+    if (result < 0) { fprintf(stderr, "read: %s\n", strerror(-result)); rc = result; goto done; }
+    if (fwrite(buffer, 1, (size_t) result, stdout) != (size_t) result) {
+        perror("fwrite"); rc = -EIO;
+    } else rc = 0;
+done:
+    io_uring_queue_exit(&ring);
+    close(fd);
+    return rc < 0 ? 1 : 0;
 }
 ```
 
-### 编译和运行
+在安装 liburing 开发库的 Linux 环境执行：
 
-```bash
-# 安装 liburing
-sudo apt install liburing-dev  # Ubuntu/Debian
-# 或
-sudo yum install liburing-devel  # CentOS/RHEL
-
-# 编译
-gcc -o echo_server echo_server.c -luring
-
-# 运行
-./echo_server
+```sh
+cc -std=c11 -Wall -Wextra -Werror "read_once.c" -luring -o "read_once"
+printf 'hello io_uring\n' > "input.txt"
+./read_once "input.txt"
 ```
 
-## Go 语言实现
+[下载完整程序](/examples/content-completion/read_once.c)。正常成功路径先保存完成结果，再调用 `io_uring_cqe_seen`，最后关闭 ring 和文件。CQE 槽位标记消费后可能复用，因此不能继续从旧指针读取。[cqe_seen 文档](https://man7.org/linux/man-pages/man3/io_uring_cqe_seen.3.html)解释了这个接口。
 
-Go 语言虽然有自己的 runtime 和 netpoller，但也可以通过第三方库使用 io_uring。目前最成熟的库是 `iceber/iouring-go`。
+这份单请求程序的栈缓冲区一直保留到清理结束。扩展成并发服务器时，需要用请求对象管理内存，在请求真正完成前保持它有效；取消请求也必须等待并处理相关完成事件，不能收到取消请求的结果就任意释放原请求缓冲区。
 
-### 安装
+## 固定缓冲区不自动消除数据拷贝
 
-```bash
-go get github.com/iceber/iouring-go
-```
+注册缓冲区使内核预先获得可用内存范围，可减少特定路径的反复注册、映射等成本。它不是对所有文件和网络读写的零拷贝承诺。[缓冲区注册文档](https://man7.org/linux/man-pages/man3/io_uring_register_buffers.3.html)说明了注册范围与使用方式。
 
-需要注意的是，使用 io_uring 需要 Linux 内核 5.1 以上，且运行程序的用户需要有足够权限。
+特定发送操作支持零拷贝相关机制时，还要遵守它的额外完成与内存复用约束，不能直接套用普通单次读取的“一条 CQE 即可回收所有资源”。
 
-### 基本用法
+## SQPOLL 与 IOPOLL 解决不同问题
 
-先看一个简单的文件读取示例：
+SQPOLL 让内核线程轮询提交队列，减少部分提交路径的进入内核成本；线程休眠后可能仍需要唤醒。IOPOLL 用轮询方式检查适用设备的 I/O 完成，受设备、驱动与请求方式限制。二者都不是“免费加速”，也不能视为三个互斥工作模式。[setup 文档](https://man7.org/linux/man-pages/man2/io_uring_setup.2.html)列出配置条件。
 
-```go
-package main
+先测默认模式，再讨论轮询。请求深度太大可能增加延迟和内存，轮询还会占 CPU。比较 epoll 与 io_uring 时要保持负载、缓冲区、并发、错误处理和机器条件相同，记录吞吐、尾延迟及 CPU，不能用系统调用的估算时间直接推导性能收益。
 
-import (
-    "fmt"
-    "os"
-    "syscall"
+## 运行失败与验证范围
 
-    "github.com/iceber/iouring-go"
-)
+本次整理在 Linux/arm64 的 Alpine 容器中使用上述编译选项通过编译；运行时初始化返回 `Operation not permitted`。因此当前验证没有覆盖成功读取、EOF 或短读路径。应在允许该接口的 Linux 环境继续复现以下用例，不能把这次编译结果作为读取成功的证据。
 
-func main() {
-    // 创建 io_uring 实例
-    iour, err := iouring.New(64) // 队列深度 64
-    if err != nil {
-        panic(err)
-    }
-    defer iour.Close()
+内核版本和功能支持、容器策略或系统配置可能使初始化返回错误。先保留实际错误码，再检查运行环境，不能把初始化失败当作程序已经验证成功。这个示例不依赖某个未经探测的新 opcode；更复杂的程序应检查实际支持的功能。
 
-    // 打开文件
-    file, err := os.Open("test.txt")
-    if err != nil {
-        panic(err)
-    }
-    defer file.Close()
+复现时至少覆盖普通小文件、空文件、不存在路径以及超过缓冲区的文件；最后一种预期只输出前 4,096 字节。本文没有提供网络服务器实测或性能排名。理解就绪通知可对照 [epoll EP1](/blog/epoll-ep1/)。
 
-    // 准备缓冲区
-    buf := make([]byte, 1024)
-
-    // 创建读取请求
-    request := iouring.Pread(int(file.Fd()), buf, 0)
-
-    // 提交请求并等待完成
-    result, err := iour.SubmitRequest(request, nil)
-    if err != nil {
-        panic(err)
-    }
-
-    // 获取结果
-    <-result.Done()
-    n, err := result.ReturnInt()
-    if err != nil {
-        panic(err)
-    }
-
-    fmt.Printf("Read %d bytes: %s\n", n, string(buf[:n]))
-}
-```
-
-### Echo 服务器示例
-
-下面是一个完整的 echo 服务器实现：
-
-```go
-package main
-
-import (
-    "fmt"
-    "net"
-    "syscall"
-
-    "github.com/iceber/iouring-go"
-)
-
-const (
-    BufferSize = 1024
-    QueueDepth = 256
-)
-
-type ConnInfo struct {
-    fd  int
-    buf []byte
-}
-
-func main() {
-    // 创建监听 socket
-    listenFd, err := createListenSocket(8080)
-    if err != nil {
-        panic(err)
-    }
-    defer syscall.Close(listenFd)
-
-    fmt.Println("Server listening on port 8080")
-
-    // 创建 io_uring 实例
-    iour, err := iouring.New(QueueDepth)
-    if err != nil {
-        panic(err)
-    }
-    defer iour.Close()
-
-    // 开始事件循环
-    eventLoop(iour, listenFd)
-}
-
-func createListenSocket(port int) (int, error) {
-    // 创建 socket
-    fd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_STREAM, 0)
-    if err != nil {
-        return 0, err
-    }
-
-    // 设置 SO_REUSEADDR
-    syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_REUSEADDR, 1)
-
-    // 绑定地址
-    addr := syscall.SockaddrInet4{Port: port}
-    copy(addr.Addr[:], net.ParseIP("0.0.0.0").To4())
-    if err := syscall.Bind(fd, &addr); err != nil {
-        syscall.Close(fd)
-        return 0, err
-    }
-
-    // 监听
-    if err := syscall.Listen(fd, syscall.SOMAXCONN); err != nil {
-        syscall.Close(fd)
-        return 0, err
-    }
-
-    return fd, nil
-}
-
-func eventLoop(iour *iouring.IOURing, listenFd int) {
-    // 提交第一个 accept 请求
-    acceptAndHandle(iour, listenFd)
-
-    // 主循环
-    for {
-        // 等待完成事件
-        result, err := iour.WaitCQEvents(1)
-        if err != nil {
-            fmt.Printf("WaitCQEvents error: %v\n", err)
-            continue
-        }
-
-        for _, res := range result {
-            // 处理完成事件
-            handleCompletion(iour, listenFd, res)
-        }
-    }
-}
-
-func acceptAndHandle(iour *iouring.IOURing, listenFd int) {
-    // 创建 accept 请求
-    request := iouring.Accept(listenFd, 0)
-
-    // 异步提交
-    iour.SubmitRequest(request, func(result iouring.Result) error {
-        clientFd, err := result.ReturnFd()
-        if err != nil {
-            fmt.Printf("Accept error: %v\n", err)
-            return nil
-        }
-
-        fmt.Printf("Accepted connection: fd=%d\n", clientFd)
-
-        // 为新连接开始读取
-        conn := &ConnInfo{
-            fd:  clientFd,
-            buf: make([]byte, BufferSize),
-        }
-        readFromClient(iour, conn)
-
-        // 继续 accept 新连接
-        acceptAndHandle(iour, listenFd)
-        return nil
-    })
-}
-
-func readFromClient(iour *iouring.IOURing, conn *ConnInfo) {
-    request := iouring.Recv(conn.fd, conn.buf, 0)
-
-    iour.SubmitRequest(request, func(result iouring.Result) error {
-        n, err := result.ReturnInt()
-        if err != nil || n <= 0 {
-            fmt.Printf("Connection closed: fd=%d\n", conn.fd)
-            syscall.Close(conn.fd)
-            return nil
-        }
-
-        // Echo 数据回去
-        writeToClient(iour, conn, n)
-        return nil
-    })
-}
-
-func writeToClient(iour *iouring.IOURing, conn *ConnInfo, length int) {
-    // 复制数据以避免覆盖
-    sendBuf := make([]byte, length)
-    copy(sendBuf, conn.buf[:length])
-
-    request := iouring.Send(conn.fd, sendBuf, 0)
-
-    iour.SubmitRequest(request, func(result iouring.Result) error {
-        n, err := result.ReturnInt()
-        if err != nil || n <= 0 {
-            fmt.Printf("Write error, closing fd=%d\n", conn.fd)
-            syscall.Close(conn.fd)
-            return nil
-        }
-
-        // 继续读取
-        readFromClient(iour, conn)
-        return nil
-    })
-}
-
-func handleCompletion(iour *iouring.IOURing, listenFd int, res iouring.Result) {
-    // 回调已经在 SubmitRequest 中处理
-}
-```
-
-### 编译和运行
-
-```bash
-# 确保你的 Linux 内核版本 >= 5.1
-uname -r
-
-# 编译
-go build -o echo_server main.go
-
-# 运行
-./echo_server
-```
-
-### 关于 Go 和 io_uring 的思考
-
-你可能会问：Go 已经有了高效的 netpoller（基于 epoll），为什么还要用 io_uring？
-
-这是一个好问题。实际上，对于大多数 Go 网络程序，标准库的 net 包已经足够高效。使用 io_uring 的场景主要是：
-
-**1. 磁盘 I/O 密集型应用**
-
-Go 的 goroutine 模型在网络 I/O 上表现出色，但文件 I/O 会阻塞整个操作系统线程。io_uring 的异步文件 I/O 可以解决这个问题：
-
-```go
-// 批量读取多个文件
-requests := make([]iouring.Request, len(files))
-for i, f := range files {
-    buf := make([]byte, 4096)
-    requests[i] = iouring.Pread(int(f.Fd()), buf, 0)
-}
-
-// 一次提交所有请求
-results, _ := iour.SubmitRequests(requests, nil)
-
-// 等待所有完成
-for _, result := range results {
-    <-result.Done()
-}
-```
-
-**2. 需要极致性能的场景**
-
-如果你正在写一个数据库、存储系统，或者需要处理百万级 QPS 的服务，io_uring 的零拷贝和批量提交能够带来显著提升。
-
-**3. 与 C 库互操作**
-
-如果你的 Go 程序需要和使用 io_uring 的 C 库协作，原生支持 io_uring 会更自然。
-
-### 注意事项
-
-在 Go 中使用 io_uring 需要注意：
-
-1. **CGO 依赖**：大多数 Go io_uring 库都依赖 CGO，可能影响跨平台编译
-2. **Goroutine 协作**：io_uring 的回调模型与 goroutine 不太一样，需要仔细设计
-3. **内存管理**：传递给 io_uring 的缓冲区需要确保在操作完成前不被 GC
-4. **稳定性**：Go 的 io_uring 生态还不够成熟，生产环境使用需谨慎
-
-对于大多数 Go 开发者来说，标准库的 net 包仍然是首选。但了解 io_uring 能帮助你理解底层 I/O 机制，在特定场景下做出更好的技术选择。
-
-## io_uring vs epoll 性能对比
-
-我们来做一个简单的基准测试，对比 io_uring 和 epoll 在不同场景下的性能。
-
-### 测试环境
-
-- CPU: AMD EPYC 7763 (64 核)
-- 内存: 256GB DDR4
-- 内核: Linux 5.15
-- 测试工具: wrk
-
-### 网络 I/O 测试结果
-
-| 指标 | epoll | io_uring | io_uring (SQPOLL) |
-|------|-------|----------|-------------------|
-| QPS (短连接) | 150K | 180K | 220K |
-| QPS (长连接) | 450K | 520K | 680K |
-| 延迟 P99 | 2.1ms | 1.5ms | 0.8ms |
-| CPU 使用率 | 85% | 72% | 65% |
-
-可以看到：
-
-1. **长连接场景收益更大**：io_uring 的批量提交在长连接场景下优势明显
-2. **SQPOLL 模式提升显著**：避免了系统调用，P99 延迟降低 60%
-3. **CPU 使用率更低**：相同 QPS 下，io_uring 更省 CPU
-
-### 磁盘 I/O 测试结果
-
-io_uring 在磁盘 I/O 场景下优势更加明显：
-
-| 指标 | sync read | epoll + AIO | io_uring |
-|------|-----------|-------------|----------|
-| 随机读 IOPS | 50K | 80K | 150K |
-| 顺序读带宽 | 2GB/s | 2.5GB/s | 3.2GB/s |
-| CPU 使用率 | 95% | 80% | 45% |
-
-io_uring 真正实现了异步磁盘 I/O，配合现代 NVMe SSD，能够充分发挥硬件性能。
-
-## io_uring 的高级特性
-
-### 链式操作（SQE Linking）
-
-你可以把多个操作链接起来，前一个成功后才执行下一个：
-
-```c
-// 先读，再写（原子操作链）
-struct io_uring_sqe *sqe1 = io_uring_get_sqe(&ring);
-io_uring_prep_read(sqe1, fd, buf, len, 0);
-sqe1->flags |= IOSQE_IO_LINK;  // 链接到下一个
-
-struct io_uring_sqe *sqe2 = io_uring_get_sqe(&ring);
-io_uring_prep_write(sqe2, fd, buf, len, 0);
-// sqe2 只有在 sqe1 成功后才会执行
-```
-
-### 超时控制
-
-```c
-// 为操作设置超时
-struct __kernel_timespec ts = {
-    .tv_sec = 1,
-    .tv_nsec = 0,
-};
-
-struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
-io_uring_prep_read(sqe, fd, buf, len, 0);
-sqe->flags |= IOSQE_IO_LINK;
-
-struct io_uring_sqe *sqe_timeout = io_uring_get_sqe(&ring);
-io_uring_prep_link_timeout(sqe_timeout, &ts, 0);
-```
-
-### 固定文件描述符
-
-频繁操作同一组文件时，可以注册它们以避免每次都查找：
-
-```c
-int fds[] = {fd1, fd2, fd3};
-io_uring_register_files(&ring, fds, 3);
-
-// 使用注册的 fd（通过索引）
-struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
-io_uring_prep_read(sqe, 0, buf, len, 0);  // 0 是索引，不是 fd
-sqe->flags |= IOSQE_FIXED_FILE;
-```
-
-### 多 shot 操作
-
-某些操作可以设置为"多次触发"，一次提交多次完成：
-
-```c
-// 多 shot accept：一次提交，持续接受连接
-struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
-io_uring_prep_multishot_accept(sqe, listen_fd, NULL, NULL, 0);
-```
-
-这避免了每次 accept 后都要重新提交的开销。
-
-## 谁在使用 io_uring？
-
-io_uring 已经被越来越多的项目采用：
-
-**数据库**
-- RocksDB：Facebook 的 LSM-tree 存储引擎
-- ScyllaDB：高性能 NoSQL 数据库
-
-**网络**
-- NGINX：已有实验性支持
-- HAProxy：负载均衡器
-- Seastar：高性能 C++ 框架（ScyllaDB 的基础）
-
-**编程语言运行时**
-- Tokio (Rust)：通过 tokio-uring 支持
-- Go：实验性的 gouring 库
-- Java：Project Loom 考虑支持
-
-## 何时使用 io_uring？
-
-io_uring 不是银弹，选择时需要考虑：
-
-**适合使用 io_uring 的场景：**
-
-- 高 QPS 服务（>10 万 QPS）
-- 需要同时处理网络和磁盘 I/O
-- 对延迟敏感的应用
-- 使用高速存储设备（NVMe SSD）
-
-**可能不需要 io_uring 的场景：**
-
-- 连接数少、QPS 低的应用
-- 已有成熟的 epoll 代码，运行良好
-- 需要支持旧版本 Linux（< 5.1）
-- 开发资源有限，epoll 够用
-
-**迁移建议：**
-
-1. 先评估当前瓶颈是否在 I/O
-2. 从非关键路径开始尝试
-3. 充分测试，io_uring 仍在快速发展中
-4. 考虑使用封装库（liburing）而非裸 API
-
-## 总结
-
-io_uring 代表了 Linux I/O 子系统的重大进化：
-
-1. **批量提交**：一次系统调用提交多个操作
-2. **异步完成**：真正的异步 I/O，不阻塞用户线程
-3. **零拷贝通信**：通过共享内存避免数据拷贝
-4. **统一接口**：网络、磁盘、定时器等都可以用同一套 API
-
-与 epoll 相比，io_uring 不仅解决了"如何等待事件"，还解决了"如何高效执行 I/O"。它是 Linux 高性能 I/O 的未来。
-
-当然，epoll 并不会消失。对于大多数应用，epoll 仍然是够用的。但如果你追求极致性能，或者需要处理海量 I/O，io_uring 值得一试。
-
-最后，io_uring 仍在快速发展中，每个内核版本都会带来新特性和改进。保持关注，未来可期。
-
-## 参考资料
-
-- [io_uring 官方文档](https://kernel.dk/io_uring.pdf)
-- [liburing GitHub](https://github.com/axboe/liburing)
-- [Lord of the io_uring](https://unixism.net/loti/) - 优秀的入门教程
-- [Linux 5.1 Release Notes](https://kernelnewbies.org/Linux_5.1)
+[下载全部示例工程](/examples/content-completion/content-examples.zip)。

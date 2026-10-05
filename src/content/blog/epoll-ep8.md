@@ -1,15 +1,17 @@
 ---
 title: "[epoll] EP8 实战案例分析"
+image: "https://assets.tsukikage7.com/blog/cover/epoll-ep8.webp"
 description: Nginx、Redis、Go runtime 中 epoll 的实际应用，深入理解真实项目如何使用 epoll
 created: 2026-01-08 00:00:00
 updated: 2026-01-08 00:00:00
+series: epoll
+seriesOrder: 8
 categories:
-  - 后端开发
+  - Linux 与网络
 tags:
   - Linux
   - 网络编程
-  - IO多路复用
-  - 实战案例
+  - I/O 多路复用
 ---
 
 学完原理，最好的巩固方式就是看大师们是怎么做的。这一章，我们将走进三个顶级项目的源码——Nginx、Redis 和 Go runtime，看看它们是如何使用 epoll 的。

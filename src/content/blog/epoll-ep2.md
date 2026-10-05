@@ -1,14 +1,17 @@
 ---
 title: "[epoll] EP2 epoll 的核心原理"
+image: "https://assets.tsukikage7.com/blog/cover/epoll-ep2.webp"
 description: 深入解析 epoll 的内部工作机制，包括三个核心 API、红黑树与就绪链表数据结构、以及水平触发与边缘触发的区别
 created: 2026-01-02 00:00:00
-updated: 2026-01-02 00:00:00
+updated: 2026-10-05
+series: epoll
+seriesOrder: 2
 categories:
-  - 后端开发
+  - Linux 与网络
 tags:
   - Linux
   - 网络编程
-  - IO多路复用
+  - I/O 多路复用
 ---
 
 上一章我们看到了 epoll 相比 select 和 poll 的巨大性能优势。但 epoll 究竟是怎么做到的？让我们深入内核，看看它的核心原理。
@@ -152,7 +155,7 @@ epoll_ctl(epfd2, EPOLL_CTL_ADD, epfd1, &event);
 #### 内核数据结构：eventpoll
 
 ```c
-// 内核源码：include/linux/eventpoll.h
+// eventpoll 的概念示意，完整结构见 fs/eventpoll.c
 struct eventpoll {
     // 红黑树根节点
     // 用于管理所有监听的 fd
@@ -176,8 +179,7 @@ struct eventpoll {
     // 当前活跃的 fd 数量
     int epitems_nr;
 
-    // 用户态 mmap 的页面
-    // 用于零拷贝优化
+    // 所属用户与实例文件（并非共享事件页面）
     struct user_struct *user;
     struct file *file;
 };
@@ -887,7 +889,7 @@ graph TD
 ### eventpoll：epoll 的核心对象
 
 ```c
-// 内核源码：include/linux/eventpoll.h
+// eventpoll 的概念示意，完整结构见 fs/eventpoll.c
 struct eventpoll {
     // 红黑树根节点，管理所有监听的 fd
     // 插入、删除、查找都是 O(log n)
@@ -912,7 +914,7 @@ struct eventpoll {
     // 当前活跃的 fd 数量
     int epitems_nr;
 
-    // 用户态 mmap 的页面
+    // 所属用户与实例文件（并非共享事件页面）
     struct user_struct *user;
     struct file *file;
 };
@@ -1617,11 +1619,11 @@ epoll 的核心原理：
 1. **三个 API**：`epoll_create1`、`epoll_ctl`、`epoll_wait`
 2. **两个数据结构**：红黑树 + 就绪链表
 3. **一个回调机制**：事件发生时自动加入就绪链表
-4. **两种触发模式**：水平触发（简单）vs 边缘触发（高性能）
+4. **两种触发模式**：水平触发（就绪条件持续通知）与边缘触发（状态变化通知）
 
 关键优化：
 
 - **红黑树**：fd 管理的 O(log n)
 - **回调机制**：避免轮询
 - **就绪链表**：epoll_wait 只返回就绪的 fd
-- **mmap**：减少数据拷贝
+- **注册与等待分离**：每次等待无需重新提交完整兴趣集合

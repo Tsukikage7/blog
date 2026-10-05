@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="960" viewBox="0 0 1536 960" role="img" aria-labelledby="title desc">
+<title id="title">Cluster operations：集群运维，失败的边界</title>
+<desc id="desc">浅色技术图形封面，无人物；用蓝绿结构图表达文章主题。</desc>
+<defs><linearGradient id="paper" x2="1" y2="1"><stop stop-color="#fcfbf7"/><stop offset="1" stop-color="#f5f8f6"/></linearGradient>
+<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#83aeb0" stroke-width="1.6"/></marker></defs>
+<rect width="1536" height="960" fill="url(#paper)"/>
+<path d="M0 835 C330 700 570 995 1030 865 C1300 790 1430 780 1536 809 V960 H0Z" fill="#e5eeea" opacity=".5"/>
+<path d="M0 895 C420 795 595 935 1000 915 C1290 900 1385 850 1536 870 V960 H0Z" fill="#dce9e4" opacity=".36"/>
+<g font-family="'PingFang SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+<text x="96" y="290" font-size="38" font-weight="600" fill="#65817e">Cluster operations</text>
+<text x="91" y="445" font-size="96" font-weight="750" fill="#263641">集群运维</text>
+<text x="91" y="571" font-size="92" font-weight="750" fill="#263641">失败的边界</text>
+<path d="M890 470 H1365" fill="none" stroke="#adc6d7" stroke-width="3" stroke-linecap="round"  /><rect x="805" y="370" width="160" height="190" rx="20" fill="#e3eeea" stroke="none" stroke-width="3"/><rect x="833" y="397" width="103" height="22" rx="5" fill="#a6c9be" stroke="none" stroke-width="3"/><rect x="833" y="440" width="103" height="22" rx="5" fill="#a6c9be" stroke="none" stroke-width="3"/><rect x="833" y="483" width="103" height="22" rx="5" fill="#a6c9be" stroke="none" stroke-width="3"/><circle cx="885" cy="589" r="13" fill="#438b7e"/><rect x="1035" y="370" width="160" height="190" rx="20" fill="#f1e9df" stroke="#c1a98c" stroke-width="3"/><rect x="1063" y="397" width="103" height="22" rx="5" fill="#c7b197" stroke="none" stroke-width="3"/><rect x="1063" y="440" width="103" height="22" rx="5" fill="#c7b197" stroke="none" stroke-width="3"/><rect x="1063" y="483" width="103" height="22" rx="5" fill="#c7b197" stroke="none" stroke-width="3"/><circle cx="1115" cy="589" r="13" fill="#b39978"/><rect x="1265" y="370" width="160" height="190" rx="20" fill="#e3eeea" stroke="none" stroke-width="3"/><rect x="1293" y="397" width="103" height="22" rx="5" fill="#a6c9be" stroke="none" stroke-width="3"/><rect x="1293" y="440" width="103" height="22" rx="5" fill="#a6c9be" stroke="none" stroke-width="3"/><rect x="1293" y="483" width="103" height="22" rx="5" fill="#a6c9be" stroke="none" stroke-width="3"/><circle cx="1345" cy="589" r="13" fill="#c5d3d7"/><text x="819" y="710" font-size="25" font-weight="500" fill="#438b7e">READY</text><text x="1039" y="710" font-size="25" font-weight="500" fill="#a58b6c">STOP</text><text x="1280" y="710" font-size="25" font-weight="500" fill="#7892a2">WAIT</text>
+</g></svg>

@@ -1,15 +1,17 @@
 ---
 title: "[epoll] EP6 深入内核源码"
+image: "https://assets.tsukikage7.com/blog/cover/epoll-ep6.webp"
 description: Linux 内核中 epoll 的完整实现，包括事件循环、回调机制、与网络驱动的交互等底层细节
 created: 2026-01-06 00:00:00
 updated: 2026-01-06 00:00:00
+series: epoll
+seriesOrder: 6
 categories:
-  - 后端开发
+  - Linux 与网络
 tags:
   - Linux
   - 网络编程
-  - IO多路复用
-  - 内核源码
+  - I/O 多路复用
 ---
 
 前几章我们从应用层和系统调用层面学习了 epoll。但要真正理解 epoll 的威力，我们需要深入内核，看看这套机制是如何精心设计的。

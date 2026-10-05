@@ -1,14 +1,17 @@
 ---
 title: "[epoll] EP4 多进程/多线程的 epoll 使用"
+image: "https://assets.tsukikage7.com/blog/cover/epoll-ep4.webp"
 description: epoll 在多进程和多线程环境下的使用，包括惊群效应、EPOLLEXCLUSIVE 独占模式、SO_REUSEPORT 负载均衡，以及完整的多进程服务器实现
 created: 2026-01-04 00:00:00
 updated: 2026-01-04 00:00:00
+series: epoll
+seriesOrder: 4
 categories:
-  - 后端开发
+  - Linux 与网络
 tags:
   - Linux
   - 网络编程
-  - IO多路复用
+  - I/O 多路复用
 ---
 
 前三章我们深入了解了 epoll 的核心原理和性能优化。但如果你仔细想想，会发现一个问题：我们之前写的所有示例代码都是单进程的。在只有一个 CPU 核心的年代，这没什么问题。但现在的服务器动辄 32 核、64 核，如果只用一个进程，岂不是浪费了大量的计算资源？
