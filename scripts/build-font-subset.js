@@ -144,6 +144,7 @@ async function main() {
   console.log(`   ${colors.green}✓${colors.reset} 成功: ${successCount} 个`);
   if (failCount > 0) {
     console.log(`   ${colors.red}✗${colors.reset} 失败: ${failCount} 个`);
+    throw new Error(`字体生成失败: ${failCount} 个文件未生成`);
   }
   console.log('');
 

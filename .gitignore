@@ -133,6 +133,9 @@ coverage/
 .vuepress/dist
 
 # -------------------- Deployment --------------------
+# Cloudflare Wrangler
+.wrangler/
+
 # Vercel
 .vercel/
 
@@ -163,3 +166,6 @@ jspm_packages/
 .serena
 .spec-workflow
 .playwright-mcp
+
+# TypeScript 增量构建缓存
+*.tsbuildinfo

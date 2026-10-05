@@ -1,0 +1,382 @@
+/* Shiki 配色和代码块交互。 */
+.dark pre.astro-code {
+  @apply rounded-xl;
+}
+
+.dark pre.astro-code,
+.dark pre.astro-code span,
+.dark pre.astro-code {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+.markdown-content pre.astro-code,
+#tcomment pre.astro-code,
+.tk-comment pre.astro-code {
+  @apply my-4 overflow-x-auto rounded-xl border border-border bg-muted p-3 text-xs sm:p-4 sm:text-sm;
+}
+
+.markdown-content pre.astro-code code,
+#tcomment pre.astro-code code,
+.tk-comment pre.astro-code {
+  @apply font-mono text-xs sm:text-sm;
+  line-height: 1.6;
+}
+
+@variant sm {
+  .markdown-content pre.astro-code code,
+  #tcomment pre.astro-code code,
+  .tk-comment pre.astro-code {
+    line-height: 1.7;
+  }
+}
+
+.markdown-content pre.astro-code .line,
+#tcomment pre.astro-code .line,
+.tk-comment pre.astro-code .line {
+  @apply pl-2;
+}
+
+.markdown-content pre.astro-code :first-child,
+#tcomment pre.astro-code :first-child,
+.tk-comment pre.astro-code :first-child {
+  @apply pl-0;
+}
+
+.markdown-content .code-collapse-wrapper,
+#tcomment .code-collapse-wrapper,
+.tk-comment .code-collapse-wrapper {
+  @apply relative mb-4 overflow-hidden rounded-xl border border-border;
+}
+
+.markdown-content .code-collapse-wrapper .astro-code,
+#tcomment .code-collapse-wrapper .astro-code,
+.tk-comment .code-collapse-wrapper .astro-code {
+  @apply my-0 rounded-none border-0;
+}
+
+.markdown-content .code-collapse-header,
+#tcomment .code-collapse-header,
+.tk-comment .code-collapse-header {
+  @apply flex cursor-pointer select-none items-center justify-between bg-muted/50 px-3 py-2 transition-colors duration-150;
+}
+
+.markdown-content .code-collapse-header:hover,
+#tcomment .code-collapse-header:hover,
+.tk-comment .code-collapse-header:hover {
+  @apply bg-muted/70;
+}
+
+.markdown-content .code-collapse-header:active,
+#tcomment .code-collapse-header:active,
+.tk-comment .code-collapse-header:active {
+  @apply bg-muted/80;
+}
+
+.markdown-content .code-collapse-content,
+#tcomment .code-collapse-content,
+.tk-comment .code-collapse-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  transition: grid-template-rows 250ms ease;
+}
+
+.markdown-content .code-collapse-content--expanded,
+#tcomment .code-collapse-content--expanded,
+.tk-comment .code-collapse-content--expanded {
+  grid-template-rows: 1fr;
+}
+
+.markdown-content .code-collapse-inner,
+#tcomment .code-collapse-inner,
+.tk-comment .code-collapse-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.markdown-content .code-collapse-inner .astro-code,
+#tcomment .code-collapse-inner .astro-code,
+.tk-comment .code-collapse-inner .astro-code {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.markdown-content .code-collapse-title,
+#tcomment .code-collapse-title,
+.tk-comment .code-collapse-title {
+  @apply flex items-center gap-2;
+}
+
+.markdown-content .code-collapse-icon,
+#tcomment .code-collapse-icon,
+.tk-comment .code-collapse-icon {
+  @apply text-muted-foreground transition-transform duration-200;
+}
+
+.markdown-content .code-collapse-text,
+#tcomment .code-collapse-text,
+.tk-comment .code-collapse-text {
+  @apply text-sm font-medium text-muted-foreground;
+}
+
+.markdown-content .code-collapse-count,
+#tcomment .code-collapse-count,
+.tk-comment .code-collapse-count {
+  @apply rounded-sm bg-muted/80 px-2 py-0.5 text-xs text-muted-foreground/70;
+}
+
+.markdown-content .code-collapse-actions,
+#tcomment .code-collapse-actions,
+.tk-comment .code-collapse-actions {
+  @apply flex items-center gap-2;
+}
+
+.markdown-content .code-collapse-btn,
+.markdown-content .code-collapse-copy-btn,
+#tcomment .code-collapse-btn,
+#tcomment .code-collapse-copy-btn,
+.tk-comment .code-collapse-btn,
+.tk-comment .code-collapse-copy-btn {
+  @apply flex select-none items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium text-foreground transition-colors duration-150;
+}
+
+.markdown-content .code-collapse-btn:hover,
+.markdown-content .code-collapse-copy-btn:hover,
+#tcomment .code-collapse-btn:hover,
+#tcomment .code-collapse-copy-btn:hover,
+.tk-comment .code-collapse-btn:hover,
+.tk-comment .code-collapse-copy-btn:hover {
+  @apply bg-accent text-accent-foreground;
+}
+
+.markdown-content .code-collapse-btn:active,
+.markdown-content .code-collapse-copy-btn:active,
+#tcomment .code-collapse-btn:active,
+#tcomment .code-collapse-copy-btn:active,
+.tk-comment .code-collapse-btn:active,
+.tk-comment .code-collapse-copy-btn:active {
+  @apply scale-95;
+}
+
+.markdown-content .code-collapse-btn svg,
+.markdown-content .code-collapse-copy-btn svg,
+#tcomment .code-collapse-btn svg,
+#tcomment .code-collapse-copy-btn svg,
+.tk-comment .code-collapse-btn svg,
+.tk-comment .code-collapse-copy-btn svg {
+  @apply transition-transform duration-200;
+}
+
+.markdown-content .code-collapse-action-text,
+#tcomment .code-collapse-action-text,
+.tk-comment .code-collapse-action-text {
+  @apply text-xs;
+}
+
+.markdown-content .code-block-wrapper,
+#tcomment .code-block-wrapper,
+.tk-comment .code-block-wrapper {
+  @apply mb-6 overflow-x-auto rounded-lg border border-border;
+  overscroll-behavior-x: contain;
+}
+
+.markdown-content .code-block-header,
+#tcomment .code-block-header,
+.tk-comment .code-block-header {
+  @apply flex items-center justify-between border-b border-border bg-muted/50 px-3 py-2;
+}
+
+.markdown-content .code-language,
+#tcomment .code-language,
+.tk-comment .code-language {
+  @apply text-xs font-medium text-muted-foreground;
+}
+
+.markdown-content .copy-code-btn,
+#tcomment .copy-code-btn,
+.tk-comment .copy-code-btn {
+  @apply inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground;
+}
+
+.markdown-content .code-block-wrapper pre,
+#tcomment .code-block-wrapper pre,
+.tk-comment .code-block-wrapper pre {
+  @apply m-0 overflow-x-auto rounded-none border-0 bg-muted p-3 font-mono text-xs sm:text-sm;
+}
+
+.markdown-content .mermaid-container,
+#tcomment .mermaid-container,
+.tk-comment .mermaid-container {
+  @apply my-4 flex justify-center overflow-x-auto rounded-lg border border-border bg-muted/50 p-2 sm:my-6 sm:p-4;
+  -webkit-overflow-scrolling: touch;
+}
+
+.markdown-content .mermaid-container svg,
+#tcomment .mermaid-container svg,
+.tk-comment .mermaid-container svg {
+  @apply h-auto max-w-full;
+  min-width: min(100%, 300px);
+}
+
+.markdown-content .markdown-image,
+#tcomment .markdown-image,
+.tk-comment .markdown-image {
+  @apply mb-6 text-center;
+}
+
+.markdown-content .markdown-image .responsive-image,
+#tcomment .markdown-image .responsive-image,
+.tk-comment .markdown-image .responsive-image {
+  @apply h-auto max-h-[80vh] max-w-full cursor-pointer rounded-lg shadow-lg transition-transform duration-200 hover:shadow-lg hover:shadow-black/30;
+}
+
+.markdown-content .markdown-image figcaption,
+#tcomment .markdown-image figcaption,
+.tk-comment .markdown-image figcaption {
+  @apply mt-2 text-sm italic text-muted-foreground;
+}
+
+.markdown-content .anchor-link,
+#tcomment .anchor-link,
+.tk-comment .anchor-link {
+  @apply text-inherit no-underline;
+}
+
+.markdown-content .anchor-link:hover,
+#tcomment .anchor-link:hover,
+.tk-comment .anchor-link:hover {
+  color: var(--color-primary);
+}
+
+.markdown-content h1:hover .anchor-link::before,
+.markdown-content h2:hover .anchor-link::before,
+.markdown-content h3:hover .anchor-link::before,
+.markdown-content h4:hover .anchor-link::before,
+.markdown-content h5:hover .anchor-link::before,
+.markdown-content h6:hover .anchor-link::before,
+#tcomment h1:hover .anchor-link::before,
+#tcomment h2:hover .anchor-link::before,
+#tcomment h3:hover .anchor-link::before,
+#tcomment h4:hover .anchor-link::before,
+#tcomment h5:hover .anchor-link::before,
+#tcomment h6:hover .anchor-link::before {
+  content: "#";
+  @apply absolute -ml-6 font-normal text-muted-foreground;
+}
+
+.markdown-content .image-modal,
+#tcomment .image-modal {
+  @apply fixed inset-0 z-50 flex items-center justify-center;
+  animation: modalFadeIn 300ms ease-out;
+}
+
+.markdown-content .image-modal-backdrop,
+#tcomment .image-modal-backdrop {
+  @apply absolute inset-0 flex items-center justify-center bg-background/95;
+  cursor: zoom-out;
+  animation: backdropFadeIn 300ms ease-out;
+}
+
+.markdown-content .image-modal-content,
+#tcomment .image-modal-content {
+  @apply max-h-[90vh] max-w-[90vw] object-contain;
+  cursor: default;
+  animation: imageZoomIn 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center;
+}
+
+.markdown-content .image-modal-close,
+#tcomment .image-modal-close {
+  @apply absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-3xl font-bold text-foreground transition-colors hover:bg-muted/80;
+  border: 0;
+  cursor: pointer;
+  animation: buttonFadeIn 500ms ease-out 200ms both;
+}
+
+.markdown-content .image-modal.fade-out,
+#tcomment .image-modal.fade-out {
+  animation: modalFadeOut 250ms ease-in;
+}
+
+.markdown-content .image-modal.fade-out .image-modal-backdrop,
+#tcomment .image-modal.fade-out .image-modal-backdrop {
+  animation: backdropFadeOut 250ms ease-in;
+}
+
+.markdown-content .image-modal.fade-out .image-modal-content,
+#tcomment .image-modal.fade-out .image-modal-content {
+  animation: imageZoomOut 250ms ease-in;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes imageZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes buttonFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes modalFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes backdropFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes imageZoomOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9) translateY(-10px);
+  }
+}

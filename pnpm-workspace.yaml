@@ -1,0 +1,11 @@
+overrides:
+  react: ^19.3.0
+  react-dom: ^19.3.0
+
+allowBuilds:
+  '@parcel/watcher': true
+  '@tailwindcss/oxide': true
+  core-js: false
+  esbuild: true
+  sharp: true
+  workerd: true

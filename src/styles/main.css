@@ -1,0 +1,12 @@
+/* 入口只组装样式；每个属性的规则归其所属文件。 */
+@import "tailwindcss";
+@import "./theme.css";
+@import "./fonts.css";
+@import "./base.css" layer(base);
+@import "./layout.css";
+@import "./prose.css";
+@import "./markdown.css" layer(components);
+@import "./twikoo-custom.css" layer(components);
+
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/forms";

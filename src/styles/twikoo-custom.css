@@ -1,0 +1,170 @@
+/* Twikoo 与 Element UI 样式由第三方运行时注入，未分层规则会覆盖 main.css
+   导入的 components 层；控件覆盖项因此保留 !important。 */
+.twikoo .el-input-group__append,
+.twikoo .el-input-group__prepend {
+  background: hsl(var(--muted)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+  font-weight: 600;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+  border-radius: var(--radius-lg) !important;
+}
+
+.twikoo .el-input-group__append:hover,
+.twikoo .el-input-group__prepend:hover {
+  background: hsl(var(--accent)) !important;
+  border-color: hsl(var(--ring)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+.twikoo .tk-meta-input {
+  padding-bottom: 1rem !important;
+}
+
+.twikoo .el-textarea__inner,
+.twikoo .el-input__inner {
+  background: hsl(var(--background) / 0.5) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: var(--radius-lg) !important;
+  color: hsl(var(--foreground)) !important;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.twikoo .el-input__inner {
+  line-height: 2.8rem;
+}
+
+.twikoo .el-textarea__inner:focus,
+.twikoo .el-input__inner:focus {
+  border-color: hsl(var(--ring)) !important;
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.15) !important;
+}
+
+.twikoo .el-textarea__inner::placeholder,
+.twikoo .el-input__inner::placeholder {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.twikoo .tk-extras {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.twikoo .tk-tag-green {
+  background: hsl(var(--primary) / 0.1) !important;
+  border: 1px solid hsl(var(--primary) / 0.45) !important;
+  border-radius: var(--radius-sm);
+  color: hsl(var(--primary)) !important;
+}
+
+.twikoo .el-button--primary,
+.twikoo .el-button--default,
+.twikoo .el-button--mini,
+.twikoo .el-button--small {
+  border-radius: var(--radius-md) !important;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.twikoo .el-button--primary {
+  background: hsl(var(--primary)) !important;
+  border: 1px solid hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.twikoo .el-button--primary:hover {
+  background: hsl(var(--primary) / 0.9) !important;
+  border-color: hsl(var(--primary) / 0.9) !important;
+  transform: translateY(-1px);
+}
+
+.twikoo .el-button--primary:active,
+.twikoo .el-button--default:active {
+  transform: translateY(0);
+}
+
+.twikoo .el-button--default {
+  background: hsl(var(--secondary)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--secondary-foreground)) !important;
+}
+
+.twikoo .el-button--default:hover {
+  background: hsl(var(--accent)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+  transform: translateY(-1px);
+}
+
+.twikoo .tk-item {
+  background: hsl(var(--card) / 0.45) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: var(--radius-lg) !important;
+  margin-bottom: 1rem !important;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.twikoo .tk-item:hover {
+  background: hsl(var(--muted) / 0.5) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.twikoo .tk-avatar {
+  border: 2px solid hsl(var(--border)) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 4px 8px hsl(var(--foreground) / 0.12);
+}
+
+.twikoo .tk-content {
+  @apply prose prose-site prose-sm max-w-none;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.6 !important;
+}
+
+.twikoo .tk-content p {
+  text-indent: 0 !important;
+}
+
+.twikoo .tk-meta {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.twikoo .tk-meta .tk-action {
+  color: hsl(var(--muted-foreground)) !important;
+  transition: color 0.2s ease;
+}
+
+.twikoo .tk-meta .tk-action:hover,
+.twikoo .tk-reply,
+.twikoo .tk-reply:hover {
+  color: hsl(var(--primary)) !important;
+}
+
+.twikoo .tk-meta strong,
+.twikoo .tk-action svg,
+.twikoo .tk-icon.__comments {
+  color: hsl(var(--primary)) !important;
+}
+
+.twikoo svg,
+.twikoo .tk-actions a {
+  color: hsl(var(--muted-foreground));
+}
+
+.twikoo .tk-comments-container {
+  min-height: 8rem;
+}
+
+.twikoo .OwO.OwO-open .OwO-body {
+  /* The emoji picker is positioned over the comment form by Twikoo. */
+  z-index: 1000 !important;
+}

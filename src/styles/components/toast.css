@@ -1,0 +1,70 @@
+@reference "../main.css";
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-1.25rem) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0;
+  }
+}
+
+.toast-slide-in {
+  animation: toast-slide-in 0.5s ease-out;
+}
+
+.toast-progress {
+  animation: toast-progress linear;
+}
+
+.toast-content {
+  position: relative;
+  isolation: isolate;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--card) / 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.toast-content:hover {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+@variant max-sm {
+  .toast-container.toast-container--mobile-wide {
+    left: 1rem;
+    right: 1rem;
+    transform: none;
+  }
+
+  .toast-container--mobile-wide .toast-content {
+    min-width: auto;
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-slide-in,
+  .toast-progress {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+
+  .toast-content {
+    transition-duration: 0.01ms;
+  }
+}
