@@ -1,481 +1,230 @@
 ---
-import { getEntries } from "@lib/contentParser";
+import { FaGithub } from "react-icons/fa";
+import { getEntriesBatch } from "@lib/contentParser";
+import { buildActivityCalendar } from "@lib/activityCalendar";
+import snapshot from "../../data/github-activity.json";
 
-interface DayData {
-  date: string;
-  count: number;
-  level: number;
-  dateSimple: string;
-}
-
-interface MonthLabel {
-  name: string;
-  position: number;
-}
-
-const blogPosts = await getEntries("blog");
-const notesPosts = await getEntries("notes");
-const writingsPosts = await getEntries("writings");
-
-const allPosts = [...blogPosts, ...notesPosts, ...writingsPosts];
-
-function generateCalendarData(): DayData[][] {
-  const today = new Date();
-  const currentYear = today.getFullYear();
-
-  const weeks: DayData[][] = [];
-  
-  const startDate = new Date(currentYear, 0, 1);
-  const currentDate = new Date(startDate);
-
-  
-  const startDay = currentDate.getDay();
-  const daysToSubtract = startDay === 0 ? 6 : startDay - 1;
-  currentDate.setDate(currentDate.getDate() - daysToSubtract);
-
-  
-  const toLocalYMD = (d: Date) => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  };
-  const articleCounts = new Map<string, number>();
-  allPosts.forEach((post) => {
-    const dateToUse = post.data.created || new Date();
-    const publishDate = toLocalYMD(new Date(dateToUse));
-    articleCounts.set(publishDate, (articleCounts.get(publishDate) || 0) + 1);
-  });
-
-  
-  const endDate = new Date(currentYear, 11, 31); 
-  const totalDays =
-    Math.ceil(
-      (endDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24),
-    ) + 7;
-  const totalWeeks = Math.ceil(totalDays / 7) - 1;
-
-  for (let week = 0; week < totalWeeks; week++) {
-    const weekData: DayData[] = [];
-
-    for (let day = 0; day < 7; day++) {
-      const dateStr = toLocalYMD(currentDate);
-      const dateSimpleStr = `${currentDate.getMonth() + 1}月${currentDate.getDate()}日`;
-      const count = articleCounts.get(dateStr) || 0;
-
-      
-      let level = 0;
-      if (count > 0) level = 1;
-      if (count >= 2) level = 2;
-      if (count >= 4) level = 3;
-      if (count >= 6) level = 4;
-
-      weekData.push({
-        date: dateStr,
-        dateSimple: dateSimpleStr,
-        count,
-        level,
-      });
-
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    weeks.push(weekData);
-  }
-
-  return weeks;
-}
-
-const calendarData = generateCalendarData();
-
-function getMonthLabels(): MonthLabel[] {
-  const months: MonthLabel[] = [];
-  const currentYear = new Date().getFullYear();
-  const chineseMonths = [
-    "一月",
-    "二月",
-    "三月",
-    "四月",
-    "五月",
-    "六月",
-    "七月",
-    "八月",
-    "九月",
-    "十月",
-    "十一月",
-    "十二月",
-  ];
-
-  for (let month = 0; month < 12; month++) {
-    const date = new Date(currentYear, month, 1);
-    
-    const startOfYear = new Date(currentYear, 0, 1);
-    const startDay = startOfYear.getDay();
-    const daysToSubtract = startDay === 0 ? 6 : startDay - 1;
-    const calendarStart = new Date(startOfYear);
-    calendarStart.setDate(calendarStart.getDate() - daysToSubtract);
-
-    const daysDiff = Math.floor(
-      (date.getTime() - calendarStart.getTime()) / (1000 * 60 * 60 * 24),
-    );
-    const weekPosition = Math.floor(daysDiff / 7);
-
-    months.push({
-      name: chineseMonths[month],
-      position: weekPosition,
-    });
-  }
-
-  return months;
-}
-
-function getArticleStats() {
-  const totalArticles = allPosts.length;
-  const currentYear = new Date().getFullYear();
-  const thisYearArticles = allPosts.filter((post) => {
-    const dateToUse = post.data.created || new Date();
-    return new Date(dateToUse).getFullYear() === currentYear;
-  }).length;
-
-  const activeDays = new Set();
-  allPosts.forEach((post) => {
-    const dateToUse = post.data.created || new Date();
-    if (new Date(dateToUse).getFullYear() === currentYear) {
-      activeDays.add(new Date(dateToUse).toISOString().split("T")[0]);
-    }
-  });
-
-  return {
-    totalArticles,
-    thisYearArticles,
-    activeDays: activeDays.size,
-  };
-}
-
-const monthLabels = getMonthLabels();
-const articleStats = getArticleStats();
+const today = new Date().toISOString().slice(0, 10);
+const available = snapshot.year === Number(today.slice(0, 4));
+const entries = await getEntriesBatch(["blog", "notes", "writings"]);
+const dates = entries.flatMap((entry) => {
+  if (!entry.data.created) return [];
+  const date = new Date(entry.data.created);
+  return Number.isNaN(date.getTime()) ? [] : [date.toISOString().slice(0, 10)];
+});
+const { year, weeks, months, stats } = buildActivityCalendar(
+  today,
+  dates,
+  available ? snapshot.days : [],
+);
+const githubUrl = `https://github.com/${snapshot.username}?tab=overview&from=${year}-01-01&to=${year}-12-31`;
+const syncedDate = snapshot.fetchedAt.slice(0, 10);
 ---
 
-<div class="article-calendar">
-  
-  <div class="calendar-container">
-    <div class="calendar-wrapper">
-      <div class="calendar-main">
-        <div class="calendar-content">
-          
-          <div class="month-labels flex flex-row justify-between">
-            {
-              monthLabels.map((month) => (
-                <span
-                  class="text-sm text-txt-light dark:text-darkmode-txt-light"
-                  data-position={month.position}
-                  style={`--month-position: ${month.position}`}
-                >
-                  {month.name}
-                </span>
-              ))
-            }
+<div class="activity-calendar" style={`--week-count: ${weeks.length}`}>
+  <div class="record-heading">
+    <a
+      class="github-profile"
+      href={githubUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <FaGithub aria-hidden="true" size={16} />
+      <span>{snapshot.username}</span>
+      <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+  <div
+    class="calendar-wrapper"
+    tabindex="0"
+    role="region"
+    aria-label={`${year} 年活动日历，可横向滚动；每格一天`}
+  >
+    <div class="calendar-main">
+      <div class="month-labels" aria-hidden="true">
+        {months.map((month) => (
+          <span style={`grid-column: ${month.column} / span 3`}>
+            {month.name}
+          </span>
+        ))}
+      </div>
+      <div
+        class="calendar-grid"
+        role="img"
+        aria-label={`${year} 年共 ${stats.total} 次记录，${stats.activeDays} 个活跃日`}
+      >
+        {weeks.map((week) => (
+          <div class="week-column">
+            {week.map((day) => (
+              <span
+                class:list={[
+                  "calendar-day",
+                  { outside: day.outside, future: day.future },
+                ]}
+                data-level={day.level}
+                title={
+                  day.outside
+                    ? undefined
+                    : day.future
+                      ? `${day.date}：尚未到达`
+                      : `${day.date}：${day.count} 次记录`
+                }
+              />
+            ))}
           </div>
-          
-          <div class="calendar-grid">
-            {
-              calendarData.map((week) => (
-                <div class="week-column">
-                  {week.map((day) => (
-                    <div
-                      class={`calendar-day ${
-                        day.level === 0
-                          ? "level-0"
-                          : day.level === 1
-                            ? "level-1"
-                            : day.level === 2
-                              ? "level-2"
-                              : day.level === 3
-                                ? "level-3"
-                                : "level-4"
-                      }`}
-                      title={`${day.count == 0 ? day.dateSimple : day.dateSimple + "（" + day.count + "篇）"}`}
-                    />
-                  ))}
-                </div>
-              ))
-            }
-          </div>
-        </div>
-
-        
-        <div class="legend-stats-container w-full">
-          
-          <div class="article-stats">
-            <p class="stats-summary text-sm text-gray-600 dark:text-gray-400">
-              今年已发布 <span
-                class="font-semibold text-blue-600 dark:text-blue-400"
-                >{articleStats.thisYearArticles}</span
-              > 篇文章， 累计活跃 <span
-                class="font-semibold text-green-600 dark:text-green-400"
-                >{articleStats.activeDays}</span
-              > 天， 总共 <span
-                class="font-semibold text-purple-600 dark:text-purple-400"
-                >{articleStats.totalArticles}</span
-              > 篇文章
-            </p>
-          </div>
-          
-          <div class="legend">
-            <span class="legend-text">少</span>
-            <div class="legend-levels">
-              <div class="legend-square level-0"></div>
-              <div class="legend-square level-1"></div>
-              <div class="legend-square level-2"></div>
-              <div class="legend-square level-3"></div>
-              <div class="legend-square level-4"></div>
-            </div>
-            <span class="legend-text">多</span>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   </div>
+  <div class="activity-summary">
+    <p>
+      <strong>{stats.activeDays}</strong> 天活跃 ·{" "}
+      <strong>{stats.total.toLocaleString("zh-CN")}</strong> 次记录
+    </p>
+    <div class="legend" aria-label="颜色越深，活动越多">
+      <span>少</span>
+      {[0, 1, 2, 3, 4].map((level) => (
+        <i class="calendar-day" data-level={level} aria-hidden="true" />
+      ))}
+      <span>多</span>
+    </div>
+  </div>
+  <p class="activity-note">
+    <span>{year} 年</span>
+    <span>
+      {available ? `同步于 ${syncedDate}` : `GitHub ${year} 年数据待同步`}
+    </span>
+  </p>
 </div>
 
 <style>
-  .article-calendar {
-    @apply w-full;
-    
+  .activity-calendar {
+    width: 100%;
+    color: hsl(var(--muted-foreground));
+    font-size: 11px;
   }
-
-  
-  @media (max-width: 768px) {
-    .article-calendar {
-      @apply hidden;
-    }
-  }
-
-  .calendar-container {
-    @apply w-full h-full flex items-center justify-center;
-  }
-
-  .calendar-wrapper {
-    @apply w-full max-w-full;
+  .record-heading,
+  .activity-summary,
+  .activity-note {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
   }
-
-  .calendar-main {
-    @apply relative;
-    width: fit-content;
+  .record-heading {
+    margin-bottom: 20px;
+    justify-content: flex-end;
+  }
+  .github-profile {
+    display: inline-flex;
+    margin-inline-start: auto;
+    gap: 6px;
+    align-items: center;
+    text-decoration: none;
+    min-height: 32px;
+  }
+  .github-profile:hover {
+    color: hsl(var(--primary));
+  }
+  .calendar-wrapper {
     max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
   }
-
-  .month-labels {
-    @apply relative mb-2;
-    height: 16px;
+  .calendar-wrapper:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 4px;
+    border-radius: 3px;
   }
-
-  .month-label {
-    @apply absolute text-sm text-txt-s dark:text-darkmode-txt-s;
-    top: 0;
-    font-size: 12px;
-    opacity: 0.8;
-    white-space: nowrap;
-    transform-origin: left center;
-    left: calc(var(--month-position) * (12px + 4px));
+  .calendar-main {
+    min-width: 640px;
   }
-
-  .calendar-content {
-    @apply relative w-full;
-  }
-
+  .month-labels,
   .calendar-grid {
     display: grid;
-    grid-template-columns: repeat(53, minmax(12px, 18px));
-    @apply gap-1;
-    margin-left: 0px;
-    width: fit-content;
-    max-width: calc(100vw - 50px);
-
+    grid-template-columns: repeat(var(--week-count), minmax(0, 1fr));
+    column-gap: 3px;
   }
-
+  .month-labels {
+    margin-bottom: 10px;
+    font-size: 10px;
+  }
   .week-column {
-    @apply flex flex-col gap-1;
-
-    flex: 1;
-    min-width: 0;
+    display: grid;
+    grid-template-rows: repeat(7, 1fr);
+    gap: 3px;
   }
-
   .calendar-day {
-    @apply rounded-md transition-all duration-75 border !border-slate-400/40;
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
+    display: block;
+    aspect-ratio: 1;
+    border-radius: 3px;
+    background: hsl(var(--primary) / 0.05);
+    border: 1px solid hsl(var(--border));
   }
-
-  .calendar-day:hover {
-    @apply transform scale-110 shadow-sm;
-    transition: all 0.1s ease;
+  .calendar-day.outside {
+    visibility: hidden;
   }
-
-  .calendar-day.level-0 {
-    background: transparent; 
-    @apply border-gray-50/60 dark:border-gray-100/40;
+  .calendar-day.future {
+    opacity: 0.4;
   }
-
-  .dark .calendar-day.level-0 {
-    background: transparent;
-    @apply border-gray-900/80;
+  .calendar-day:not(.outside):not(.future):hover {
+    outline: 1px solid hsl(var(--primary));
+    outline-offset: 1px;
   }
-
-  .calendar-day.level-1 {
-    @apply bg-zinc-300 dark:bg-zinc-600/80;
-    @apply border-gray-50/60 dark:border-gray-100/40;
+  .activity-calendar .calendar-day[data-level="1"] {
+    background: hsl(var(--primary) / 0.22);
   }
-
-  .calendar-day.level-2 {
-    @apply bg-zinc-400 dark:bg-zinc-500/90;
-    @apply border-gray-50/60 dark:border-gray-100/40;
+  .activity-calendar .calendar-day[data-level="2"] {
+    background: hsl(var(--primary) / 0.42);
   }
-
-  .calendar-day.level-3 {
-    @apply bg-zinc-500 dark:bg-zinc-400/90;
-    @apply border-gray-50/60 dark:border-gray-100/40;
+  .activity-calendar .calendar-day[data-level="3"] {
+    background: hsl(var(--primary) / 0.65);
   }
-
-  .calendar-day.level-4 {
-    @apply bg-zinc-700 dark:bg-zinc-300;
-    @apply border-gray-50/60 dark:border-gray-100/40;
+  .activity-calendar .calendar-day[data-level="4"] {
+    background: hsl(var(--primary));
   }
-
-  
-  .legend-stats-container {
-    @apply flex items-center justify-between mt-4 pt-3;
-    
+  .activity-summary {
+    border-top: 1px solid hsl(var(--border));
+    padding-top: 14px;
+    margin-top: 8px;
+    line-height: 1.8;
   }
-
-  .dark .legend-stats-container {
-    border-top-color: rgba(255, 255, 255, 0.1);
+  .activity-summary p {
+    margin: 0;
   }
-
+  .activity-summary strong {
+    color: hsl(var(--primary));
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
   .legend {
-    @apply flex items-center gap-2 opacity-70;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
   }
-
-  .legend-text {
-    @apply text-xs text-txt-light dark:text-darkmode-txt-light;
-    font-size: 12px;
+  .legend .calendar-day {
+    width: 9px;
   }
-
-  .legend-levels {
-    @apply flex gap-1;
+  .legend span:first-child {
+    margin-right: 4px;
   }
-
-  .legend-square {
-    @apply w-3 h-3 rounded-sm;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+  .legend span:last-child {
+    margin-left: 4px;
   }
-
-  .legend-square.level-0 {
-    background: transparent;
-    @apply border-gray-50/60 dark:border-gray-100/40;
+  .activity-note {
+    margin: 10px 0 0;
+    font-size: 10px;
+    line-height: 1.6;
   }
-
-  .legend-square.level-1 {
-    @apply bg-zinc-300 dark:bg-zinc-600/80;
-    @apply border-gray-50/60 dark:border-gray-100/40;
-  }
-
-  .legend-square.level-2 {
-    @apply bg-zinc-400 dark:bg-zinc-500/90;
-    @apply border-gray-50/60 dark:border-gray-100/40;
-  }
-
-  .legend-square.level-3 {
-    @apply bg-zinc-500 dark:bg-zinc-400/90;
-    @apply border-gray-50/60 dark:border-gray-100/40;
-  }
-
-  .legend-square.level-4 {
-    @apply bg-zinc-700 dark:bg-zinc-300;
-    @apply border-gray-50/60 dark:border-gray-100/40;
-  }
-
-  
-  .article-stats {
-    @apply flex items-center gap-4;
-  }
-
-  .stats-item {
-    @apply flex flex-col items-center gap-1;
-  }
-
-  .stats-number {
-    @apply text-sm font-bold text-txt-p dark:text-darkmode-txt-p;
-  }
-
-  .stats-label {
-    @apply text-xs text-txt-light dark:text-darkmode-txt-light opacity-70;
-    font-size: 12px;
-  }
-
-  
-  @media (max-width: 1024px) {
-    .calendar-day {
-      max-width: 12px;
-      max-height: 12px;
-    }
-
-    .month-label {
-      font-size: 12px;
-      left: calc(var(--month-position) * (12px + 4px));
-    }
-
-    .stats-number {
-      font-size: 12px;
-    }
-
-    .stats-label {
+  @media (max-width: 539px) {
+    .github-profile {
       font-size: 10px;
     }
-
-    .legend-text {
-      font-size: 10px;
-    }
-
-    .article-stats {
-      @apply gap-3;
-    }
-  }
-
-  @media (max-width: 1024px) and (min-width: 769px) {
-    .calendar-grid {
-      grid-template-columns: repeat(53, 14px);
-      @apply gap-0.5;
-      margin-left: 0px;
-    }
-    .week-column {
-      @apply gap-0.5;
-    }
-
-    .calendar-day {
-      width: 14px;
-      height: 14px;
-    }
-
-    .month-label {
-      font-size: 12px;
-      left: calc(var(--month-position) * (14px + 2px));
-    }
-
-    .stats-number {
-      font-size: 12px;
-    }
-
-    .stats-label {
-      font-size: 11px;
-    }
-
-    .legend-text {
-      font-size: 11px;
+    .activity-summary {
+      align-items: flex-start;
     }
   }
 </style>
