@@ -4,6 +4,7 @@ import ArticleSeries from "@components/series/ArticleSeries.astro";
 import ChapterPagination from "@components/series/ChapterPagination.astro";
 import BaseLayout from "@components/base/BaseLayout.astro";
 import { plainify } from "@lib/textConverter";
+import { formatDate } from "@lib/formatDate";
 import { render, type CollectionEntry, getCollection } from "astro:content";
 import TableOfContents from "@components/common/TableOfContents.astro";
 import Breadcrumbs from "@components/common/Breadcrumbs.astro";
@@ -153,7 +154,7 @@ const recommendedPosts = allBlogPosts
               <span>更新于</span>
               <span>
                 {updated
-                  ? new Date(updated).toLocaleDateString("zh-CN")
+                  ? formatDate(updated)
                   : "未知"}
               </span>
             </div>

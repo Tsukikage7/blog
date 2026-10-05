@@ -1,6 +1,7 @@
 import type { SearchDocument } from "@/types/search";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
+import { formatDate } from "@lib/formatDate";
 
 function Highlight({ text, query }: { text: string; query: string }) {
   const term = query.trim();
@@ -185,7 +186,7 @@ const SearchPage = () => {
                       className="mt-2 block text-xs tabular-nums text-muted-foreground/80"
                       dateTime={item.created}
                     >
-                      {new Date(item.created).toLocaleDateString("zh-CN")}
+                      {formatDate(item.created)}
                     </time>
                   )}
                 </article>

@@ -8,7 +8,7 @@
 pnpm install --frozen-lockfile
 pnpm run build
 pnpm exec tsc --noEmit --incremental false
-pnpm exec tsx --test src/lib/activityCalendar.test.ts src/lib/seriesModel.test.ts
+pnpm exec tsx --test src/lib/activityCalendar.test.ts src/lib/seriesModel.test.ts src/lib/formatDate.test.ts
 node --test scripts/github-activity.test.mjs
 pnpm exec wrangler whoami
 pnpm exec wrangler deploy --dry-run
@@ -22,6 +22,8 @@ pnpm exec wrangler deployments status
 ```
 
 日常也可用 `pnpm run deploy` 完成重新构建和部署；构建会按缓存规则同步 GitHub 贡献快照。GitHub 登录或 Cloudflare OAuth 凭据由本机工具保存，不进入仓库。`.env.production` 只提供浏览器可见的 `PUBLIC_` 配置。
+
+Cloudflare Workers Builds 已连接 `Tsukikage7/blog` 的 `main`，推送会自动执行 `pnpm run build` 和 `npx wrangler deploy --name blog`。自动发布成功后可能成为最新版本，验收时需核对构建记录里的提交号。内容日期统一按 YAML 载入时的 UTC 日期显示，避免本机、云端和搜索页因时区不同显示到前一天或后一天。
 
 ## 线上核对
 

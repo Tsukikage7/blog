@@ -227,7 +227,7 @@ const entryReadingTime = readingTime(entry.body!, 1);
               {updated && (
                 <div class="flex items-center justify-center gap-1">
                   <span>更新于</span>
-                  <span>{new Date(updated).toLocaleDateString("zh-CN")}</span>
+                  <span>{formatDate(updated)}</span>
                 </div>
               )}
             </div>
