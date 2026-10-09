@@ -21,10 +21,10 @@ export async function getWritingsCatalog(tag?: string) {
   const countText =
     [
       workCount ? `${workCount} 部作品` : "",
-      standaloneCount ? `${standaloneCount} 篇文字` : "",
+      standaloneCount ? `${standaloneCount} 篇作品` : "",
     ]
       .filter(Boolean)
-      .join(" · ") || "0 篇文字";
+      .join(" · ") || "0 篇作品";
   return {
     items,
     tags,

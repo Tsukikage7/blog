@@ -15,7 +15,7 @@ const description =
 
 <article class="writing-row">
   <p class="writing-meta">
-    {entry.data.genre || "文字"} · {readingTime(entry.body || "", 1)}{" "}
+    {entry.data.genre || "作品"} · {readingTime(entry.body || "", 1)}{" "}
     {date && <time datetime={date.toISOString()}>{formatDate(date)}</time>}
   </p>
   <h2>

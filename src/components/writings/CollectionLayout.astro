@@ -27,8 +27,8 @@ const {
   currentTag,
 } = Astro.props;
 const title = currentTag
-  ? `文字 · ${currentTag}`
-  : entryIndex?.data.title || "文字";
+  ? `创作 · ${currentTag}`
+  : entryIndex?.data.title || "创作";
 const description = entryIndex?.data.description || "小说、散文与随笔。";
 ---
 
@@ -44,7 +44,7 @@ const description = entryIndex?.data.description || "小说、散文与随笔。
       countText={countText}
     />
     {tags.length > 1 && (
-      <nav class="writing-filters" aria-label="文字关键词">
+      <nav class="writing-filters" aria-label="创作关键词">
         <a href="/writings/" aria-current={!currentTag ? "page" : undefined}>
           全部
         </a>
@@ -58,7 +58,7 @@ const description = entryIndex?.data.description || "小说、散文与随笔。
         ))}
       </nav>
     )}
-    <section aria-label="作品与独立文字" class="writing-list">
+    <section aria-label="作品列表" class="writing-list">
       {items.map((item) =>
         item.kind === "series" ? (
           <WorkCard series={item.series} />
@@ -68,7 +68,7 @@ const description = entryIndex?.data.description || "小说、散文与随笔。
       )}
       {!items.length && (
         <p class="empty-writing">
-          这里暂时没有文字，先去看看 <a href="/blog/">技术文章 →</a>
+          这里暂时没有作品，可以先读读 <a href="/blog/">其他文章 →</a>
         </p>
       )}
     </section>
