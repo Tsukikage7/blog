@@ -1,18 +1,14 @@
 ---
 import { SITE_INFO } from "@lib/config";
-
 ---
 
 <div class="author-profile">
   <div class="relative">
-
     <div class="absolute inset-0 bg-linear-to-br from-primary/5 via-primary/10 to-primary/5 rounded-lg blur-xl"></div>
 
-    <div class="relative ">
+    <div class="relative">
       <div class="flex flex-col items-center space-y-4">
-
         <div class="relative group">
-
           <div class="absolute -inset-2 bg-linear-to-r from-primary/60 via-primary to-primary/70 rounded-full blur-lg opacity-20 group-hover:opacity-40 transition-all duration-500 animate-pulse"></div>
 
           <div class="absolute -inset-1 bg-linear-to-r from-primary/60 via-primary to-primary/70 rounded-full opacity-60 group-hover:opacity-80 transition-all duration-300"></div>
@@ -27,20 +23,18 @@ import { SITE_INFO } from "@lib/config";
             fetchpriority="high"
           />
         </div>
-        
-        
-        <div class="text-center space-y-3">
 
+        <div class="text-center space-y-3">
           <div class="flex flex-col items-center gap-3">
             <h1 class="text-2xl lg:text-3xl font-bold text-foreground">
               Tsukikage
             </h1>
             <div class="flex justify-center gap-2">
               <span class="px-2 py-1 text-xs font-medium bg-secondary text-secondary-foreground rounded-full border border-border">
-                开发者
+                读书
               </span>
               <span class="px-2 py-1 text-xs font-medium bg-secondary text-secondary-foreground rounded-full border border-border">
-                博主
+                写字
               </span>
             </div>
           </div>
@@ -50,11 +44,10 @@ import { SITE_INFO } from "@lib/config";
   </div>
 </div>
 
-
 <style>
   @reference "../../styles/main.css";
   .author-profile {
-    min-height: 200px; 
+    min-height: 200px;
     @apply flex items-center justify-center;
   }
 </style>

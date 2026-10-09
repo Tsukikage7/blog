@@ -110,7 +110,7 @@ export async function getNotesTagPages() {
           collection: "notes" as const,
           data: {
             title: tag,
-            description: `${tag} 相关的技术笔记。`,
+            description: `${tag} 相关的笔记。`,
             draft: false,
           },
         },

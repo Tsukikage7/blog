@@ -53,7 +53,7 @@ const statsData = {
 
       <!-- 统计信息 -->
       <div class="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
-        <span>{statsData.totalArticles} 篇技术文章</span>
+        <span>{statsData.totalArticles} 篇文章</span>
         {siteStatsData.notes > 0 && <span>· {siteStatsData.notes} 篇笔记</span>}
         {literaryWorks.length > 0 && (
           <span>
@@ -61,12 +61,12 @@ const statsData = {
           </span>
         )}
         {standaloneWritingCount > 0 && (
-          <span>· {standaloneWritingCount} 篇文字</span>
+          <span>· {standaloneWritingCount} 篇作品</span>
         )}
         <span>·</span>
         <span>{statsData.totalWords} 字</span>
         <span>·</span>
-        <span>运行 {statsData.runningDays} 天</span>
+        <span>小站第 {statsData.runningDays} 天</span>
       </div>
       <nav
         aria-label="页脚链接"
@@ -76,14 +76,14 @@ const statsData = {
           使用条款
         </a>
         <a class="hover:text-primary transition-colors" href="/rss.xml">
-          技术 RSS
+          文章 RSS
         </a>
         {siteStatsData.writings > 0 && (
           <a
             class="hover:text-primary transition-colors"
             href="/writings/rss.xml"
           >
-            文字 RSS
+            创作 RSS
           </a>
         )}
         <a class="hover:text-primary transition-colors" href="/feed.xml">

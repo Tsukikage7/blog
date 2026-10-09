@@ -11,14 +11,17 @@ const technical = series.filter((item) => item.entry.data.kind === "technical");
 const literary = series.filter((item) => item.entry.data.kind === "literary");
 ---
 
-<BaseLayout title="系列合集" description="技术专题与文学作品，按章节顺序阅读。">
+<BaseLayout
+  title="系列合集"
+  description="把同一主题的文章放在一起，按顺序慢慢读。"
+>
   <div class="site-container">
     <PageHeader
       contained
       title="系列合集"
       countText={
         [
-          technical.length ? `${technical.length} 个技术合集` : "",
+          technical.length ? `${technical.length} 个文章合集` : "",
           literary.length ? `${literary.length} 部作品` : "",
         ]
           .filter(Boolean)
@@ -28,7 +31,7 @@ const literary = series.filter((item) => item.entry.data.kind === "literary");
     <ReadingTabs active="series" />
     {technical.length > 0 && (
       <h2 class="collection-heading">
-        技术合集 <span>{technical.length} 个</span>
+        文章合集 <span>{technical.length} 个</span>
       </h2>
     )}
     {technical.map((item, index) => (

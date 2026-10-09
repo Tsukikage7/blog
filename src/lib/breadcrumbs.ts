@@ -2,12 +2,12 @@ import { canonicalPath } from "./site";
 import { lowerHumanize } from "./textConverter";
 
 const labels: Record<string, string> = {
-  blog: "技术",
+  blog: "文章",
   series: "系列合集",
   categories: "分类",
   tags: "标签",
   notes: "笔记",
-  writings: "文字",
+  writings: "创作",
   about: "关于",
   search: "搜索",
   music: "音乐馆",

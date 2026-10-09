@@ -25,7 +25,7 @@ const menuItems = [
   },
   {
     id: 2,
-    name: "技术",
+    name: "文章",
     url: "/blog",
   },
   {
@@ -35,7 +35,7 @@ const menuItems = [
   },
   {
     id: 3,
-    name: "文字",
+    name: "创作",
     url: "/writings",
   },
   {
@@ -60,7 +60,7 @@ const menu = menuItems
   .filter((item) => item.url !== "/writings" || writings.length > 0)
   .map((item) => ({ ...item, url: canonicalPath(item.url) }));
 
-// 以最长路径匹配当前入口，文章下的目录页也归属“技术”。
+// 以最长路径匹配当前入口，文章下的目录页也归属“文章”。
 const activeItem = menu
   .filter(
     (item) =>

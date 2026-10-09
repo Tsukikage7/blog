@@ -1,8 +1,8 @@
 ---
 import BaseLayout from "@components/base/BaseLayout.astro";
+import Breadcrumbs from "@components/common/Breadcrumbs.astro";
 import type { AboutEntry } from "@/types";
 import { render } from "astro:content";
-import Breadcrumbs from "@components/common/Breadcrumbs.astro";
 import { Image } from "astro:assets";
 import { FaGithub } from "react-icons/fa";
 import type { IconType } from "react-icons";
@@ -13,7 +13,6 @@ import {
   HiOutlineChartBar,
   HiOutlineCircleStack,
   HiOutlineCodeBracket,
-  HiOutlineEnvelope,
   HiOutlineLightBulb,
   HiOutlineMapPin,
   HiOutlineShare,
@@ -43,406 +42,361 @@ const {
   imageAlt,
   info,
   skillCategories,
-  experience,
   education,
+  experience,
   openSource,
-  social,
 } = entry.data;
 const { Content } = await render(entry);
-
 const imageSrc = image
   ? typeof image === "string"
     ? image
     : image.src
   : undefined;
-const aboutDescription = description
-  ?.replace(info?.title || "", "")
-  .replace(/^[\s|｜,，]+/, "")
-  .trim();
 ---
 
 <BaseLayout title={title} description={description} image={imageSrc}>
   <section class="site-container about-page">
     <Breadcrumbs title={title} className="text-xs text-muted-foreground" />
-    <!-- 头部区域：桌面并排，窄屏纵向排列。 -->
-    <section class="about-intro">
+    <section id="author" class="about-intro" aria-labelledby="about-title">
       <div class="intro-layout">
-        <!-- 头像 -->
         {image && (
           <div class="shrink-0">
-            <div class="relative group">
-              {typeof image === "string" ? (
-                <img
-                  class="relative h-24 w-24 rounded-full border border-border/50 object-cover md:h-32 md:w-32"
-                  src={image}
-                  alt={imageAlt || "Avatar"}
-                  width="144"
-                  height="144"
-                  loading="eager"
-                />
-              ) : (
-                <Image
-                  class="relative h-24 w-24 rounded-full border border-border/50 object-cover md:h-32 md:w-32"
-                  src={image}
-                  alt={imageAlt || "Avatar"}
-                  width={144}
-                  height={144}
-                  loading="eager"
-                />
-              )}
-            </div>
+            {typeof image === "string" ? (
+              <img
+                class="about-avatar"
+                src={image}
+                alt={imageAlt || "作者头像"}
+                width="144"
+                height="144"
+                loading="eager"
+              />
+            ) : (
+              <Image
+                class="about-avatar"
+                src={image}
+                alt={imageAlt || "作者头像"}
+                width={144}
+                height={144}
+                loading="eager"
+              />
+            )}
           </div>
         )}
-
-        <!-- 个人信息 -->
         <div class="min-w-0 flex-1">
-          <h1 class="about-title mb-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+          <h1 id="about-title" class="about-title">
             {info?.name || title}
           </h1>
-          {info?.title && (
-            <p class="mb-2 text-lg font-medium text-primary">
-              <TechnologyText text={info.title} />
+          {info?.title && <p class="about-tagline">{info.title}</p>}
+          {info?.summary && <p class="about-summary">{info.summary}</p>}
+          <a class="resume-link" href="#resume">
+            查看简历 ↓
+          </a>
+          {info?.location && (
+            <p class="about-location">
+              <HiOutlineMapPin aria-hidden="true" />
+              {info.location}
             </p>
-          )}
-          {aboutDescription && (
-            <p class="mb-4 max-w-2xl text-sm leading-7 text-muted-foreground md:text-base">
-              <TechnologyText text={aboutDescription} />
-            </p>
-          )}
-          {info?.summary && (
-            <p class="mb-4 max-w-2xl text-sm leading-7 text-muted-foreground md:text-base">
-              <TechnologyText text={info.summary} />
-            </p>
-          )}
-
-          <!-- 标签信息 -->
-          <div class="mb-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
-            {info?.location && (
-              <span class="inline-flex items-center gap-2">
-                <HiOutlineMapPin className="text-sm" />
-                {info.location}
-              </span>
-            )}
-            {info?.age && <span>{info.age} 岁</span>}
-          </div>
-
-          <!-- 社交链接 -->
-          {social && (
-            <div class="flex flex-wrap gap-2">
-              {social.github && (
-                <a
-                  href={
-                    social.github.startsWith("http")
-                      ? social.github
-                      : `https://github.com/${social.github}`
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="inline-flex items-center gap-2 rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <FaGithub className="text-lg" />
-                  GitHub
-                </a>
-              )}
-              {social.email && (
-                <a
-                  href={`mailto:${social.email}`}
-                  class="inline-flex items-center gap-2 rounded-md border border-border px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <HiOutlineEnvelope className="text-lg" />
-                  邮箱
-                </a>
-              )}
-            </div>
           )}
         </div>
       </div>
     </section>
-
-    <nav class="about-navigation" aria-label="关于页章节">
-      <a href="#skills">专业技能</a>
-      <a href="#education">教育背景</a>
-      <a href="#experience">工作经历</a>
-      <a href="#open-source">开源贡献</a>
-    </nav>
-    <div class="about-sections">
-      <!-- 技能分类 -->
-      {skillCategories && skillCategories.length > 0 && (
-        <div id="skills">
-          <h2 class="section-title text-2xl font-medium text-foreground mb-6 flex items-center gap-3">
-            <HiOutlineLightBulb className="text-2xl text-primary" /> 专业技能
-          </h2>
-          <div class="skills-grid">
-            {skillCategories.map((category) => {
-              const CategoryIcon =
-                iconMap[category.icon || ""] || HiOutlineCodeBracket;
-              return (
-                <section class="about-panel">
-                  <h3 class="skill-category-title mb-3 flex items-center gap-2 border-b border-border/50 pb-3 text-base font-semibold text-foreground">
-                    <CategoryIcon className="text-lg text-primary" />
-                    {category.name}
-                  </h3>
-                  <ul class="technology-list">
-                    {category.skills
-                      .flatMap((row) => row.split(" / "))
-                      .map((skill) => (
-                        <li>
-                          <TechnologyLink name={skill} />
-                        </li>
-                      ))}
-                  </ul>
-                </section>
-              );
-            })}
+    <section
+      id="personal-introduction"
+      class="about-body"
+      aria-label="个人介绍"
+    >
+      <div class="prose prose-site prose-base max-w-[760px]">
+        <Content />
+      </div>
+    </section>
+    <section id="resume" class="about-resume" aria-labelledby="resume-title">
+      <h2
+        id="resume-title"
+        class="section-title text-3xl font-semibold text-foreground"
+      >
+        简历
+      </h2>
+      <nav class="about-navigation" aria-label="关于页章节">
+        <a href="#skills">专业技能</a>
+        <a href="#education">教育背景</a>
+        <a href="#experience">工作经历</a>
+        <a href="#open-source">开源贡献</a>
+      </nav>
+      <div class="about-sections">
+        <!-- 技能分类 -->
+        {skillCategories && skillCategories.length > 0 && (
+          <div id="skills">
+            <h2 class="section-title text-2xl font-medium text-foreground mb-6 flex items-center gap-3">
+              <HiOutlineLightBulb className="text-2xl text-primary" /> 专业技能
+            </h2>
+            <div class="skills-grid">
+              {skillCategories.map((category) => {
+                const CategoryIcon =
+                  iconMap[category.icon || ""] || HiOutlineCodeBracket;
+                return (
+                  <section class="about-panel">
+                    <h3 class="skill-category-title mb-3 flex items-center gap-2 border-b border-border/50 pb-3 text-base font-semibold text-foreground">
+                      <CategoryIcon className="text-lg text-primary" />
+                      {category.name}
+                    </h3>
+                    <ul class="technology-list">
+                      {category.skills
+                        .flatMap((row) => row.split(" / "))
+                        .map((skill) => (
+                          <li>
+                            <TechnologyLink name={skill} />
+                          </li>
+                        ))}
+                    </ul>
+                  </section>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <!-- 教育背景 -->
-      {education && education.length > 0 && (
-        <div id="education">
-          <h2 class="section-title text-2xl font-medium text-foreground mb-6 flex items-center gap-3">
-            <HiOutlineAcademicCap className="text-2xl text-primary" /> 教育背景
-          </h2>
-          <section class="about-panel">
-            {education.map((edu, index) => (
-              <div
-                class={`flex flex-col md:flex-row md:items-center justify-between ${index > 0 ? "mt-4 pt-4 border-t border-border/30" : ""}`}
-              >
-                <div class="flex items-start gap-4">
-                  <a
-                    class="organization-logo school-logo"
-                    href="https://www.nuist.edu.cn/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="南京信息工程大学官网"
-                  >
-                    {edu.logo ? (
-                      <img
-                        src={edu.logo}
-                        alt={`${edu.school}校标`}
-                        width="48"
-                        height="48"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <HiOutlineAcademicCap className="text-primary text-xl" />
-                    )}
-                  </a>
-                  <div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <span class="font-bold text-lg text-foreground">
-                        {edu.school}
-                      </span>
-                      {edu.badge && (
-                        <span class="px-2.5 py-1 rounded text-sm font-medium bg-muted/10 text-muted-foreground border border-border/20">
-                          {edu.badge}
-                        </span>
-                      )}
-                    </div>
-                    <div class="text-base text-muted-foreground mt-1">
-                      {edu.degree}
-                    </div>
-                  </div>
-                </div>
-                <div class="text-base text-muted-foreground mt-2 md:mt-0 md:text-right">
-                  {edu.period && <div>{edu.period}</div>}
-                  {edu.location && (
-                    <div class="text-sm opacity-70">{edu.location}</div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </section>
-        </div>
-      )}
-
-      <!-- 工作经历 -->
-      {experience && experience.length > 0 && (
-        <div id="experience">
-          <h2 class="section-title text-2xl font-medium text-foreground mb-6 flex items-center gap-3">
-            <HiOutlineBriefcase className="text-2xl text-primary" /> 工作经历
-          </h2>
-          <div class="space-y-3">
-            {experience.map((exp) => (
-              <section class="about-panel">
-                <div class="flex flex-col md:flex-row md:items-start justify-between mb-3">
+        <!-- 教育背景 -->
+        {education && education.length > 0 && (
+          <div id="education">
+            <h2 class="section-title text-2xl font-medium text-foreground mb-6 flex items-center gap-3">
+              <HiOutlineAcademicCap className="text-2xl text-primary" />{" "}
+              教育背景
+            </h2>
+            <section class="about-panel">
+              {education.map((edu, index) => (
+                <div
+                  class={`flex flex-col md:flex-row md:items-center justify-between ${index > 0 ? "mt-4 pt-4 border-t border-border/30" : ""}`}
+                >
                   <div class="flex items-start gap-4">
-                    {exp.logo && (
-                      <a
-                        class="organization-logo"
-                        href="https://www.ucloud.cn/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="优刻得官网"
-                      >
+                    <a
+                      class="organization-logo school-logo"
+                      href="https://www.nuist.edu.cn/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="南京信息工程大学官网"
+                    >
+                      {edu.logo ? (
                         <img
-                          src={exp.logo}
-                          alt={`${exp.company}标志`}
+                          src={edu.logo}
+                          alt={`${edu.school}校标`}
                           width="48"
                           height="48"
                           loading="lazy"
                         />
-                      </a>
-                    )}
-                    <div class="min-w-0">
-                      <h3 class="font-bold text-xl text-foreground">
-                        {exp.title}
-                      </h3>
-                      <div class="text-primary font-medium text-lg">
-                        {exp.company}
+                      ) : (
+                        <HiOutlineAcademicCap className="text-primary text-xl" />
+                      )}
+                    </a>
+                    <div>
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-bold text-lg text-foreground">
+                          {edu.school}
+                        </span>
+                        {edu.badge && (
+                          <span class="px-2.5 py-1 rounded text-sm font-medium bg-muted/10 text-muted-foreground border border-border/20">
+                            {edu.badge}
+                          </span>
+                        )}
+                      </div>
+                      <div class="text-base text-muted-foreground mt-1">
+                        {edu.degree}
                       </div>
                     </div>
                   </div>
-                  <div class="text-base text-muted-foreground mt-1 md:mt-0 md:text-right">
-                    <div>{exp.period}</div>
-                    {exp.location && (
-                      <div class="text-sm opacity-70">{exp.location}</div>
+                  <div class="text-base text-muted-foreground mt-2 md:mt-0 md:text-right">
+                    {edu.period && <div>{edu.period}</div>}
+                    {edu.location && (
+                      <div class="text-sm opacity-70">{edu.location}</div>
                     )}
                   </div>
                 </div>
-                {exp.description && (
-                  <p class="text-base text-muted-foreground mb-3">
-                    <TechnologyText text={exp.description} />
-                  </p>
-                )}
-                {exp.highlights && exp.highlights.length > 0 && (
-                  <ul class="space-y-2">
-                    {exp.highlights.map((highlight) => (
-                      <li class="flex items-start gap-2 text-base text-muted-foreground">
-                        <span class="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></span>
-                        <span>
-                          <TechnologyText text={highlight} />
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            ))}
+              ))}
+            </section>
           </div>
-        </div>
-      )}
+        )}
 
-      <!-- 开源项目 -->
-      {openSource && openSource.length > 0 && (
-        <div id="open-source">
-          <h2 class="section-title text-2xl font-medium text-foreground mb-6 flex items-center gap-3">
-            <HiOutlineCodeBracket className="text-2xl text-primary" /> 开源贡献
-          </h2>
-          <div class="space-y-3">
-            {openSource.map((project) => (
-              <section class="about-panel">
-                <div class="contribution-heading">
-                  <div class="flex min-w-0 items-start gap-4">
-                    <a
-                      class="organization-logo"
-                      href={project.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`${project.name}项目主页`}
-                    >
-                      {project.logo ? (
-                        <img
-                          src={project.logo}
-                          alt={`${project.name}标志`}
-                          width="32"
-                          height="32"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <FaGithub aria-hidden="true" />
-                      )}
-                    </a>
-                    <div class="min-w-0">
-                      <h3 class="font-bold text-lg text-foreground flex items-center gap-2">
-                        {project.url ? (
-                          <a
-                            href={project.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="hover:text-primary transition-colors"
-                          >
-                            {project.name}
-                          </a>
-                        ) : (
-                          project.name
-                        )}
-                      </h3>
-                      <span class="mt-1 inline-flex items-center rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                        {project.role}
-                      </span>
-                    </div>
-                  </div>
-                  <span class="shrink-0 text-sm text-muted-foreground">
-                    {project.period}
-                  </span>
-                </div>
-                {project.description && (
-                  <p class="text-base text-muted-foreground mb-3">
-                    <TechnologyText text={project.description} />
-                  </p>
-                )}
-                {project.contributions && project.contributions.length > 0 && (
-                  <ul class="space-y-1.5">
-                    {project.contributions.map((contribution) => (
-                      <li class="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
-                        <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span>
-                        <span>
-                          <TechnologyText text={contribution} />
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {project.links && project.links.length > 0 && (
-                  <ul
-                    class="contribution-links"
-                    aria-label={`${project.name}贡献记录`}
-                  >
-                    {project.links.map((link) => (
-                      <li>
+        <!-- 工作经历 -->
+        {experience && experience.length > 0 && (
+          <div id="experience">
+            <h2 class="section-title text-2xl font-medium text-foreground mb-6 flex items-center gap-3">
+              <HiOutlineBriefcase className="text-2xl text-primary" /> 工作经历
+            </h2>
+            <div class="space-y-3">
+              {experience.map((exp) => (
+                <section class="about-panel">
+                  <div class="flex flex-col md:flex-row md:items-start justify-between mb-3">
+                    <div class="flex items-start gap-4">
+                      {exp.logo && (
                         <a
-                          href={link.url}
+                          class="organization-logo"
+                          href="https://www.ucloud.cn/"
                           target="_blank"
                           rel="noopener noreferrer"
+                          aria-label="优刻得官网"
                         >
-                          {link.label}
+                          <img
+                            src={exp.logo}
+                            alt={`${exp.company}标志`}
+                            width="48"
+                            height="48"
+                            loading="lazy"
+                          />
                         </a>
-                        <span
-                          class="contribution-status"
-                          data-status={link.status}
-                        >
-                          {link.status}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            ))}
+                      )}
+                      <div class="min-w-0">
+                        <h3 class="font-bold text-xl text-foreground">
+                          {exp.title}
+                        </h3>
+                        <div class="text-primary font-medium text-lg">
+                          {exp.company}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="text-base text-muted-foreground mt-1 md:mt-0 md:text-right">
+                      <div>{exp.period}</div>
+                      {exp.location && (
+                        <div class="text-sm opacity-70">{exp.location}</div>
+                      )}
+                    </div>
+                  </div>
+                  {exp.description && (
+                    <p class="text-base text-muted-foreground mb-3">
+                      <TechnologyText text={exp.description} />
+                    </p>
+                  )}
+                  {exp.highlights && exp.highlights.length > 0 && (
+                    <ul class="space-y-2">
+                      {exp.highlights.map((highlight) => (
+                        <li class="flex items-start gap-2 text-base text-muted-foreground">
+                          <span class="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></span>
+                          <span>
+                            <TechnologyText text={highlight} />
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <!-- Markdown 内容 -->
-      <section class="about-panel markdown-content">
-        <div class="prose prose-site prose-base max-w-[760px]">
-          <Content />
-          <ul class="technology-list site-technologies" aria-label="本站技术栈">
-            {["Astro", "TypeScript", "Tailwind CSS"].map((name) => (
-              <li>
-                <TechnologyLink name={name} />
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-    </div>
+        <!-- 开源项目 -->
+        {openSource && openSource.length > 0 && (
+          <div id="open-source">
+            <h2 class="section-title text-2xl font-medium text-foreground mb-6 flex items-center gap-3">
+              <HiOutlineCodeBracket className="text-2xl text-primary" />{" "}
+              开源贡献
+            </h2>
+            <div class="space-y-3">
+              {openSource.map((project) => (
+                <section class="about-panel">
+                  <div class="contribution-heading">
+                    <div class="flex min-w-0 items-start gap-4">
+                      <a
+                        class="organization-logo"
+                        href={project.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`${project.name}项目主页`}
+                      >
+                        {project.logo ? (
+                          <img
+                            src={project.logo}
+                            alt={`${project.name}标志`}
+                            width="32"
+                            height="32"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <FaGithub aria-hidden="true" />
+                        )}
+                      </a>
+                      <div class="min-w-0">
+                        <h3 class="font-bold text-lg text-foreground flex items-center gap-2">
+                          {project.url ? (
+                            <a
+                              href={project.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="hover:text-primary transition-colors"
+                            >
+                              {project.name}
+                            </a>
+                          ) : (
+                            project.name
+                          )}
+                        </h3>
+                        <span class="mt-1 inline-flex items-center rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                          {project.role}
+                        </span>
+                      </div>
+                    </div>
+                    <span class="shrink-0 text-sm text-muted-foreground">
+                      {project.period}
+                    </span>
+                  </div>
+                  {project.description && (
+                    <p class="text-base text-muted-foreground mb-3">
+                      <TechnologyText text={project.description} />
+                    </p>
+                  )}
+                  {project.contributions &&
+                    project.contributions.length > 0 && (
+                      <ul class="space-y-1.5">
+                        {project.contributions.map((contribution) => (
+                          <li class="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
+                            <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span>
+                            <span>
+                              <TechnologyText text={contribution} />
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  {project.links && project.links.length > 0 && (
+                    <ul
+                      class="contribution-links"
+                      aria-label={`${project.name}贡献记录`}
+                    >
+                      {project.links.map((link) => (
+                        <li>
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {link.label}
+                          </a>
+                          <span
+                            class="contribution-status"
+                            data-status={link.status}
+                          >
+                            {link.status}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
   </section>
 </BaseLayout>
 
 <style>
+  .about-page {
+    padding-block: 36px 16px;
+  }
+  .about-intro {
+    padding-block: 40px 44px;
+    border-bottom: 1px solid hsl(var(--border));
+  }
   .intro-layout {
     display: flex;
     align-items: center;
@@ -450,6 +404,74 @@ const aboutDescription = description
   }
   .intro-layout > :first-child {
     order: 2;
+  }
+  .about-avatar {
+    width: 128px;
+    height: 128px;
+    border: 1px solid hsl(var(--border) / 0.5);
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .about-title {
+    margin-bottom: 12px;
+    font-family: var(--font-editorial);
+    font-size: clamp(32px, 4vw, 48px);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+  .about-tagline {
+    margin-bottom: 12px;
+    font-size: 18px;
+    color: hsl(var(--primary));
+  }
+  .about-summary {
+    max-width: 640px;
+    margin-bottom: 16px;
+    line-height: 1.9;
+    color: hsl(var(--muted-foreground));
+  }
+  .about-location {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: hsl(var(--muted-foreground));
+  }
+  .about-location :global(svg) {
+    width: 16px;
+    height: 16px;
+  }
+  .about-body {
+    padding-block: 36px;
+  }
+  @media (max-width: 767px) {
+    .about-page {
+      padding-top: 24px;
+    }
+    .about-intro,
+    .about-body {
+      padding-block: 28px;
+    }
+    .intro-layout {
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .intro-layout > :first-child {
+      order: 0;
+    }
+    .about-avatar {
+      width: 64px;
+      height: 64px;
+    }
+  }
+  @media (max-width: 480px) {
+    .intro-layout {
+      display: block;
+    }
+    .intro-layout > :first-child {
+      float: right;
+      margin: 0 0 16px 16px;
+    }
   }
   .about-navigation {
     display: flex;
@@ -489,9 +511,6 @@ const aboutDescription = description
     padding: 0;
     margin: 0;
     list-style: none;
-  }
-  .site-technologies {
-    margin-top: 20px;
   }
   #experience .about-panel,
   #open-source .about-panel {
@@ -618,18 +637,21 @@ const aboutDescription = description
     color: hsl(var(--primary));
   }
 
-  .about-page {
-    padding-block: 36px 16px;
+  .about-resume {
+    padding-block: 36px;
+    border-top: 1px solid hsl(var(--border));
+    scroll-margin-top: var(--site-header-offset, 100px);
   }
-  .about-intro {
-    padding-block: 40px 44px;
-    border-bottom: 1px solid hsl(var(--border));
+  .resume-link {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: hsl(var(--primary));
+    font-size: 14px;
   }
-  .about-title {
-    font-family: var(--font-editorial);
+  .resume-link:hover {
+    text-decoration: underline;
   }
-  .about-sections > div,
-  .about-sections > section {
+  .about-sections > div {
     padding-block: 36px;
     border-bottom: 1px solid hsl(var(--border));
   }
@@ -639,9 +661,6 @@ const aboutDescription = description
   .about-panel {
     padding: 12px 0;
   }
-  .about-panel h3 {
-    font-weight: 600;
-  }
   .section-title {
     font-family: var(--font-editorial);
   }
@@ -650,17 +669,5 @@ const aboutDescription = description
     width: 20px;
     height: 20px;
     flex-shrink: 0;
-  }
-  @media (max-width: 767px) {
-    .about-page {
-      padding-top: 24px;
-    }
-    .about-intro {
-      padding-block: 28px;
-    }
-    .about-sections > div,
-    .about-sections > section {
-      padding-block: 28px;
-    }
   }
 </style>

@@ -34,11 +34,12 @@ export type PageType = "blog" | "notes" | "writings";
 export const SITE_INFO = {
   NAME: (import.meta.env.PUBLIC_SITE_NAME as string) || "Tsukikage",
   SITE_NAME: (import.meta.env.PUBLIC_SITE_NAME as string) || "Tsukikage",
-  SUBNAME: (import.meta.env.PUBLIC_SITE_SUBTITLE as string) || "无限进步",
+  SUBNAME:
+    (import.meta.env.PUBLIC_SITE_SUBTITLE as string) || "文字、音乐与日常",
 
   DESCRIPTION:
     (import.meta.env.PUBLIC_SITE_DESCRIPTION as string) ||
-    "全栈开发工程师，分享技术心得与生活感悟",
+    "一个爱读书、听歌和写字的人。这里存放文字、音乐与日常。",
 
   URL: SITE_URL,
   AUTHOR: (import.meta.env.PUBLIC_SITE_AUTHOR as string) || "Tsukikage",
@@ -48,7 +49,7 @@ export const SITE_INFO = {
   AUTHOR_AVATAR: avatarThumbnail.src,
   KEY_WORDS:
     (import.meta.env.PUBLIC_SITE_KEYWORDS as string) ||
-    "golang rust typeScript fullstack 全栈开发",
+    "Tsukikage, 个人博客, 写作, 阅读, 音乐, 日常",
   GOOGLE_ANALYTICS_ID:
     (import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID as string) || "",
   BAIDU_ANALYTICS_ID:

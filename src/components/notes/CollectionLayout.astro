@@ -24,9 +24,9 @@ const {
   allNotesCount,
   basePath,
 } = Astro.props;
-const title = entryIndex?.data.title || "技术笔记";
+const title = entryIndex?.data.title || "笔记";
 const description =
-  entryIndex?.data.description || "学习记录、代码片段与环境备忘。";
+  entryIndex?.data.description || "随手记下的想法，和留待查阅的片段。";
 ---
 
 <BaseLayout
@@ -71,7 +71,7 @@ const description =
       </section>
       {tags.length > 0 && (
         <aside aria-label="笔记标签">
-          <p class="aside-label">按技术查找</p>
+          <p class="aside-label">按标签查找</p>
           <div class="note-tags">
             {tags.map((tag) => (
               <a href={`/notes/tags/${slugify(tag)}/`}>{tag}</a>

@@ -7,13 +7,13 @@ const { active } = Astro.props;
 
 <nav class="reading-tabs" aria-label="阅读方式">
   <a href="/blog/" aria-current={active === "blog" ? "page" : undefined}>
-    技术文章
+    文章
   </a>
   <a href="/series/" aria-current={active === "series" ? "page" : undefined}>
     系列合集
   </a>
   <a href="/notes/" aria-current={active === "notes" ? "page" : undefined}>
-    技术笔记
+    笔记
   </a>
 </nav>
 <style>
