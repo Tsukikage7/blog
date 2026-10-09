@@ -1,7 +1,7 @@
 ---
 title: Docker Compose 服务配置备忘
 description: 集中保存 2023 年 ClickHouse、Kafka 与 Umami 的学习配置，列明配套文件和访问条件。
-created: 2023-06-12 15:53:07
+created: 2023-06-15 15:53:07
 updated: 2026-10-05
 tags:
   - Docker Compose

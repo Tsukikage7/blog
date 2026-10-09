@@ -1,7 +1,7 @@
 ---
 title: "io_uring：提交、完成与缓冲区生命周期"
 description: "区分就绪通知和完成通知，用一次文件读取说明 SQE、CQE、错误处理与缓冲区复用边界。"
-created: 2026-01-13 00:00:00
+created: 2026-01-14 00:00:00
 updated: 2026-10-05
 categories:
   - Linux 与网络

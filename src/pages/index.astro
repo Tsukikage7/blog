@@ -23,41 +23,52 @@ const articleSeries = readingSeries.filter(
   (item) => item.entry.data.kind === "technical",
 );
 const writingItems = groupReadingEntries(allWritings, readingSeries);
-// 最近更新以合集/作品为单位，正文地址留给归档、搜索和订阅。
+// 最近发布以合集/作品为单位，合集日期取最新章节的发布时间。
 const latestEntries = groupReadingEntries(
   [...allPosts, ...allWritings],
   readingSeries,
-).map((item) => {
-  if (item.kind === "series") {
-    const literary = item.series.entry.data.kind === "literary";
+)
+  .map((item) => {
+    if (item.kind === "series") {
+      const literary = item.series.entry.data.kind === "literary";
+      const publicationDates = item.series.chapters
+        .map((chapter) => chapter.data.created)
+        .filter((date): date is Date => date !== undefined);
+      return {
+        title: item.series.entry.data.title,
+        href: item.href,
+        description: item.series.entry.data.description,
+        created: publicationDates.length
+          ? new Date(Math.max(...publicationDates.map(Number)))
+          : undefined,
+        label: literary
+          ? `${item.series.entry.data.genre || "文学作品"} · ${item.series.chapters.length} 章`
+          : `文章合集 · ${item.series.chapters.length} 篇`,
+        image: item.series.chapters[0].data.image,
+        imageAlt: item.series.entry.data.title,
+        cta: literary ? "查看作品" : "查看合集",
+      };
+    }
+    const entry = item.entry;
     return {
-      title: item.series.entry.data.title,
+      title: entry.data.title,
       href: item.href,
-      description: item.series.entry.data.description,
-      created: item.updated,
-      label: literary
-        ? `${item.series.entry.data.genre || "文学作品"} · ${item.series.chapters.length} 章`
-        : `文章合集 · ${item.series.chapters.length} 篇`,
-      image: item.series.chapters[0].data.image,
-      imageAlt: item.series.entry.data.title,
-      cta: literary ? "查看作品" : "查看合集",
+      description:
+        entry.data.description || plainify(entry.body || "").slice(0, 100),
+      created: entry.data.created,
+      label:
+        entry.collection === "blog"
+          ? entry.data.categories?.[0] || "文章"
+          : entry.data.genre || "作品",
+      image: entry.data.image,
+      imageAlt: entry.data.title,
     };
-  }
-  const entry = item.entry;
-  return {
-    title: entry.data.title,
-    href: item.href,
-    description:
-      entry.data.description || plainify(entry.body || "").slice(0, 100),
-    created: item.updated,
-    label:
-      entry.collection === "blog"
-        ? entry.data.categories?.[0] || "文章"
-        : entry.data.genre || "作品",
-    image: entry.data.image,
-    imageAlt: entry.data.title,
-  };
-});
+  })
+  .sort(
+    (a, b) =>
+      Number(b.created || 0) - Number(a.created || 0) ||
+      a.href.localeCompare(b.href),
+  );
 const [featured, ...recent] = latestEntries.slice(0, 5);
 const topics = articleSeries.slice(0, 3).map((item, index) => ({
   title: item.entry.data.title,
@@ -121,7 +132,7 @@ const topics = articleSeries.slice(0, 3).map((item, index) => ({
           <span class="section-index" aria-hidden="true">
             01 /
           </span>
-          <h2 id="latest-title">最近更新</h2>
+          <h2 id="latest-title">最近发布</h2>
         </div>
         <nav class="content-links" aria-label="按内容类型阅读">
           <a class="text-link" href="/blog/">
