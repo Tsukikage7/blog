@@ -12,6 +12,7 @@ import rehypeExternalLinks from "rehype-external-links";
 import { remarkMermaid } from "./src/lib/remarkMermaid.js";
 import { remarkContentHeadings } from "./src/lib/remarkContentHeadings.ts";
 import { SITE_URL } from "./src/lib/site.ts";
+import { cmsLocalApi } from "./src/cms/vite.ts";
 
 import os from "node:os";
 
@@ -244,6 +245,6 @@ export default defineConfig({
     cacheDir: isProduction
       ? "node_modules/.vite-production"
       : "node_modules/.vite-development",
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), cmsLocalApi()],
   },
 });

@@ -135,6 +135,12 @@ coverage/
 # -------------------- Deployment --------------------
 # Cloudflare Wrangler
 .wrangler/
+.cms/
+.dev.vars*
+!.dev.vars.example
+.env.production
+!.env.local.example
+public/cms-release.json
 
 # Vercel
 .vercel/

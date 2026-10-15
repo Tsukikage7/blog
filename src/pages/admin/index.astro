@@ -1,0 +1,26 @@
+---
+import AdminApp from "../../components/cms/AdminApp";
+import SiteIcons from "../../components/base/SiteIcons.astro";
+import "@radix-ui/themes/styles.css";
+import "../../styles/cms.css";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="same-origin" />
+    <SiteIcons />
+    <title>博客管理 · Tsukikage</title>
+  </head>
+  <body>
+    <AdminApp client:only="react">
+      <div slot="fallback" class="cms-loading">
+        正在打开博客管理…
+      </div>
+    </AdminApp>
+    <noscript>博客管理需要开启 JavaScript。</noscript>
+  </body>
+</html>
