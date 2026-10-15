@@ -7,7 +7,7 @@ categories:
   - 并发编程
 tags:
   - Go
-image: "/images/blog-covers/golang-concurrency-control.svg"
+image: "https://assets.tsukikage7.com/blog/cover/golang-concurrency-control.svg?v=20261010b"
 ---
 
 并发控制要回答的第一个问题是：压力超过处理能力时，工作停在哪里？如果每个请求先创建 goroutine，再在 goroutine 内等待信号量，那么执行中的调用有上限，等待中的 goroutine、捕获的请求对象和超时计时器仍可能持续增长。

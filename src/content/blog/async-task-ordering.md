@@ -8,7 +8,7 @@ categories:
 tags:
   - Scala
   - Pekko
-image: "/images/blog-covers/async-task-ordering.svg"
+image: "https://assets.tsukikage7.com/blog/cover/async-task-ordering.svg?v=20261010b"
 ---
 
 同一份数据被连续刷新两次：请求 A 先发出，请求 B 后发出，却是 B 先完成。如果 A 的旧结果随后也被写回，视图就会从新值退回旧值。解决这个问题需要明确哪个请求有权更新状态，同时限制那些还没完成的请求数量。

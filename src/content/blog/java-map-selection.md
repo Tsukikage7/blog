@@ -7,7 +7,7 @@ categories:
   - 并发编程
 tags:
   - Java
-image: "/images/blog-covers/java-map-selection.svg"
+image: "https://assets.tsukikage7.com/blog/cover/java-map-selection.svg?v=20261010b"
 ---
 
 一个缓存写成 `if (!map.containsKey(k)) map.put(k, load())`，换成 ConcurrentHashMap 后仍可能重复加载。每个方法线程安全，只保护那个方法的操作；业务上的“检查再创建”需要另一个原子边界。

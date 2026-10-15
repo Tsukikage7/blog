@@ -1,8 +1,7 @@
 import { SITE_URL } from "./site";
-import avatar from "@assets/avatar.webp";
-import avatarThumbnail from "@assets/avatar-thumbnail.webp";
+import { imageAsset } from "./imageAssets";
 
-export const AVATAR_IMAGE = avatar;
+export const AVATAR_IMAGE = imageAsset("site/avatar.webp");
 
 export const PAGINATION_CONFIG = {
   BLOG_ENTRIES_PER_PAGE: 10,
@@ -44,9 +43,9 @@ export const SITE_INFO = {
   URL: SITE_URL,
   AUTHOR: (import.meta.env.PUBLIC_SITE_AUTHOR as string) || "Tsukikage",
 
-  LOGO_IMAGE: avatar.src,
+  LOGO_IMAGE: AVATAR_IMAGE,
 
-  AUTHOR_AVATAR: avatarThumbnail.src,
+  AUTHOR_AVATAR: imageAsset("site/avatar-thumbnail.webp"),
   KEY_WORDS:
     (import.meta.env.PUBLIC_SITE_KEYWORDS as string) ||
     "Tsukikage, 个人博客, 写作, 阅读, 音乐, 日常",

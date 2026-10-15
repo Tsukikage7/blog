@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 
 // 技术封面使用固定的浅色底与蓝绿配色，图形表达对应文章的问题。
-const directory = new URL("../public/images/blog-covers/", import.meta.url);
+const directory = new URL("../assets/images/blog-covers/", import.meta.url);
 const palette = {
   ink: "#263641",
   green: "#438b7e",

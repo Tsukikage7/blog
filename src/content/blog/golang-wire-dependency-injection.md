@@ -8,7 +8,7 @@ categories:
 tags:
   - Go
   - 依赖注入
-image: "/images/blog-covers/golang-wire-dependency-injection.svg"
+image: "https://assets.tsukikage7.com/blog/cover/golang-wire-dependency-injection.svg?v=20261010b"
 ---
 
 依赖注入容易写成“构造函数怎样连起来”，实际最危险的路径却是：数据库连接已打开，缓存初始化失败，进程启动中断，先前创建的资源由谁关闭？还有一条正常路径：服务停止接受请求以后，后台任务与连接池以什么顺序结束？

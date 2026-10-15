@@ -4,6 +4,8 @@ import Breadcrumbs from "@components/common/Breadcrumbs.astro";
 import type { AboutEntry } from "@/types";
 import { render } from "astro:content";
 import { Image } from "astro:assets";
+import { AVATAR_IMAGE } from "@lib/config";
+import { avatarImage } from "@lib/imageAssets";
 import { FaGithub } from "react-icons/fa";
 import type { IconType } from "react-icons";
 import {
@@ -64,7 +66,12 @@ const imageSrc = image
             {typeof image === "string" ? (
               <img
                 class="about-avatar"
-                src={image}
+                src={image === AVATAR_IMAGE ? avatarImage(144) : image}
+                srcset={
+                  image === AVATAR_IMAGE
+                    ? `${avatarImage(144)} 1x, ${avatarImage(288)} 2x`
+                    : undefined
+                }
                 alt={imageAlt || "作者头像"}
                 width="144"
                 height="144"

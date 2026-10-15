@@ -8,7 +8,7 @@ categories:
 tags:
   - 运维自动化
   - 故障恢复
-image: "/images/blog-covers/big-data-cluster-scripts.svg"
+image: "https://assets.tsukikage7.com/blog/cover/big-data-cluster-scripts.svg?v=20261010b"
 ---
 
 批量执行 `ssh host "$*"` 只能回答命令有没有结束，不能回答节点是否已经恢复服务，也不能保证失败以后停止操作其他节点。集群操作需要显式控制“当前允许损失多少服务能力”和“什么证据才能进入下一批”。

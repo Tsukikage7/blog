@@ -1,3 +1,4 @@
+import { imageAsset } from "./imageAssets";
 import type { IconType } from "react-icons";
 import {
   SiGo,
@@ -30,7 +31,7 @@ export interface Technology {
   color?: string;
   concept?: boolean;
 }
-const asset = (name: string) => `/images/technologies/${name}`;
+const asset = (name: string) => imageAsset(`technologies/${name}`);
 // 品牌标识来自项目官网、官方仓库及 Simple Icons；无独立标识的条目保留文字链接。
 export const technologies: Record<string, Technology> = {
   VoyraCloud: {
@@ -39,13 +40,16 @@ export const technologies: Record<string, Technology> = {
   },
   ALB: {
     url: "https://docs.ucloud.cn/ulb/alb/guide/listeners/forwarding",
-    image: "/images/about/ucloud.png",
+    image: imageAsset("about/ucloud.png"),
   },
   PathX: {
     url: "https://www.ucloud.cn/site/product/pathx.html",
-    image: "/images/about/ucloud.png",
+    image: imageAsset("about/ucloud.png"),
   },
-  UCloud: { url: "https://www.ucloud.cn/", image: "/images/about/ucloud.png" },
+  UCloud: {
+    url: "https://www.ucloud.cn/",
+    image: imageAsset("about/ucloud.png"),
+  },
   Go: { url: "https://go.dev/", icon: SiGo, color: "#007d9c" },
   Hertz: {
     url: "https://www.cloudwego.io/docs/hertz/",
@@ -196,10 +200,13 @@ export const technologies: Record<string, Technology> = {
     concept: true,
   },
   OpenAI: { url: "https://openai.com/", image: asset("openai.png") },
-  Dubbo: { url: "https://dubbo.apache.org/", image: "/images/about/dubbo.png" },
+  Dubbo: {
+    url: "https://dubbo.apache.org/",
+    image: imageAsset("about/dubbo.png"),
+  },
   Triple: {
     url: "https://dubbo.apache.org/en/overview/reference/protocols/triple/",
-    image: "/images/about/dubbo.png",
+    image: imageAsset("about/dubbo.png"),
   },
   泛化调用: {
     url: "https://github.com/apache/dubbo-go-samples/tree/main/generic",
@@ -237,15 +244,15 @@ export const technologies: Record<string, Technology> = {
   },
   "dubbo-go": {
     url: "https://github.com/apache/dubbo-go",
-    image: "/images/about/dubbo.png",
+    image: imageAsset("about/dubbo.png"),
   },
   Pixiu: {
     url: "https://github.com/apache/dubbo-go-pixiu",
-    image: "/images/about/dubbo.png",
+    image: imageAsset("about/dubbo.png"),
   },
   "dubbo-go-pixiu": {
     url: "https://github.com/apache/dubbo-go-pixiu",
-    image: "/images/about/dubbo.png",
+    image: imageAsset("about/dubbo.png"),
   },
 };
 

@@ -9,7 +9,7 @@ tags:
   - Scala
   - Pekko
   - 租约
-image: "/images/blog-covers/task-lease-fencing.svg"
+image: "https://assets.tsukikage7.com/blog/cover/task-lease-fencing.svg?v=20261010b"
 ---
 
 一项任务原本由执行者 A 负责。A 暂停超过租约期限，协调者把任务交给 B；A 随后恢复，继续提交自己算出的旧结果。此时，协调者已经换了负责人，但写入目标是否知道这次接管？

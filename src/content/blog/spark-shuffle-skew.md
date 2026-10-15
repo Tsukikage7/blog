@@ -8,7 +8,7 @@ categories:
 tags:
   - Spark
   - 性能诊断
-image: "/images/blog-covers/spark-shuffle-skew.svg"
+image: "https://assets.tsukikage7.com/blog/cover/spark-shuffle-skew.svg?v=20261010b"
 ---
 
 一个 Stage 只有少数 Task 很慢，增加 executor 后总耗时依旧没有改善。先要判断慢任务是在处理更多数据、遭遇 spill 与 GC，还是等待网络或远程存储。仅凭“一个 Task 慢”就加盐，可能增加一次 Shuffle 而没有触及瓶颈。

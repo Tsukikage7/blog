@@ -1,0 +1,354 @@
+[
+  {
+    "key": "blog/cover/arthas-debugging-guide.svg",
+    "url": "https://assets.tsukikage7.com/blog/cover/arthas-debugging-guide.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "3ecf90a33605b8f58361c7aad3fa78cb2b58da6dc9157449f284188faf147393",
+    "bytes": 2358,
+    "source": "assets/images/blog-covers/arthas-debugging-guide.svg"
+  },
+  {
+    "key": "blog/cover/async-task-ordering.svg",
+    "url": "https://assets.tsukikage7.com/blog/cover/async-task-ordering.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "b7aaaba064950245d884d947b36b00ccbc3baacf178f98c36c2d8ffb08108adc",
+    "bytes": 2368,
+    "source": "assets/images/blog-covers/async-task-ordering.svg"
+  },
+  {
+    "key": "blog/cover/big-data-cluster-scripts.svg",
+    "url": "https://assets.tsukikage7.com/blog/cover/big-data-cluster-scripts.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "9fbf317f050da031ed8ac0fd8706eb368976f85ed8f051927f17f5bc96134c58",
+    "bytes": 2967,
+    "source": "assets/images/blog-covers/big-data-cluster-scripts.svg"
+  },
+  {
+    "key": "blog/cover/data-warehouse-layering.svg",
+    "url": "https://assets.tsukikage7.com/blog/cover/data-warehouse-layering.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "5c3b297032339741ac0ce4b521a88050007c912b43792b962aa6a8887c58a7d9",
+    "bytes": 3290,
+    "source": "assets/images/blog-covers/data-warehouse-layering.svg"
+  },
+  {
+    "key": "blog/cover/golang-concurrency-control.svg",
+    "url": "https://assets.tsukikage7.com/blog/cover/golang-concurrency-control.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "7ae49e143fb2060b9ee85cdaf775e2a2f62cb13cbb297ee4ccfc57153fe1281a",
+    "bytes": 4156,
+    "source": "assets/images/blog-covers/golang-concurrency-control.svg"
+  },
+  {
+    "key": "blog/cover/golang-wire-dependency-injection.svg",
+    "url": "https://assets.tsukikage7.com/blog/cover/golang-wire-dependency-injection.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "d61b6583390b39f0c1ced7852f7e7fa5a5b83db0b6766039fbd357b61d9d1097",
+    "bytes": 2358,
+    "source": "assets/images/blog-covers/golang-wire-dependency-injection.svg"
+  },
+  {
+    "key": "blog/cover/java-map-selection.svg",
+    "url": "https://assets.tsukikage7.com/blog/cover/java-map-selection.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "174d027e66d02931d06ac02f7f6c2fbdb0004ba0af6fed7995c9c28e3289fc26",
+    "bytes": 2881,
+    "source": "assets/images/blog-covers/java-map-selection.svg"
+  },
+  {
+    "key": "blog/cover/spark-shuffle-skew.svg",
+    "url": "https://assets.tsukikage7.com/blog/cover/spark-shuffle-skew.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "52938711a2dd0a7e5c73fd3fb771010c3352174f2c192e55bcdda4f48eb46834",
+    "bytes": 4812,
+    "source": "assets/images/blog-covers/spark-shuffle-skew.svg"
+  },
+  {
+    "key": "blog/cover/task-lease-fencing.svg",
+    "url": "https://assets.tsukikage7.com/blog/cover/task-lease-fencing.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "e6e7b6424891c8924b423408a4fffc57f9c161acfc8bf99871bbbb46099d6c74",
+    "bytes": 2609,
+    "source": "assets/images/blog-covers/task-lease-fencing.svg"
+  },
+  {
+    "key": "blog/about/dtstack.svg",
+    "url": "https://assets.tsukikage7.com/blog/about/dtstack.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "54146d800e1f9d372d3063d173a88e3b33082f1bfe326503dcefca1bcbf14870",
+    "bytes": 46151,
+    "source": "assets/images/about/dtstack.svg"
+  },
+  {
+    "key": "blog/about/dubbo.png",
+    "url": "https://assets.tsukikage7.com/blog/about/dubbo.png?v=20261010b",
+    "contentType": "image/png",
+    "sha256": "38053f71a147598066c74f2143f4a5db5cae5e8bf7605d3facb3128a9e156fbe",
+    "bytes": 5275,
+    "source": "assets/images/about/dubbo.png"
+  },
+  {
+    "key": "blog/about/nuist.png",
+    "url": "https://assets.tsukikage7.com/blog/about/nuist.png?v=20261010b",
+    "contentType": "image/png",
+    "sha256": "3aca1af44fa4095274f3fc7b9abdfd8d6bc9d01256b1b742b72a4c8cd5a2e188",
+    "bytes": 4472,
+    "source": "assets/images/about/nuist.png"
+  },
+  {
+    "key": "blog/about/powercontext.svg",
+    "url": "https://assets.tsukikage7.com/blog/about/powercontext.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "6ab88ea05959193cf854fa38f4f22a520f8ce2aeec63dc61abd90671ec07a976",
+    "bytes": 40309,
+    "source": "assets/images/about/powercontext.svg"
+  },
+  {
+    "key": "blog/about/ucloud.png",
+    "url": "https://assets.tsukikage7.com/blog/about/ucloud.png?v=20261010b",
+    "contentType": "image/png",
+    "sha256": "c0790ed70caf81dc7f90b9c4838f69577e8956d1476cb7eb32857f4eb8d6f4fe",
+    "bytes": 2669,
+    "source": "assets/images/about/ucloud.png"
+  },
+  {
+    "key": "blog/about/yanxuan.webp",
+    "url": "https://assets.tsukikage7.com/blog/about/yanxuan.webp?v=20261010b",
+    "contentType": "image/webp",
+    "sha256": "75afba0efae3dbce2203c455975bf5faabc435a42c7d97c60d4d91946b36bf95",
+    "bytes": 3404,
+    "source": "assets/images/about/yanxuan.webp"
+  },
+  {
+    "key": "blog/technologies/apisix.svg",
+    "url": "https://assets.tsukikage7.com/blog/technologies/apisix.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "398dbfb6a113cd5633405dff22b88dadce29164ea8225563b8cd9341a70ddfc0",
+    "bytes": 811,
+    "source": "assets/images/technologies/apisix.svg"
+  },
+  {
+    "key": "blog/technologies/cerbos.png",
+    "url": "https://assets.tsukikage7.com/blog/technologies/cerbos.png?v=20261010b",
+    "contentType": "image/png",
+    "sha256": "06669c72f70245cc347d5a657bb270c7cbaf038044d78d2e0de11a679a2caed0",
+    "bytes": 6856,
+    "source": "assets/images/technologies/cerbos.png"
+  },
+  {
+    "key": "blog/technologies/cloudwego.png",
+    "url": "https://assets.tsukikage7.com/blog/technologies/cloudwego.png?v=20261010b",
+    "contentType": "image/png",
+    "sha256": "7ffe5035a4fbf5f9b866f3f0c0cec9ff0c25662d94360bf8350845c763d96d27",
+    "bytes": 5706,
+    "source": "assets/images/technologies/cloudwego.png"
+  },
+  {
+    "key": "blog/technologies/gorm.png",
+    "url": "https://assets.tsukikage7.com/blog/technologies/gorm.png?v=20261010b",
+    "contentType": "image/png",
+    "sha256": "14b444f70bb0e57a658b7a709b7f03d14f4970b0899c3ba0b4ccd96102463963",
+    "bytes": 11656,
+    "source": "assets/images/technologies/gorm.png"
+  },
+  {
+    "key": "blog/technologies/grpc.png",
+    "url": "https://assets.tsukikage7.com/blog/technologies/grpc.png?v=20261010b",
+    "contentType": "image/png",
+    "sha256": "b5d5ab8de018dfbc69bc210b0ce0b0df20b2255c22d617b7b24abf47aa1e4127",
+    "bytes": 11896,
+    "source": "assets/images/technologies/grpc.png"
+  },
+  {
+    "key": "blog/technologies/loki.svg",
+    "url": "https://assets.tsukikage7.com/blog/technologies/loki.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "f80204863f46cda4ef4f5da0ced6457358df3773e6599ae2bd12189c9d4e3414",
+    "bytes": 4964,
+    "source": "assets/images/technologies/loki.svg"
+  },
+  {
+    "key": "blog/technologies/openai.png",
+    "url": "https://assets.tsukikage7.com/blog/technologies/openai.png?v=20261010b",
+    "contentType": "image/png",
+    "sha256": "6025a4347a8eaed17e31eaebf7834e33ec4af26cc7f59be586ac59ba5157fa1c",
+    "bytes": 4081,
+    "source": "assets/images/technologies/openai.png"
+  },
+  {
+    "key": "blog/technologies/openresty.webp",
+    "url": "https://assets.tsukikage7.com/blog/technologies/openresty.webp?v=20261010b",
+    "contentType": "image/webp",
+    "sha256": "0f65292a7cd2c9057459996e3182130ac1bd22dd354481dd23157cd9ef995f66",
+    "bytes": 5468,
+    "source": "assets/images/technologies/openresty.webp"
+  },
+  {
+    "key": "blog/technologies/protobuf.png",
+    "url": "https://assets.tsukikage7.com/blog/technologies/protobuf.png?v=20261010b",
+    "contentType": "image/png",
+    "sha256": "450e34323b44e53d002dce32ba5c588a8f9f3a68e45a229216387ebe1a406a3b",
+    "bytes": 5264,
+    "source": "assets/images/technologies/protobuf.png"
+  },
+  {
+    "key": "blog/technologies/s3.png",
+    "url": "https://assets.tsukikage7.com/blog/technologies/s3.png?v=20261010b",
+    "contentType": "image/png",
+    "sha256": "6715951abe7d964792afc3d36dec4e2f89e7d27df74d702ba75e575304a80d22",
+    "bytes": 2205,
+    "source": "assets/images/technologies/s3.png"
+  },
+  {
+    "key": "blog/technologies/tempo.svg",
+    "url": "https://assets.tsukikage7.com/blog/technologies/tempo.svg?v=20261010b",
+    "contentType": "image/svg+xml",
+    "sha256": "bf2aa0089c2e8693400b76c22f745a92bb5d35de7fb63180ecdab05e03a758df",
+    "bytes": 1304,
+    "source": "assets/images/technologies/tempo.svg"
+  },
+  {
+    "key": "blog/technologies/voyracloud.ico",
+    "url": "https://assets.tsukikage7.com/blog/technologies/voyracloud.ico?v=20261010b",
+    "contentType": "image/x-icon",
+    "sha256": "4fa9b4607fb9d0cdb9ab1bdb86b54cf0699c138c9f340479c949a8b472798e7a",
+    "bytes": 15406,
+    "source": "assets/images/technologies/voyracloud.ico"
+  },
+  {
+    "key": "blog/site/avatar-thumbnail.webp",
+    "url": "https://assets.tsukikage7.com/blog/site/avatar-thumbnail.webp?v=20261010b",
+    "contentType": "image/webp",
+    "sha256": "af88aadbd2521a19f8cb0808b2be75a981615f9223e9f035e8f30fe082f6abbe",
+    "bytes": 4270,
+    "source": "assets/images/site/avatar-thumbnail.webp"
+  },
+  {
+    "key": "blog/site/avatar.webp",
+    "url": "https://assets.tsukikage7.com/blog/site/avatar.webp?v=20261010b",
+    "contentType": "image/webp",
+    "sha256": "de26b834383da48e9e85780273d219988688b39964aa9695d26f4a058c40f759",
+    "bytes": 89306,
+    "source": "assets/images/site/avatar.webp"
+  },
+  {
+    "key": "blog/site/avatar-144.webp",
+    "url": "https://assets.tsukikage7.com/blog/site/avatar-144.webp?v=20261010b",
+    "contentType": "image/webp",
+    "sha256": "e942c6ad6639318b7353967f037342e4f20a7b73bd43840c1e67036705a33a51",
+    "bytes": 4626,
+    "source": "assets/images/site/avatar-144.webp"
+  },
+  {
+    "key": "blog/site/avatar-16.webp",
+    "url": "https://assets.tsukikage7.com/blog/site/avatar-16.webp?v=20261010b",
+    "contentType": "image/webp",
+    "sha256": "b6549c1a2b627aa4bd084cdddf8a1c9ba9685f18bc55d7ef2ac21ac527d65b74",
+    "bytes": 182,
+    "source": "assets/images/site/avatar-16.webp"
+  },
+  {
+    "key": "blog/site/avatar-180.webp",
+    "url": "https://assets.tsukikage7.com/blog/site/avatar-180.webp?v=20261010b",
+    "contentType": "image/webp",
+    "sha256": "a1524a5c127d33397b0b98ee18efff08c107bdccb9bf751a5d8dcded0cd731c7",
+    "bytes": 7398,
+    "source": "assets/images/site/avatar-180.webp"
+  },
+  {
+    "key": "blog/site/avatar-240.webp",
+    "url": "https://assets.tsukikage7.com/blog/site/avatar-240.webp?v=20261010b",
+    "contentType": "image/webp",
+    "sha256": "fd62aceae6fe688a605e3220815bcc506e6f5d9304dfa38ee7cf8f00fb025c3c",
+    "bytes": 12266,
+    "source": "assets/images/site/avatar-240.webp"
+  },
+  {
+    "key": "blog/site/avatar-288.webp",
+    "url": "https://assets.tsukikage7.com/blog/site/avatar-288.webp?v=20261010b",
+    "contentType": "image/webp",
+    "sha256": "5138a5c6a8cb1d3485d6d861424902e8a0e4a8ed408e3036ff28801ba29116ed",
+    "bytes": 17512,
+    "source": "assets/images/site/avatar-288.webp"
+  },
+  {
+    "key": "blog/site/avatar-32.webp",
+    "url": "https://assets.tsukikage7.com/blog/site/avatar-32.webp?v=20261010b",
+    "contentType": "image/webp",
+    "sha256": "be4f8dc519f19d48ad2a5492fcdc8558e562c6aefc2d858df634e183d883aaea",
+    "bytes": 454,
+    "source": "assets/images/site/avatar-32.webp"
+  },
+  {
+    "key": "blog/site/avatar-480.webp",
+    "url": "https://assets.tsukikage7.com/blog/site/avatar-480.webp?v=20261010b",
+    "contentType": "image/webp",
+    "sha256": "f711cd20a5ee52909c34a813defb87af56dc1757740230f079fe39c24be2638c",
+    "bytes": 44262,
+    "source": "assets/images/site/avatar-480.webp"
+  },
+  {
+    "key": "blog/site/avatar-64.webp",
+    "url": "https://assets.tsukikage7.com/blog/site/avatar-64.webp?v=20261010b",
+    "contentType": "image/webp",
+    "sha256": "9c5c1648a48c957fd16fcc0be3c66e9e49463fbb8a690e7b5a910914460e6ac7",
+    "bytes": 1220,
+    "source": "assets/images/site/avatar-64.webp"
+  },
+  {
+    "key": "blog/writings/he-zhao-li-mei-you-xia-yu/01-tailor-shop.webp",
+    "url": "https://assets.tsukikage7.com/blog/writings/he-zhao-li-mei-you-xia-yu/01-tailor-shop.webp",
+    "contentType": "image/webp",
+    "sha256": "34ca38683b7f239c198bedeb99d52e7d5f61f5bbacc9eaf6bac27ae6bf4cd353",
+    "bytes": 193466,
+    "source": "assets/images/writings/he-zhao-li-mei-you-xia-yu/01-tailor-shop.webp"
+  },
+  {
+    "key": "blog/writings/he-zhao-li-mei-you-xia-yu/02-shared-umbrella.webp",
+    "url": "https://assets.tsukikage7.com/blog/writings/he-zhao-li-mei-you-xia-yu/02-shared-umbrella.webp",
+    "contentType": "image/webp",
+    "sha256": "ca0cbd344d6f7d47afe48b736e0f3c924970fa76e3ff51aef0cbbb9337024036",
+    "bytes": 252552,
+    "source": "assets/images/writings/he-zhao-li-mei-you-xia-yu/02-shared-umbrella.webp"
+  },
+  {
+    "key": "blog/writings/he-zhao-li-mei-you-xia-yu/03-blue-thread.webp",
+    "url": "https://assets.tsukikage7.com/blog/writings/he-zhao-li-mei-you-xia-yu/03-blue-thread.webp",
+    "contentType": "image/webp",
+    "sha256": "bb0d409d47a5c9be7593dd072f07534fcaf1466aeabb6a344e90fa9a6631c137",
+    "bytes": 173458,
+    "source": "assets/images/writings/he-zhao-li-mei-you-xia-yu/03-blue-thread.webp"
+  },
+  {
+    "key": "blog/writings/he-zhao-li-mei-you-xia-yu/04-summer-distance.webp",
+    "url": "https://assets.tsukikage7.com/blog/writings/he-zhao-li-mei-you-xia-yu/04-summer-distance.webp",
+    "contentType": "image/webp",
+    "sha256": "afdfc2a5c43dfc692ba7beefdc68c7e7094115b871c0800d2852e1016aea7d0f",
+    "bytes": 287222,
+    "source": "assets/images/writings/he-zhao-li-mei-you-xia-yu/04-summer-distance.webp"
+  },
+  {
+    "key": "blog/writings/he-zhao-li-mei-you-xia-yu/05-station-farewell.webp",
+    "url": "https://assets.tsukikage7.com/blog/writings/he-zhao-li-mei-you-xia-yu/05-station-farewell.webp",
+    "contentType": "image/webp",
+    "sha256": "ee9128f53d9d1b27cdb5c20ff471c73a4a98f97766d8141d4382b253cce3bb71",
+    "bytes": 231608,
+    "source": "assets/images/writings/he-zhao-li-mei-you-xia-yu/05-station-farewell.webp"
+  },
+  {
+    "key": "blog/writings/he-zhao-li-mei-you-xia-yu/06-night-train.webp",
+    "url": "https://assets.tsukikage7.com/blog/writings/he-zhao-li-mei-you-xia-yu/06-night-train.webp",
+    "contentType": "image/webp",
+    "sha256": "e1b9e0d8b5d9de9e8694ca15130bccd2aae0056ef16d606aca94755d2c6d6a83",
+    "bytes": 158050,
+    "source": "assets/images/writings/he-zhao-li-mei-you-xia-yu/06-night-train.webp"
+  },
+  {
+    "key": "blog/writings/he-zhao-li-mei-you-xia-yu/cover.webp",
+    "url": "https://assets.tsukikage7.com/blog/writings/he-zhao-li-mei-you-xia-yu/cover.webp",
+    "contentType": "image/webp",
+    "sha256": "8f5bafdcf4b3313591aa745e494d0d24dfbb4a977c07d9ebb70d6070356f84c1",
+    "bytes": 152854,
+    "source": "assets/images/writings/he-zhao-li-mei-you-xia-yu/cover.webp"
+  }
+]

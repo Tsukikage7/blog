@@ -8,7 +8,7 @@ categories:
 tags:
   - 数据一致性
   - 增量处理
-image: "/images/blog-covers/data-warehouse-layering.svg"
+image: "https://assets.tsukikage7.com/blog/cover/data-warehouse-layering.svg?v=20261010b"
 ---
 
 给数据仓库命名 ODS、DWD、DWS、ADS，并不能回答：同一订单重复到达怎么办？昨日订单今天被修正到另一个业务日期，旧分区怎样撤回？作业在写完汇总、还没记录消费位置时崩溃，会不会重复计费？

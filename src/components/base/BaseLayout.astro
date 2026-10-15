@@ -9,10 +9,10 @@ import "katex/dist/katex.min.css";
 import { ClientRouter } from "astro:transitions";
 import Background from "@/components/base/Background.astro";
 import { Tooltips } from "astro-tooltips";
-import { SITE_INFO, MUSIC_PLAYER_CONFIG, AVATAR_IMAGE } from "@lib/config";
+import { SITE_INFO, MUSIC_PLAYER_CONFIG } from "@lib/config";
+import SiteIcons from "@components/base/SiteIcons.astro";
 import { isDevelopment } from "@lib/env";
 import { SEO } from "astro-seo";
-import { getImage } from "astro:assets";
 import {
   absoluteUrl,
   canonicalUrl,
@@ -21,18 +21,6 @@ import {
 } from "@lib/site";
 import { breadcrumbs } from "@lib/breadcrumbs";
 import { getEntries } from "@lib/contentParser";
-
-const [favicon16, favicon32, appleTouchIcon] = await Promise.all(
-  [16, 32, 180].map((size) =>
-    getImage({
-      src: AVATAR_IMAGE,
-      width: size,
-      height: size,
-      format: "webp",
-      layout: "none",
-    }),
-  ),
-);
 
 export interface Props {
   title?: string;
@@ -181,14 +169,7 @@ const structuredData = {
 <!doctype html>
 <html lang="zh-CN">
   <head>
-    <link
-      rel="apple-touch-icon"
-      type="image/webp"
-      sizes="180x180"
-      href={appleTouchIcon.src}
-    />
-    <link rel="icon" type="image/webp" sizes="32x32" href={favicon32.src} />
-    <link rel="icon" type="image/webp" sizes="16x16" href={favicon16.src} />
+    <SiteIcons />
 
     <link rel="sitemap" href="/sitemap-index.xml" />
 

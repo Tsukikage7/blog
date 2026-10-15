@@ -1,6 +1,6 @@
 ---
-import { Image } from "astro:assets";
-import { SITE_INFO, AVATAR_IMAGE } from "@lib/config";
+import { SITE_INFO } from "@lib/config";
+import { avatarImage } from "@lib/imageAssets";
 import BaseLayout from "@components/base/BaseLayout.astro";
 import { sortByDate } from "@lib/sortFunctions";
 import { getEntries } from "@lib/contentParser";
@@ -108,12 +108,13 @@ const topics = articleSeries.slice(0, 3).map((item, index) => ({
       </div>
       <aside class="author-note" aria-label="作者名片">
         <div class="portrait-frame">
-          <Image
-            src={AVATAR_IMAGE}
+          <img
+            src={avatarImage(240)}
+            srcset={`${avatarImage(240)} 1x, ${avatarImage(480)} 2x`}
             alt={`${SITE_INFO.AUTHOR}的头像`}
             width={240}
             height={240}
-            format="webp"
+            decoding="async"
             loading="eager"
             class="portrait"
           />

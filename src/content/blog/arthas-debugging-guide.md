@@ -3,7 +3,7 @@ title: 线上调试Arthas的学习使用
 description: 线上调试Arthas的学习使用
 created: 2023-07-06 07:19:51
 updated: 2023-07-06 07:19:51
-image: "/images/blog-covers/arthas-debugging-guide.svg"
+image: "https://assets.tsukikage7.com/blog/cover/arthas-debugging-guide.svg?v=20261010b"
 categories:
   - 开发工具
 tags:

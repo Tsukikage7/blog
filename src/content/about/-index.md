@@ -1,7 +1,7 @@
 ---
 title: 关于我
 description: 关于韩信，也关于这个小小的个人站点。
-image: "@assets/avatar.webp"
+image: "https://assets.tsukikage7.com/blog/site/avatar.webp?v=20261010b"
 imageAlt: 韩信的头像
 draft: false
 
@@ -62,13 +62,13 @@ education:
   - degree: 计算机科学与技术 · 本科
     school: 南京信息工程大学
     badge: 双一流
-    logo: /images/about/nuist.png
+    logo: https://assets.tsukikage7.com/blog/about/nuist.png?v=20261010b
     location: 南京
 
 experience:
   - title: 后台开发工程师 · 网络研发
     company: 优刻得科技股份有限公司
-    logo: /images/about/ucloud.png
+    logo: https://assets.tsukikage7.com/blog/about/ucloud.png?v=20261010b
     period: 2024 - 至今
     location: 上海
     description: 负责 VoyraCloud 的后端架构与核心业务落地，同时参与应用型负载均衡 ALB、全球动态加速 PathX 的后端研发。
@@ -81,7 +81,7 @@ experience:
 
 openSource:
   - name: Apache Dubbo 生态
-    logo: /images/about/dubbo.png
+    logo: https://assets.tsukikage7.com/blog/about/dubbo.png?v=20261010b
     role: Contributor
     period: 2025.12 - 至今
     url: https://github.com/apache/dubbo-go
@@ -105,7 +105,7 @@ openSource:
         status: 已合入
 
   - name: Apache Dubbo Admin
-    logo: /images/about/dubbo.png
+    logo: https://assets.tsukikage7.com/blog/about/dubbo.png?v=20261010b
     role: Contributor
     period: 2026.08 - 至今
     url: https://github.com/apache/dubbo-admin
@@ -116,7 +116,7 @@ openSource:
         status: 评审中
 
   - name: OceanBase PowerContext
-    logo: /images/about/powercontext.svg
+    logo: https://assets.tsukikage7.com/blog/about/powercontext.svg?v=20261010b
     role: RFC 与社区提案
     period: 2026.09 - 至今
     url: https://github.com/oceanbase/powercontext

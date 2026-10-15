@@ -1,7 +1,7 @@
 ---
 import ThemeSwitcher from "@components/base/ThemeSwitcher.astro";
-import { SITE_INFO, AVATAR_IMAGE } from "@lib/config";
-import { Image } from "astro:assets";
+import { SITE_INFO } from "@lib/config";
+import { avatarImage } from "@lib/imageAssets";
 import { getEntries } from "@lib/contentParser";
 import { canonicalPath } from "@lib/site";
 
@@ -79,13 +79,14 @@ const activeItem = menu
       <div class="shrink-0">
         <a href="/" class="flex items-center gap-2">
           {siteLogoUrl && (
-            <Image
-              src={AVATAR_IMAGE}
+            <img
+              src={avatarImage(32)}
+              srcset={`${avatarImage(32)} 1x, ${avatarImage(64)} 2x`}
               alt={siteName}
               class="w-8 h-8 rounded-full"
               width={32}
               height={32}
-              format="webp"
+              decoding="async"
               loading="eager"
             />
           )}
