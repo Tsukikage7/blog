@@ -1,4 +1,4 @@
-import { SITE_INFO } from "./config";
+import { MUSIC_PLAYER_CONFIG, SITE_INFO } from "./config";
 
 export interface Song {
   id: string;
@@ -10,6 +10,7 @@ export interface Song {
 }
 
 interface PlaybackState {
+  server?: string;
   playlistId?: string;
   index: number;
   songId: string | number;
@@ -56,10 +57,12 @@ export function getPlaylist(
   playlistId: string,
   refresh = false,
 ): Promise<Song[]> {
-  const existing = pending.get(playlistId);
+  const server = MUSIC_PLAYER_CONFIG.SERVER;
+  const sourceKey = `${server}_${playlistId}`;
+  const existing = pending.get(sourceKey);
   if (existing) return existing;
   const task = (async () => {
-    const cacheKey = `music_playlist_${playlistId}`;
+    const cacheKey = `music_playlist_${sourceKey}`;
     if (!refresh) {
       try {
         const timestamp = Number(localStorage.getItem(`${cacheKey}_time`));
@@ -75,7 +78,7 @@ export function getPlaylist(
       }
     }
     const response = await fetch(
-      `https://api.i-meto.com/meting/api?server=netease&type=playlist&id=${encodeURIComponent(playlistId)}`,
+      `https://api.i-meto.com/meting/api?server=${server}&type=playlist&id=${encodeURIComponent(playlistId)}`,
       { signal: AbortSignal.timeout(15000) },
     );
     if (!response.ok) throw new Error("歌单服务暂不可用");
@@ -90,8 +93,8 @@ export function getPlaylist(
     }
     return songs;
   })();
-  pending.set(playlistId, task);
-  void task.finally(() => pending.delete(playlistId)).catch(() => {});
+  pending.set(sourceKey, task);
+  void task.finally(() => pending.delete(sourceKey)).catch(() => {});
   return task;
 }
 
@@ -104,6 +107,7 @@ export function savePlayback(
   if (!songs[index]) return;
   try {
     const state: PlaybackState = {
+      server: MUSIC_PLAYER_CONFIG.SERVER,
       playlistId,
       index,
       songId: songs[index].id,
@@ -123,6 +127,7 @@ export function restorePlayback(playlistId: string, songs: Song[]) {
     );
     if (
       !saved ||
+      (saved.server || "netease") !== MUSIC_PLAYER_CONFIG.SERVER ||
       (saved.playlistId && saved.playlistId !== playlistId) ||
       !Number.isFinite(saved.timestamp) ||
       Date.now() - saved.timestamp > 86400000

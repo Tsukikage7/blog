@@ -11,7 +11,6 @@ import {
   FaVolumeUp,
   FaSyncAlt,
   FaList,
-  FaArrowLeft,
   FaMusic,
 } from "react-icons/fa";
 
@@ -30,7 +29,17 @@ const playlistId = MUSIC_PLAYER_CONFIG.PLAYLIST_ID;
         <p>正在听</p>
         <h1>放一首喜欢的歌。</h1>
       </div>
-      <span>音乐馆 · 我的旋律收藏</span>
+      {MUSIC_PLAYER_CONFIG.SERVER === "tencent" ? (
+        <a
+          href={`https://y.qq.com/n/ryqq_v2/playlist/${playlistId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          在 QQ 音乐打开 ↗
+        </a>
+      ) : (
+        <span>音乐馆 · 我的旋律收藏</span>
+      )}
     </header>
     <!-- 背景层 -->
     <div class="music-bg" id="music-bg"></div>
@@ -38,8 +47,18 @@ const playlistId = MUSIC_PLAYER_CONFIG.PLAYLIST_ID;
 
     <!-- 左上角返回按钮 -->
     <a href="/" class="back-btn" aria-label="返回首页">
-      <FaArrowLeft />
-      <span>返回</span>
+      <span class="back-btn-icon" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M19 12H5m7-7-7 7 7 7"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ></path>
+        </svg>
+      </span>
+      <span>返回首页</span>
     </a>
 
     <!-- 主内容区：左歌词 + 右播放列表 -->
@@ -227,9 +246,18 @@ const playlistId = MUSIC_PLAYER_CONFIG.PLAYLIST_ID;
       font-weight: 500;
       line-height: 1.4;
     }
-    .music-masthead > span {
+    .music-masthead > span,
+    .music-masthead > a {
       color: hsl(var(--muted-foreground));
       font-size: 12px;
+    }
+    .music-masthead > a {
+      white-space: nowrap;
+      text-underline-offset: 4px;
+    }
+    .music-masthead > a:hover {
+      color: hsl(var(--primary));
+      text-decoration: underline;
     }
     @media (max-width: 767px) {
       .music-masthead {
@@ -284,28 +312,83 @@ const playlistId = MUSIC_PLAYER_CONFIG.PLAYLIST_ID;
     .back-btn {
       position: fixed;
       top: 1rem;
-      left: 1rem;
+      left: max(32px, calc((100% - var(--site-width)) / 2 + 32px));
       z-index: 60;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.625rem 1rem;
-      background: hsl(var(--card) / 0.9);
+      gap: 0.75rem;
+      min-height: 44px;
+      padding: 5px 16px 5px 5px;
+      background: hsl(var(--card) / 0.85);
       backdrop-filter: blur(12px);
-      border: 1px solid hsl(var(--border));
-      border-radius: 6px;
+      border: 1px solid hsl(var(--primary) / 0.16);
+      border-radius: 999px;
       color: hsl(var(--foreground));
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
       font-weight: 500;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
       text-decoration: none;
       transition:
         background-color 0.2s ease,
-        transform 0.2s ease;
+        border-color 0.2s ease,
+        color 0.2s ease;
+    }
+
+    .back-btn-icon {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: hsl(var(--primary) / 0.09);
+      color: hsl(var(--primary));
+      transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+    }
+
+    .back-btn-icon svg {
+      transition: transform 0.2s ease;
     }
 
     .back-btn:hover {
       background: hsl(var(--card));
-      transform: translateX(-4px);
+      border-color: hsl(var(--primary) / 0.4);
+      color: hsl(var(--primary));
+    }
+
+    .back-btn:hover .back-btn-icon {
+      background: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+    }
+
+    .back-btn:hover .back-btn-icon svg {
+      transform: translateX(-2px);
+    }
+
+    .back-btn:active .back-btn-icon svg {
+      transform: translateX(-3px);
+    }
+
+    @media (max-width: 767px) {
+      .back-btn {
+        left: 22px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .back-btn,
+      .back-btn-icon,
+      .back-btn-icon svg {
+        transition: none;
+      }
+
+      .back-btn:is(:hover, :active) .back-btn-icon svg {
+        transform: none;
+      }
     }
 
     /* 主内容区：左歌词 + 右播放列表 */

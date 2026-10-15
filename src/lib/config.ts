@@ -65,7 +65,9 @@ export const UI_CONFIG = {
 export const MUSIC_PLAYER_CONFIG = {
   ENABLED: true,
 
-  PLAYLIST_ID: "2539599584",
+  SERVER: "tencent" as "netease" | "tencent",
+
+  PLAYLIST_ID: "1070787909",
 
   FIXED: true,
 
