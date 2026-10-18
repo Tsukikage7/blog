@@ -1,5 +1,0 @@
-# Wrangler 本地模拟线上 Worker 时复制为 .dev.vars。
-# 正式部署使用 wrangler secret put，配置见 docs/cms.md。
-CMS_GITHUB_TOKEN=
-CLOUDFLARE_ANALYTICS_TOKEN=
-CLOUDFLARE_BUILD_TOKEN=
