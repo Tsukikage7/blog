@@ -135,7 +135,6 @@ coverage/
 # -------------------- Deployment --------------------
 # Cloudflare Wrangler
 .wrangler/
-.cms/
 .dev.vars*
 .env.production
 
