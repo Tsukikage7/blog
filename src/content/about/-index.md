@@ -104,17 +104,6 @@ openSource:
         url: https://github.com/apache/dubbo-go/pull/3154
         status: 已合入
 
-  - name: Apache Dubbo Admin
-    logo: https://assets.tsukikage7.com/blog/about/dubbo.png?v=20261010b
-    role: Contributor
-    period: 2026.08 - 至今
-    url: https://github.com/apache/dubbo-admin
-    description: 修复服务调试中的大整数精度问题，避免雪花 ID 被 JavaScript 数值解析舍入；补充安全与非安全整数的回归测试。
-    links:
-      - label: 服务调试大整数精度修复 · PR 1527
-        url: https://github.com/apache/dubbo-admin/pull/1527
-        status: 评审中
-
   - name: OceanBase PowerContext
     logo: https://assets.tsukikage7.com/blog/about/powercontext.svg?v=20261010b
     role: RFC 与社区提案

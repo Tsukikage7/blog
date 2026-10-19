@@ -10,6 +10,9 @@ import { FaGithub } from "react-icons/fa";
 import type { IconType } from "react-icons";
 import {
   HiOutlineAcademicCap,
+  HiOutlineArrowDown,
+  HiOutlineArrowUpRight,
+  HiOutlineBookOpen,
   HiOutlineBolt,
   HiOutlineBriefcase,
   HiOutlineChartBar,
@@ -17,6 +20,8 @@ import {
   HiOutlineCodeBracket,
   HiOutlineLightBulb,
   HiOutlineMapPin,
+  HiOutlineMusicalNote,
+  HiOutlinePencilSquare,
   HiOutlineShare,
   HiOutlineWrenchScrewdriver,
 } from "react-icons/hi2";
@@ -47,7 +52,34 @@ const {
   education,
   experience,
   openSource,
+  social,
 } = entry.data;
+const destinations = [
+  {
+    title: "文章",
+    description: "把问题想明白，再写下来。",
+    href: "/blog/",
+    icon: HiOutlineBookOpen,
+  },
+  {
+    title: "笔记",
+    description: "留住零散的发现与灵感。",
+    href: "/notes/",
+    icon: HiOutlineLightBulb,
+  },
+  {
+    title: "创作",
+    description: "故事、散文，还有一些诗。",
+    href: "/writings/",
+    icon: HiOutlinePencilSquare,
+  },
+  {
+    title: "音乐",
+    description: "挑一首歌，慢慢听。",
+    href: "/music/",
+    icon: HiOutlineMusicalNote,
+  },
+];
 const { Content } = await render(entry);
 const imageSrc = image
   ? typeof image === "string"
@@ -59,10 +91,18 @@ const imageSrc = image
 <BaseLayout title={title} description={description} image={imageSrc}>
   <section class="site-container about-page">
     <Breadcrumbs title={title} className="text-xs text-muted-foreground" />
-    <section id="author" class="about-intro" aria-labelledby="about-title">
+    <section
+      id="author"
+      class="about-intro"
+      aria-labelledby="about-title"
+      data-about-reveal
+    >
+      <div class="intro-eyebrow">
+        <span></span> 很高兴，在这里遇见你
+      </div>
       <div class="intro-layout">
         {image && (
-          <div class="shrink-0">
+          <div class="avatar-frame">
             {typeof image === "string" ? (
               <img
                 class="about-avatar"
@@ -90,14 +130,22 @@ const imageSrc = image
           </div>
         )}
         <div class="min-w-0 flex-1">
+          <p class="intro-handle">Tsukikage / 韩信</p>
           <h1 id="about-title" class="about-title">
             {info?.name || title}
           </h1>
           {info?.title && <p class="about-tagline">{info.title}</p>}
           {info?.summary && <p class="about-summary">{info.summary}</p>}
-          <a class="resume-link" href="#resume">
-            查看简历 ↓
-          </a>
+          <div class="intro-actions">
+            <a class="resume-link" href="#resume">
+              了解我的工作 <HiOutlineArrowDown aria-hidden="true" />
+            </a>
+            {social?.email && (
+              <a class="contact-link" href={`mailto:${social.email}`}>
+                写封邮件 <HiOutlineArrowUpRight aria-hidden="true" />
+              </a>
+            )}
+          </div>
           {info?.location && (
             <p class="about-location">
               <HiOutlineMapPin aria-hidden="true" />
@@ -106,23 +154,59 @@ const imageSrc = image
           )}
         </div>
       </div>
+      <div class="intro-footnote" aria-label="兴趣与方向">
+        <span>生活里，读书、听歌、写字。</span>
+        <span>工作中，写代码、解决问题。</span>
+      </div>
     </section>
     <section
       id="personal-introduction"
       class="about-body"
       aria-label="个人介绍"
     >
-      <div class="prose prose-site prose-base max-w-[760px]">
-        <Content />
+      <div class="narrative-card" data-about-reveal>
+        <div class="prose prose-site prose-base max-w-none">
+          <Content />
+        </div>
       </div>
+      <aside class="about-aside" aria-labelledby="explore-title">
+        <div class="explore-heading" data-about-reveal>
+          <span class="section-eyebrow">这个小小的站点</span>
+          <h2 id="explore-title">随处逛逛</h2>
+        </div>
+        <div class="destination-grid">
+          {destinations.map(({ title, description, href, icon: Icon }) => (
+            <a class="destination-card" href={href} data-about-reveal>
+              <span class="destination-icon">
+                <Icon aria-hidden="true" />
+              </span>
+              <HiOutlineArrowUpRight
+                className="destination-arrow"
+                aria-hidden="true"
+              />
+              <h3>{title}</h3>
+              <p>{description}</p>
+            </a>
+          ))}
+        </div>
+        <p class="aside-note" data-about-reveal>
+          不急着赶路，也留一点时间给好奇心。
+        </p>
+      </aside>
     </section>
     <section id="resume" class="about-resume" aria-labelledby="resume-title">
-      <h2
-        id="resume-title"
-        class="section-title text-3xl font-semibold text-foreground"
-      >
-        简历
-      </h2>
+      <div class="resume-heading" data-about-reveal>
+        <div>
+          <p class="section-eyebrow">生活的另一面</p>
+          <h2
+            id="resume-title"
+            class="section-title text-3xl font-semibold text-foreground"
+          >
+            我做的事
+          </h2>
+        </div>
+        <p>一些技术积累，也是一段持续学习的旅程。</p>
+      </div>
       <nav class="about-navigation" aria-label="关于页章节">
         <a href="#skills">专业技能</a>
         <a href="#education">教育背景</a>
@@ -141,7 +225,7 @@ const imageSrc = image
                 const CategoryIcon =
                   iconMap[category.icon || ""] || HiOutlineCodeBracket;
                 return (
-                  <section class="about-panel">
+                  <section class="about-panel" data-about-reveal>
                     <h3 class="skill-category-title mb-3 flex items-center gap-2 border-b border-border/50 pb-3 text-base font-semibold text-foreground">
                       <CategoryIcon className="text-lg text-primary" />
                       {category.name}
@@ -169,7 +253,7 @@ const imageSrc = image
               <HiOutlineAcademicCap className="text-2xl text-primary" />{" "}
               教育背景
             </h2>
-            <section class="about-panel">
+            <section class="about-panel" data-about-reveal>
               {education.map((edu, index) => (
                 <div
                   class={`flex flex-col md:flex-row md:items-center justify-between ${index > 0 ? "mt-4 pt-4 border-t border-border/30" : ""}`}
@@ -230,7 +314,7 @@ const imageSrc = image
             </h2>
             <div class="space-y-3">
               {experience.map((exp) => (
-                <section class="about-panel">
+                <section class="about-panel" data-about-reveal>
                   <div class="flex flex-col md:flex-row md:items-start justify-between mb-3">
                     <div class="flex items-start gap-4">
                       {exp.logo && (
@@ -298,7 +382,7 @@ const imageSrc = image
             </h2>
             <div class="space-y-3">
               {openSource.map((project) => (
-                <section class="about-panel">
+                <section class="about-panel" data-about-reveal>
                   <div class="contribution-heading">
                     <div class="flex min-w-0 items-start gap-4">
                       <a
@@ -396,100 +480,379 @@ const imageSrc = image
   </section>
 </BaseLayout>
 
+<script>
+  function setupAboutMotion() {
+    const page = document.querySelector(".about-page");
+    if (!page || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      return;
+
+    // 默认显示内容，仅在进入视口时播放一次，脚本失败也不会隐藏正文。
+    const animations = new Set<Animation>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries
+          .filter((entry) => entry.isIntersecting)
+          .forEach((entry, index) => {
+            observer.unobserve(entry.target);
+            const animation = entry.target.animate(
+              [
+                { opacity: 0, transform: "translateY(22px)" },
+                { opacity: 1, transform: "translateY(0)" },
+              ],
+              {
+                duration: 620,
+                delay: Math.min(index * 75, 225),
+                easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+                fill: "backwards",
+              },
+            );
+            animations.add(animation);
+            animation.onfinish = () => animations.delete(animation);
+          });
+      },
+      { threshold: 0.08 },
+    );
+
+    page
+      .querySelectorAll("[data-about-reveal]")
+      .forEach((element) => observer.observe(element));
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        observer.disconnect();
+        animations.forEach((animation) => animation.cancel());
+      },
+      { once: true },
+    );
+  }
+
+  document.addEventListener("astro:page-load", setupAboutMotion);
+</script>
+
 <style>
   .about-page {
-    padding-block: 36px 16px;
+    --about-radius: 22px;
+    padding-block: 36px 48px;
   }
   .about-intro {
-    padding-block: 40px 44px;
-    border-bottom: 1px solid hsl(var(--border));
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    margin-top: 28px;
+    padding: clamp(24px, 4vw, 48px);
+    border: 1px solid hsl(var(--primary) / 0.18);
+    border-radius: 28px;
+    background:
+      radial-gradient(
+        ellipse at 95% 10%,
+        hsl(var(--primary) / 0.12),
+        transparent 65%
+      ),
+      hsl(var(--card));
+    box-shadow: 0 16px 48px -32px hsl(var(--foreground) / 0.2);
+  }
+  .about-intro::before {
+    position: absolute;
+    z-index: -1;
+    top: -170px;
+    right: -90px;
+    width: 500px;
+    height: 500px;
+    border: 1px solid hsl(var(--primary) / 0.1);
+    border-radius: 50%;
+    box-shadow:
+      0 0 0 40px hsl(var(--primary) / 0.025),
+      0 0 0 80px hsl(var(--primary) / 0.025);
+    content: "";
+    pointer-events: none;
+  }
+  .intro-eyebrow,
+  .section-eyebrow {
+    color: hsl(var(--muted-foreground));
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+  .intro-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 32px;
+  }
+  .intro-eyebrow span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.09);
   }
   .intro-layout {
     display: flex;
     align-items: center;
-    gap: 40px;
+    gap: 48px;
   }
-  .intro-layout > :first-child {
+  .avatar-frame {
     order: 2;
+    flex-shrink: 0;
+    padding: 9px;
+    border: 1px solid hsl(var(--primary) / 0.2);
+    border-radius: 32px;
+    background: hsl(var(--card) / 0.75);
+    box-shadow: 0 12px 28px -16px hsl(var(--primary) / 0.3);
+    transform: rotate(5deg);
+    transition: transform 350ms ease;
+  }
+  .avatar-frame:hover {
+    transform: rotate(0deg) translateY(-4px);
   }
   .about-avatar {
-    width: 128px;
-    height: 128px;
-    border: 1px solid hsl(var(--border) / 0.5);
-    border-radius: 50%;
+    width: 154px;
+    height: 154px;
+    border-radius: 24px;
     object-fit: cover;
+  }
+  .intro-handle {
+    margin-bottom: 10px;
+    color: hsl(var(--primary));
+    font-size: 12px;
+    letter-spacing: 0.06em;
   }
   .about-title {
     margin-bottom: 12px;
     font-family: var(--font-editorial);
-    font-size: clamp(32px, 4vw, 48px);
+    font-size: clamp(40px, 5vw, 60px);
+    line-height: 1.2;
     font-weight: 600;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.035em;
   }
   .about-tagline {
-    margin-bottom: 12px;
-    font-size: 18px;
-    color: hsl(var(--primary));
+    margin-bottom: 14px;
+    font-family: var(--font-editorial);
+    font-size: clamp(20px, 2.5vw, 26px);
   }
   .about-summary {
-    max-width: 640px;
-    margin-bottom: 16px;
+    max-width: 34em;
     line-height: 1.9;
     color: hsl(var(--muted-foreground));
+    text-wrap: pretty;
+  }
+  .intro-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 24px;
+    margin-block: 24px 18px;
+  }
+  .resume-link,
+  .contact-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 44px;
+    font-size: 13px;
+    font-weight: 500;
+    transition:
+      transform 220ms ease,
+      background-color 220ms ease;
+  }
+  .resume-link {
+    padding: 10px 18px;
+    border-radius: 10px;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+  .resume-link:hover {
+    transform: translateY(-2px);
+    background: hsl(var(--primary) / 0.88);
+  }
+  .contact-link {
+    color: hsl(var(--primary));
+  }
+  .contact-link:hover {
+    transform: translateX(3px);
+  }
+  .resume-link:active,
+  .destination-card:active {
+    transform: translateY(1px);
+  }
+  .intro-actions :global(svg) {
+    width: 16px;
+    height: 16px;
   }
   .about-location {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 14px;
+    gap: 6px;
+    font-size: 12px;
     color: hsl(var(--muted-foreground));
   }
   .about-location :global(svg) {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
+  }
+  .intro-footnote {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid hsl(var(--primary) / 0.12);
+    color: hsl(var(--muted-foreground));
+    font-size: 12px;
   }
   .about-body {
-    padding-block: 36px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;
+    padding-block: 28px 64px;
   }
-  @media (max-width: 767px) {
-    .about-page {
-      padding-top: 24px;
-    }
-    .about-intro,
-    .about-body {
-      padding-block: 28px;
-    }
-    .intro-layout {
-      align-items: flex-start;
-      gap: 20px;
-    }
-    .intro-layout > :first-child {
-      order: 0;
-    }
-    .about-avatar {
-      width: 64px;
-      height: 64px;
-    }
+  .narrative-card {
+    min-width: 0;
+    padding: clamp(24px, 3vw, 36px);
+    border: 1px solid hsl(var(--border) / 0.7);
+    border-radius: var(--about-radius);
+    background: hsl(var(--card));
   }
-  @media (max-width: 480px) {
-    .intro-layout {
-      display: block;
-    }
-    .intro-layout > :first-child {
-      float: right;
-      margin: 0 0 16px 16px;
-    }
+  .narrative-card :global(h2) {
+    margin-top: 1.8em;
+    padding-bottom: 0;
+    border: 0;
+    font-family: var(--font-editorial);
+    font-size: 23px;
+  }
+  .narrative-card :global(h2:first-child) {
+    margin-top: 0;
+  }
+  .narrative-card :global(p) {
+    line-height: 1.95;
+    font-size: 14px;
+    text-wrap: pretty;
+  }
+  .narrative-card :global(p:last-child) {
+    margin-bottom: 0;
+  }
+  .about-aside {
+    padding-top: 14px;
+  }
+  .explore-heading {
+    margin-bottom: 20px;
+    padding-inline: 4px;
+  }
+  .explore-heading h2 {
+    margin-top: 6px;
+    font-family: var(--font-editorial);
+    font-size: 26px;
+  }
+  .destination-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .destination-card {
+    position: relative;
+    min-width: 0;
+    padding: 20px 18px;
+    border: 1px solid hsl(var(--border) / 0.6);
+    border-radius: 16px;
+    background: hsl(var(--card));
+    transition:
+      transform 250ms ease,
+      border-color 250ms ease,
+      box-shadow 250ms ease,
+      background-color 250ms ease;
+  }
+  .destination-card:nth-child(2),
+  .destination-card:nth-child(3) {
+    background: hsl(var(--primary) / 0.045);
+  }
+  .destination-icon {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 24px;
+    border-radius: 10px;
+    background: hsl(var(--primary) / 0.08);
+    color: hsl(var(--primary));
+  }
+  .destination-icon :global(svg) {
+    width: 20px;
+    height: 20px;
+  }
+  .destination-card :global(.destination-arrow) {
+    position: absolute;
+    right: 16px;
+    top: 20px;
+    width: 16px;
+    height: 16px;
+    color: hsl(var(--muted-foreground));
+    transition: transform 250ms ease;
+  }
+  .destination-card:hover :global(.destination-arrow) {
+    transform: translate(2px, -2px);
+  }
+  .destination-card h3 {
+    margin-bottom: 6px;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .destination-card p {
+    font-size: 12px;
+    line-height: 1.8;
+    color: hsl(var(--muted-foreground));
+    text-wrap: pretty;
+  }
+  .aside-note {
+    padding: 20px 4px;
+    font-family: var(--font-editorial);
+    font-size: 13px;
+    color: hsl(var(--muted-foreground));
+  }
+  .resume-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .resume-heading h2 {
+    margin-top: 8px;
+  }
+  .resume-heading > p {
+    font-size: 13px;
+    color: hsl(var(--muted-foreground));
+  }
+  .about-resume,
+  .about-sections > [id] {
+    scroll-margin-top: var(--site-header-offset, 100px);
   }
   .about-navigation {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 28px;
-    padding-block: 18px;
-    border-bottom: 1px solid hsl(var(--border));
-    font-size: 13px;
-    color: hsl(var(--muted-foreground));
+    gap: 8px;
+    margin-top: 24px;
+    padding: 8px;
+    border: 1px solid hsl(var(--border) / 0.5);
+    border-radius: 14px;
+    background: hsl(var(--muted) / 0.45);
   }
-  .about-navigation a:hover {
+  .about-navigation a {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    text-align: center;
+    white-space: nowrap;
+    color: hsl(var(--muted-foreground));
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+  .about-navigation a:hover,
+  .about-navigation a:focus-visible {
+    background: hsl(var(--card));
     color: hsl(var(--primary));
   }
   .about-page :global(a:focus-visible) {
@@ -497,13 +860,34 @@ const imageSrc = image
     outline-offset: 4px;
     border-radius: 4px;
   }
-  .about-sections > [id] {
-    scroll-margin-top: var(--site-header-offset, 100px);
+  .about-sections > div {
+    padding-block: 36px 8px;
   }
   .skills-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px 40px;
+    gap: 18px;
+  }
+  .about-panel {
+    padding: 26px;
+    border: 1px solid hsl(var(--border) / 0.7);
+    border-radius: var(--about-radius);
+    background: hsl(var(--card));
+    transition:
+      transform 250ms ease,
+      border-color 250ms ease,
+      box-shadow 250ms ease;
+  }
+  .about-panel:focus-within {
+    border-color: hsl(var(--primary) / 0.45);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .about-panel:hover,
+    .destination-card:hover {
+      transform: translateY(-4px);
+      border-color: hsl(var(--primary) / 0.35);
+      box-shadow: 0 14px 30px -20px hsl(var(--primary) / 0.25);
+    }
   }
   .technology-list {
     display: flex;
@@ -519,69 +903,16 @@ const imageSrc = image
     margin: 0;
     list-style: none;
   }
-  #experience .about-panel,
-  #open-source .about-panel {
-    padding: 24px;
-    border: 1px solid hsl(var(--border) / 0.65);
-    border-radius: 12px;
-    background: hsl(var(--background) / 0.55);
+  #experience li {
+    line-height: 1.9;
   }
   #open-source .space-y-3 {
     display: grid;
-    gap: 20px;
+    gap: 18px;
   }
   #open-source .space-y-3 > * {
     margin: 0;
   }
-  #experience li {
-    line-height: 1.9;
-  }
-  .contribution-status {
-    padding: 3px 8px;
-    border-radius: 4px;
-    background: hsl(var(--muted) / 0.45);
-  }
-  .contribution-status[data-status="已合入"] {
-    background: hsl(var(--primary) / 0.08);
-  }
-  @media (max-width: 767px) {
-    .skills-grid {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 16px;
-    }
-    .intro-layout {
-      align-items: flex-start;
-      gap: 20px;
-    }
-    .intro-layout > :first-child {
-      order: 0;
-    }
-    .intro-layout :global(img) {
-      width: 64px;
-      height: 64px;
-    }
-    #experience .about-panel,
-    #open-source .about-panel {
-      padding: 18px;
-    }
-  }
-  @media (max-width: 480px) {
-    .intro-layout {
-      display: block;
-    }
-    .intro-layout > :first-child {
-      float: right;
-      margin: 0 0 16px 16px;
-    }
-    .about-navigation {
-      gap: 12px 20px;
-    }
-    #experience .about-panel,
-    #open-source .about-panel {
-      padding: 16px;
-    }
-  }
-
   .organization-logo {
     display: flex;
     align-items: center;
@@ -591,7 +922,7 @@ const imageSrc = image
     height: 48px;
     padding: 7px;
     overflow: hidden;
-    border-radius: 10px;
+    border-radius: 12px;
     background: #fff;
     border: 1px solid hsl(var(--border) / 0.6);
   }
@@ -631,42 +962,22 @@ const imageSrc = image
   .contribution-links a {
     color: hsl(var(--primary));
     text-underline-offset: 4px;
+    overflow-wrap: anywhere;
   }
   .contribution-links a:hover {
     text-decoration: underline;
   }
   .contribution-status {
     flex-shrink: 0;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background: hsl(var(--muted) / 0.45);
     font-size: 11px;
     color: hsl(var(--muted-foreground));
   }
   .contribution-status[data-status="已合入"] {
     color: hsl(var(--primary));
-  }
-
-  .about-resume {
-    padding-block: 36px;
-    border-top: 1px solid hsl(var(--border));
-    scroll-margin-top: var(--site-header-offset, 100px);
-  }
-  .resume-link {
-    display: inline-block;
-    margin-bottom: 16px;
-    color: hsl(var(--primary));
-    font-size: 14px;
-  }
-  .resume-link:hover {
-    text-decoration: underline;
-  }
-  .about-sections > div {
-    padding-block: 36px;
-    border-bottom: 1px solid hsl(var(--border));
-  }
-  .about-sections > :last-child {
-    border-bottom: 0;
-  }
-  .about-panel {
-    padding: 12px 0;
+    background: hsl(var(--primary) / 0.08);
   }
   .section-title {
     font-family: var(--font-editorial);
@@ -676,5 +987,102 @@ const imageSrc = image
     width: 20px;
     height: 20px;
     flex-shrink: 0;
+  }
+  @media (max-width: 900px) {
+    .about-body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .destination-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .about-avatar {
+      width: 128px;
+      height: 128px;
+    }
+    .intro-layout {
+      gap: 28px;
+    }
+  }
+  @media (max-width: 600px) {
+    .about-page {
+      padding-top: 24px;
+    }
+    .about-intro {
+      margin-top: 20px;
+      border-radius: 22px;
+    }
+    .intro-eyebrow {
+      margin-bottom: 24px;
+      font-size: 11px;
+    }
+    .intro-layout {
+      display: block;
+    }
+    .avatar-frame {
+      float: right;
+      margin: 6px 0 16px 16px;
+      padding: 5px;
+      border-radius: 22px;
+    }
+    .about-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 17px;
+    }
+    .about-tagline {
+      clear: both;
+      padding-top: 12px;
+      font-size: 20px;
+    }
+    .about-summary {
+      font-size: 14px;
+    }
+    .intro-footnote {
+      margin-top: 24px;
+      font-size: 11px;
+    }
+    .about-body {
+      gap: 20px;
+      padding-bottom: 44px;
+    }
+    .destination-grid,
+    .skills-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .about-navigation {
+      gap: 4px;
+    }
+    .about-navigation a {
+      flex-basis: calc(50% - 4px);
+      padding: 10px;
+    }
+    .skills-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .about-panel {
+      padding: 20px;
+      border-radius: 18px;
+    }
+    .resume-heading > p {
+      line-height: 1.8;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .about-page *,
+    .about-page :global(svg) {
+      transition: none;
+    }
+    .avatar-frame,
+    .avatar-frame:hover {
+      transform: none;
+    }
+    .about-panel:hover,
+    .destination-card:hover,
+    .resume-link:hover,
+    .contact-link:hover,
+    .destination-card:hover :global(.destination-arrow) {
+      transform: none;
+    }
   }
 </style>
